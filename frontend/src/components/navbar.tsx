@@ -94,7 +94,7 @@ export default function Navbar() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="mr-6 relative h-10 w-10 rounded-full">
+              <Button variant="ghost" className="mr-6 cursor-pointer relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10 border">
                   <AvatarImage src="https://github.com/shadcn.png" alt="Usuario" />
                   <AvatarFallback>JP</AvatarFallback>
@@ -104,11 +104,11 @@ export default function Navbar() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Perfil</DropdownMenuItem>
-              <DropdownMenuItem>Configuración</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">Perfil</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                className="text-destructive focus:bg-destructive cursor-pointer"
                 onClick={handleLogout}
               >
                 Cerrar Sesión
