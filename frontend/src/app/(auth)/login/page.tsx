@@ -30,22 +30,42 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null) // Para mostrar errores de la API
     const router = useRouter();
-
-    const data = fetch('http://localhost:5066/api', {
-    })
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
 
-        //LLAMADA A LA API
-        console.log("Enviando datos:", { email, password });
+        try {
+            const response = await fetch("http://localhost:5066/api/Auth/iniciar",{
+                method: "POST",
+                headers: {
+                    "Content-Type":"application/json",
+                },
+                body: JSON.stringify({email, password}),
+            })
 
-        let found = users.find(u => u.email === email && u.password === password);
-        if (found) {
+            const data = await response.json();
 
+            if (!response.ok) {
+                //Si el backend responde con 401, 400, 500, etc.
+                throw new Error(data.message || "Credenciales incorrectas");
+            }
+
+            // ÉXITO: Guardar el token (si el backend devuelve uno)
+            console.log("Login exitoso:", data)
+            localStorage.setItem("token", data.token) // O como se llame el campo en tu API
+
+            router.push("/dashboard")
+        } catch(err: any){
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
         }
+
+        /*let found = users.find(u => u.email === email && u.password === password);
 
         //Simulamos una comunicación con el backend
         setTimeout(() => {
@@ -58,7 +78,8 @@ export default function LoginPage() {
                 setIsLoading(false);
                 alert("Email y/o Contraseña incorrectos!");
             }
-        }, 1500)
+        }, 1500)*/
+
     }
 
     return (
@@ -79,6 +100,11 @@ export default function LoginPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
+                    {error && (
+                        <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
+                            {error}
+                        </div>
+                    )}
                         <div className="grid gap-2">
                             <Label htmlFor="email">Correo Electrónico</Label>
                             <Input
