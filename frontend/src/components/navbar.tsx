@@ -71,9 +71,12 @@ export default function Navbar() {
                       {modulo.items.map((item) => (
                         <li key={item}>
                           <NavigationMenuLink asChild>
-                            <a className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                            <Link 
+                                href={item === "Productos" ? "/stock/productos" : "#"} 
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                              >
                               <div className="text-sm font-medium leading-none">{item}</div>
-                            </a>
+                            </Link>
                           </NavigationMenuLink>
                         </li>
                       ))}
