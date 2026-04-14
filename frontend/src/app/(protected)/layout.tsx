@@ -8,7 +8,7 @@ export default function ProtectedLayout({
   return (
     <>
       <Navbar />
-      <main className="pt-16"> {/* El padding para que el contenido no quede bajo el navbar */}
+      <main className=""> {/* El padding para que el contenido no quede bajo el navbar */}
         {children}
       </main>
     </>
