@@ -25,6 +25,8 @@ var jwtSettings = builder.Configuration
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICrudService<Producto, int>, ProductoService>();
+builder.Services.AddScoped<ICrudService<Marca, int>, MarcaService>();
+builder.Services.AddScoped<ICrudService<Categoria, int>, CategoriaService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
