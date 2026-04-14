@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -21,7 +22,9 @@ import {
     NavigationMenuTrigger,
     navigationMenuTriggerStyle,
   } from "@/components/ui/navigation-menu"
+  import Cookies from 'js-cookie'
   
+  //Para listar los diferentes módulos en el navbar
   const modulos = [
     { title: "Ventas", items: ["Facturación", "Clientes", "Reportes"] },
     { title: "Compras", items: ["Proveedores", "Órdenes", "Pagos"] },
@@ -31,15 +34,28 @@ import {
   ]
 
 export default function Navbar() {
-  const router = useRouter()
+  const [userName, setUserName] = useState("Usuario");
+  const router = useRouter();
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserName(`${user.firstName} ${user.lastName}`);
+    }
+  }, []);
 
   const handleLogout = () => {
-    // Aquí iría la lógica para limpiar el token
+    //1. Eliminar la cookie del token
+    Cookies.remove("token", { path: '/' }) //Obs: mismo path que al momento de crear la cookie
+    //2. Limpiar datos del usuario en el navegador
+    localStorage.removeItem("user")
+    //localStorage.clear() -> si se quiere borrar todo
+    //3. Redirigir al login
     router.push("/login")
+    //4. Opcional: Forzar un refresco para limpiar estados de React
+    router.refresh()
   }
-
-  // Lista de módulos para los Selects
-  //const modulos = ["Inicio", "Ventas", "Compras", "Banco y Tesorería", "Stock", "RRHH"]
 
   return (
     <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
@@ -92,7 +108,7 @@ export default function Navbar() {
         {/* DERECHA: Perfil y Logout */}
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium leading-none">Juan Pérez</p>
+            <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs text-muted-foreground">Administrador</p>
           </div>
           <DropdownMenu>

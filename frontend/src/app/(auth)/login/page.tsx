@@ -13,18 +13,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-//Para probar
-let users = [
-    {
-        email: "admin@admin.com",
-        password: "test123"
-    },
-    {
-        email: "user@user.com",
-        password: "test123"
-    }
-];
+import Cookies from 'js-cookie'
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -54,11 +43,13 @@ export default function LoginPage() {
                 throw new Error(data.message || "Credenciales incorrectas");
             }
 
-            // ÉXITO: Guardar el token (si el backend devuelve uno)
-            console.log("Login exitoso:", data)
-            localStorage.setItem("token", data.token) // O como se llame el campo en tu API
+            // 1. Guardar el token en una Cookie (expira en 1 día)
+            Cookies.set("token", data.token, { expires: 1, path: '/' });
+            // 2. Guardar los datos del usuario en localStorage (para mostrar el nombre en el Navbar)
+            localStorage.setItem("user", JSON.stringify(data.user));
+            // 3. Redirigimos a /dashboard
+            router.push("/dashboard");
 
-            router.push("/dashboard")
         } catch(err: any){
             setError(err.message);
         } finally {
