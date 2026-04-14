@@ -22,7 +22,6 @@ interface ProductoFormProps {
 }
 
 export function ProductoForm({ productoEditado, onSubmit, onCancel }: ProductoFormProps) {
-  // Estado inicial dinámico
   const [formData, setFormData] = useState<Producto>({
     descripcion: "",
     marca: "",
@@ -100,10 +99,10 @@ export function ProductoForm({ productoEditado, onSubmit, onCancel }: ProductoFo
       </div>
 
       <div className="flex justify-end gap-3 mt-6">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer">
           Cancelar
         </Button>
-        <Button type="submit">
+        <Button type="submit" className="cursor-pointer">
           {productoEditado ? "Actualizar Producto" : "Guardar Producto"}
         </Button>
       </div>

@@ -85,7 +85,7 @@ import {
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold tracking-tight">Listado de Productos</h1>
             <div className="flex justify-between items-center">
-              <Button onClick={handleCrearNuevo} className="gap-2">
+              <Button onClick={handleCrearNuevo} className="cursor-pointer gap-2">
                 <Plus className="size-4" /> Nuevo Producto
               </Button>
             </div>
