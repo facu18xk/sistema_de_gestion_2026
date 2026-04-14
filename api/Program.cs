@@ -2,6 +2,7 @@ using System.Text;
 using api.Data;
 using api.Services;
 using api.Settings;
+using DatabaseHastaCompraVenta.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -14,6 +15,8 @@ builder.Services.Configure<JwtSettings>(
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<DblosAmigosContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var jwtSettings = builder.Configuration
     .GetSection(JwtSettings.SectionName)
@@ -21,6 +24,7 @@ var jwtSettings = builder.Configuration
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICrudService<Producto, int>, ProductoService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -90,6 +94,9 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+
+    var dblosAmigosContext = scope.ServiceProvider.GetRequiredService<DblosAmigosContext>();
+    dblosAmigosContext.Database.Migrate();
 }
 
 if (app.Environment.IsDevelopment())
