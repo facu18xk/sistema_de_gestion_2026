@@ -251,9 +251,9 @@ C:/Users/BAMG/Documents/sistema_de_gestion_2026/api/obj/Debug/net8.0/ref/api.dll
 /home/facu/college/sexto/erp/sistema_de_gestion_2026/api/obj/Debug/net8.0/api.pdb
 /home/facu/college/sexto/erp/sistema_de_gestion_2026/api/obj/Debug/net8.0/api.genruntimeconfig.cache
 /home/facu/college/sexto/erp/sistema_de_gestion_2026/api/obj/Debug/net8.0/ref/api.dll
+C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\api.staticwebassets.endpoints.json
 C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\appsettings.json
-C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\api.staticwebassets.endpoints.json
 C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\api.exe
 C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\api.deps.json
 C:\Users\BAMG\Documents\sistema_de_gestion_2026\api\bin\Debug\net8.0\api.runtimeconfig.json
