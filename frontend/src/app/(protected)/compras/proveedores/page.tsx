@@ -113,6 +113,7 @@ export default function ProveedoresPage() {
                     <TableHead>Nombre Fantasía</TableHead>
                     <TableHead>RUC</TableHead>
                     <TableHead>Dirección</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,9 +124,11 @@ export default function ProveedoresPage() {
                     <TableCell>{proveedor.nombreFantasia}</TableCell>
                     <TableCell>{proveedor.ruc}</TableCell>
                     <TableCell>{proveedor.direccion}</TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => handleEditar(proveedor)}>
-                      <Pencil className="size-4" />
-                    </Button>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditar(proveedor)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                    </TableCell>
                     </TableRow>
                 ))}
               </TableBody>

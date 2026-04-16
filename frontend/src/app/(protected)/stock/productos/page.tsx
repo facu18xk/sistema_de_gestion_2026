@@ -103,6 +103,7 @@ import {
                   <TableHead>Categoría</TableHead>
                   <TableHead className="text-right">Precio Unit.</TableHead>
                   <TableHead className="text-right">Cantidad</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,9 +115,11 @@ import {
                     <TableCell>{producto.categoria}</TableCell>
                     <TableCell className="text-right">${producto.precio.toFixed(2)}</TableCell>
                     <TableCell className="text-right font-semibold">{producto.cantidad}</TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => handleEditar(producto)}>
-                      <Pencil className="size-4" />
-                    </Button>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditar(producto)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
