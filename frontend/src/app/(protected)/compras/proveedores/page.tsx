@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/navbar"
 import { useState } from "react"
-import { Plus, Pencil } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProveedorForm } from "@/components/compras/proveedor-form"
 import {
@@ -113,6 +113,7 @@ export default function ProveedoresPage() {
                     <TableHead>Nombre Fantasía</TableHead>
                     <TableHead>RUC</TableHead>
                     <TableHead>Dirección</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,9 +124,14 @@ export default function ProveedoresPage() {
                     <TableCell>{proveedor.nombreFantasia}</TableCell>
                     <TableCell>{proveedor.ruc}</TableCell>
                     <TableCell>{proveedor.direccion}</TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => handleEditar(proveedor)}>
-                      <Pencil className="size-4" />
-                    </Button>
+                    <TableCell className="text-right">
+                      <Button className="cursor-pointer hover:bg-slate-300" variant="ghost" size="icon" onClick={() => handleEditar(proveedor)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button className="cursor-pointer hover:bg-slate-300" variant="ghost" size="icon">
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
                     </TableRow>
                 ))}
               </TableBody>

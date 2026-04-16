@@ -1,4 +1,5 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Cookies from 'js-cookie'
+import { authAPI } from "@/services/authAPI";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -28,21 +30,7 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const response = await fetch("http://localhost:5066/api/Auth/iniciar",{
-                method: "POST",
-                headers: {
-                    "Content-Type":"application/json",
-                },
-                body: JSON.stringify({email, password}),
-            })
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                //Si el backend responde con 401, 400, 500, etc.
-                throw new Error(data.message || "Credenciales incorrectas");
-            }
-
+            const data = await authAPI.login(email, password); 
             // 1. Guardar el token en una Cookie (expira en 1 día)
             Cookies.set("token", data.token, { expires: 1, path: '/' });
             // 2. Guardar los datos del usuario en localStorage (para mostrar el nombre en el Navbar)
@@ -50,27 +38,11 @@ export default function LoginPage() {
             // 3. Redirigimos a /dashboard
             router.push("/dashboard");
 
-        } catch(err: any){
-            setError(err.message);
-        } finally {
+          } catch (err: any) {
+            setError(err.response?.data?.message || "Error al iniciar sesión");
+          } finally {
             setIsLoading(false);
         }
-
-        /*let found = users.find(u => u.email === email && u.password === password);
-
-        //Simulamos una comunicación con el backend
-        setTimeout(() => {
-            if (found) {
-                setIsLoading(false);
-                alert("¡Login exitoso!");
-                router.push("/dashboard"); //Redirige a la página principal
-            }
-            else {
-                setIsLoading(false);
-                alert("Email y/o Contraseña incorrectos!");
-            }
-        }, 1500)*/
-
     }
 
     return (
