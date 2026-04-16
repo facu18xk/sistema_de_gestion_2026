@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/navbar"
 import { useState } from "react"
-import { Plus, Pencil } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductoForm } from "@/components/stock/producto-form"
 import {
@@ -116,8 +116,11 @@ import {
                     <TableCell className="text-right">${producto.precio.toFixed(2)}</TableCell>
                     <TableCell className="text-right font-semibold">{producto.cantidad}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditar(producto)}>
+                      <Button className="cursor-pointer hover:bg-slate-300" variant="ghost" size="icon" onClick={() => handleEditar(producto)}>
                         <Pencil className="size-4" />
+                      </Button>
+                      <Button className="cursor-pointer hover:bg-slate-300" variant="ghost" size="icon">
+                        <Trash2 className="size-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
