@@ -88,7 +88,9 @@ export default function Navbar() {
                         <li key={item}>
                           <NavigationMenuLink asChild>
                             <Link 
-                                href={item === "Productos" ? "/stock/productos" : item == "Proveedores" ? "/compras/proveedores" : "#"} 
+                                href={item === "Productos" ? "/stock/productos" : item == "Proveedores" ? "/compras/proveedores" :
+                                  item === "Clientes" ? "/ventas/clientes" : "#"
+                                } 
                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                               >
                               <div className="text-sm font-medium leading-none">{item}</div>

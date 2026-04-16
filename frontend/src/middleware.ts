@@ -13,7 +13,8 @@ export function middleware(request: NextRequest) {
   const isProtectedPage = 
     pathname.startsWith('/dashboard') || 
     pathname.startsWith('/stock') ||
-    pathname.startsWith('/compras')
+    pathname.startsWith('/compras') ||
+    pathname.startsWith('/ventas')
 
   // CASO 1: El usuario no tiene token e intenta entrar a una ruta protegida
   if (!token && isProtectedPage) {
@@ -33,6 +34,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/stock/:path*',
+    '/ventas/:path*',
     '/compras/:path*',
     '/login'
   ],
