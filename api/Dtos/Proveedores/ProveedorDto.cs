@@ -66,6 +66,8 @@ public class ProveedorUpsertDto
 
     public int IdDireccion { get; set; }
 
+    public DireccionProveedorUpsertDto? Direccion { get; set; }
+
     public string Nombres { get; set; } = string.Empty;
 
     public string Apellidos { get; set; } = string.Empty;
@@ -73,4 +75,17 @@ public class ProveedorUpsertDto
     public string Correo { get; set; } = string.Empty;
 
     public string Telefono { get; set; } = string.Empty;
+}
+
+public class DireccionProveedorUpsertDto
+{
+    public int IdDireccion { get; set; }
+
+    public string Calle1 { get; set; } = string.Empty;
+
+    public string Calle2 { get; set; } = string.Empty;
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int IdCiudad { get; set; }
 }

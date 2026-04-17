@@ -40,11 +40,31 @@ public class ProveedorService : CrudServiceBase<Proveedor, int>
         if (incomingEntity.IdProveedorNavigation is not null)
         {
             existingEntity.IdProveedorNavigation ??= incomingEntity.IdProveedorNavigation;
-            existingEntity.IdProveedorNavigation.IdDireccion = incomingEntity.IdProveedorNavigation.IdDireccion;
             existingEntity.IdProveedorNavigation.Nombres = incomingEntity.IdProveedorNavigation.Nombres;
             existingEntity.IdProveedorNavigation.Apellidos = incomingEntity.IdProveedorNavigation.Apellidos;
             existingEntity.IdProveedorNavigation.Correo = incomingEntity.IdProveedorNavigation.Correo;
             existingEntity.IdProveedorNavigation.Telefono = incomingEntity.IdProveedorNavigation.Telefono;
+
+            if (incomingEntity.IdProveedorNavigation.IdDireccionNavigation is not null)
+            {
+                existingEntity.IdProveedorNavigation.IdDireccionNavigation ??=
+                    incomingEntity.IdProveedorNavigation.IdDireccionNavigation;
+
+                existingEntity.IdProveedorNavigation.IdDireccionNavigation.Calle1 =
+                    incomingEntity.IdProveedorNavigation.IdDireccionNavigation.Calle1;
+                existingEntity.IdProveedorNavigation.IdDireccionNavigation.Calle2 =
+                    incomingEntity.IdProveedorNavigation.IdDireccionNavigation.Calle2;
+                existingEntity.IdProveedorNavigation.IdDireccionNavigation.Descripcion =
+                    incomingEntity.IdProveedorNavigation.IdDireccionNavigation.Descripcion;
+                existingEntity.IdProveedorNavigation.IdDireccionNavigation.IdCiudad =
+                    incomingEntity.IdProveedorNavigation.IdDireccionNavigation.IdCiudad;
+                existingEntity.IdProveedorNavigation.IdDireccion =
+                    existingEntity.IdProveedorNavigation.IdDireccionNavigation.IdDireccion;
+            }
+            else
+            {
+                existingEntity.IdProveedorNavigation.IdDireccion = incomingEntity.IdProveedorNavigation.IdDireccion;
+            }
         }
     }
 
