@@ -11,14 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductoDTO, ProductoSaveDTO } from "@/types/types";
-
-interface ProductoFormState
-  extends Omit<ProductoSaveDTO, "idMarca" | "idCategoria"> {
-  idMarca: string;
-  idCategoria: string;
-  porcentajeIva: string;
-}
+import { ProductoDTO, ProductoSaveDTO, ProductoFormState } from "@/types/types";
 
 interface ProductoFormProps {
   productoEditado?: ProductoDTO | null;
@@ -55,7 +48,7 @@ export function ProductoForm({
         idCategoria: productoEditado.idCategoria.toString(),
         precioUnitario: productoEditado.precioUnitario,
         esServicio: productoEditado.esServicio,
-        porcentajeIva: String(productoEditado.porcentajeIva * 100 || 10),
+        porcentajeIva: String(productoEditado.porcentajeIva),
       });
     } else {
       // Resetear si es nuevo
@@ -82,12 +75,6 @@ export function ProductoForm({
   ) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
-
-  /*console.log("Datos para selects:", { 
-      marcasDisponibles: marcas, 
-      idSeleccionado: formData.idMarca,
-      tipoId: typeof formData.idMarca 
-    });*/
 
   return (
     <FormContainer

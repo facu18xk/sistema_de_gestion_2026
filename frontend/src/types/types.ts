@@ -57,3 +57,12 @@ export interface Categoria {
     idCategoria: number; 
     nombre: string 
 }
+
+export interface ProductoFormState {
+    descripcion: string;
+    precioUnitario: number;
+    esServicio: boolean;
+    idMarca: string;
+    idCategoria: string;
+    porcentajeIva: string;
+}

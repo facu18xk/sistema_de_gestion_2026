@@ -37,7 +37,6 @@ export default function ProductosPage() {
       setProductos(resProductos)
       setMarcas(resMarcas)
       setCategorias(resCategorias)
-      console.log(resProductos)
     } catch (error) {
       console.error("Error al cargar datos:", error)
     } finally {
