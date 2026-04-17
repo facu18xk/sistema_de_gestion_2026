@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ProductoForm, Producto } from "@/components/stock/producto-form"
+import { ProductoForm } from "@/components/stock/producto-form"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { TableRow, TableCell, TableHead } from "@/components/ui/table"
 
@@ -12,24 +12,72 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 
-const productosIniciales: Producto[] = [
-  { id: "P001", descripcion: "Neumático Deportivo", marca: "McQueen", categoria: "Pista", precio: 120.50, cantidad: 45 },
-  { id: "P002", descripcion: "Llanta Aleación", marca: "Tires Co", categoria: "Accesorios", precio: 85.00, cantidad: 12 },
-]
+import { productosAPI } from "@/services/productosAPI"
+import { marcasAPI } from "@/services/marcasAPI"
+import { categoriasAPI } from "@/services/categoriasAPI"
+import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types"
 
 export default function ProductosPage() {
+  const [productos, setProductos] = useState<ProductoDTO[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [productoAEditar, setProductoAEditar] = useState<Producto | null>(null)
-  const [categorias, setCategorias] = useState<string[]>([])
-  const [marcas, setMarcas] = useState<string[]>([])
+  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null)
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [marcas, setMarcas] = useState<Marca[]>([])
 
-  useEffect(() => {
-    setCategorias(["Pista", "Accesorios", "Mantenimiento", "Urbano"])
-    setMarcas(["McQueen", "Tires Co", "QuickFix", "Michelin", "Bridgestone"])
-  }, [])
+  // 1. CARGA DE DATOS INICIAL
+  const cargarPagina = async () => {
+    setIsLoading(true)
+    try {
+      const [resProductos, resMarcas, resCategorias] = await Promise.all([
+        productosAPI.getAll(),
+        marcasAPI.getAll(),
+        categoriasAPI.getAll()
+      ])
+      setProductos(resProductos)
+      setMarcas(resMarcas)
+      setCategorias(resCategorias)
+      console.log(resProductos)
+    } catch (error) {
+      console.error("Error al cargar datos:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
+  useEffect(() => { cargarPagina() }, [])
+
+  // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
   const handleCrearNuevo = () => { setProductoAEditar(null); setIsSheetOpen(true); }
-  const handleEditar = (p: Producto) => { setProductoAEditar(p); setIsSheetOpen(true); }
+  
+  const handleEditar = (p: ProductoDTO) => { setProductoAEditar(p); setIsSheetOpen(true); }
+
+  const handleEliminar = async (id: number) => {
+    if (confirm("¿Estás seguro de eliminar este producto?")) {
+      try {
+        await productosAPI.delete(id)
+        await cargarPagina() // Refrescar lista
+      } catch (error) {
+        alert("Error al eliminar")
+      }
+    }
+  }
+
+  const handleFormSubmit = async (data: ProductoSaveDTO) => {
+    try {
+      if (productoAEditar) {
+        //console.log(data);
+        await productosAPI.update(productoAEditar.idProducto, data)
+      } else {
+        //console.log(data);
+        await productosAPI.create(data)
+      }
+      setIsSheetOpen(false)
+      cargarPagina() // Refrescar la tabla
+    } catch (error) {
+      console.error("Error al guardar:", error)
+    }
+  }
 
   return (
     <div>
@@ -38,39 +86,43 @@ export default function ProductosPage() {
         <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]} />
         <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
 
-        <DataTable
-          caption="Lista actualizada de productos en inventario."
-          headerRow={
-            <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead>Marca</TableHead>
-              <TableHead>Categoría</TableHead>
-              <TableHead className="text-right">Precio Unit.</TableHead>
-              <TableHead className="text-right">Cantidad</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          }
-        >
-          {productosIniciales.map((p) => (
-            <TableRow key={p.id}>
-              <TableCell className="font-medium">{p.id}</TableCell>
-              <TableCell>{p.descripcion}</TableCell>
-              <TableCell>{p.marca}</TableCell>
-              <TableCell>{p.categoria}</TableCell>
-              <TableCell className="text-right">${p.precio.toFixed(2)}</TableCell>
-              <TableCell className="text-right font-semibold">{p.cantidad}</TableCell>
-              <TableCell className="text-right space-x-1">
-                <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
-                  <Pencil className="size-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="cursor-pointer">
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </DataTable>
+        {isLoading ? (
+          <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>
+        ) : (
+          <DataTable
+            caption="Lista actualizada de productos en inventario."
+            headerRow={
+              <TableRow>
+                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead className="text-right">Precio Unit.</TableHead>
+                <TableHead className="text-right">Stock Total</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            }
+          >
+            {productos.map((p) => (
+              <TableRow key={p.idProducto}>
+                <TableCell className="font-medium">{p.idProducto}</TableCell>
+                <TableCell>{p.descripcion}</TableCell>
+                <TableCell>{p.marca}</TableCell>
+                <TableCell>{p.categoria}</TableCell>
+                <TableCell className="text-right">${p.precioUnitario.toFixed(2)}</TableCell>
+                <TableCell className="text-right font-semibold">{p.cantidadTotal}</TableCell>
+                <TableCell className="text-right space-x-1">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleEliminar(p.idProducto)} className="cursor-pointer">
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </DataTable>
+        )}
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetContent className="px-6 sm:max-w-[540px]">
@@ -79,10 +131,11 @@ export default function ProductosPage() {
               <SheetDescription>Completa la información del inventario.</SheetDescription>
             </SheetHeader>
             <ProductoForm
-              key={productoAEditar?.id || "nuevo"}
+              key={productoAEditar?.idProducto ?? "nuevo"}
               productoEditado={productoAEditar}
-              categorias={categorias} marcas={marcas}
-              onSubmit={() => setIsSheetOpen(false)}
+              categorias={categorias} 
+              marcas={marcas}
+              onSubmit={handleFormSubmit}
               onCancel={() => setIsSheetOpen(false)}
             />
           </SheetContent>
