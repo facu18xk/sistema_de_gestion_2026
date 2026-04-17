@@ -16,17 +16,47 @@ public class ProveedoresController : CrudControllerBase<Proveedor, ProveedorDto,
 
     protected override ProveedorDto ToReadDto(Proveedor entity)
     {
+        var persona = entity.IdProveedorNavigation;
+        var direccion = persona?.IdDireccionNavigation;
+        var ciudad = direccion?.IdCiudadNavigation;
+        var pais = ciudad?.IdPaisNavigation;
+
         return new ProveedorDto
         {
             IdProveedor = entity.IdProveedor,
             Ruc = entity.Ruc,
             RazonSocial = entity.RazonSocial,
             NombreFantasia = entity.NombreFantasia,
-            IdDireccion = entity.IdProveedorNavigation?.IdDireccion ?? 0,
-            Nombres = entity.IdProveedorNavigation?.Nombres ?? string.Empty,
-            Apellidos = entity.IdProveedorNavigation?.Apellidos ?? string.Empty,
-            Correo = entity.IdProveedorNavigation?.Correo ?? string.Empty,
-            Telefono = entity.IdProveedorNavigation?.Telefono ?? string.Empty
+            IdDireccion = persona?.IdDireccion ?? 0,
+            Direccion = direccion is null
+                ? null
+                : new DireccionProveedorDto
+                {
+                    IdDireccion = direccion.IdDireccion,
+                    Calle1 = direccion.Calle1,
+                    Calle2 = direccion.Calle2,
+                    Descripcion = direccion.Descripcion,
+                    IdCiudad = direccion.IdCiudad,
+                    Ciudad = ciudad is null
+                        ? null
+                        : new CiudadProveedorDto
+                        {
+                            IdCiudad = ciudad.IdCiudad,
+                            Nombre = ciudad.Nombre,
+                            IdPais = ciudad.IdPais,
+                            Pais = pais is null
+                                ? null
+                                : new PaisProveedorDto
+                                {
+                                    IdPais = pais.IdPais,
+                                    Nombre = pais.Nombre
+                                }
+                        }
+                },
+            Nombres = persona?.Nombres ?? string.Empty,
+            Apellidos = persona?.Apellidos ?? string.Empty,
+            Correo = persona?.Correo ?? string.Empty,
+            Telefono = persona?.Telefono ?? string.Empty
         };
     }
 

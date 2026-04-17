@@ -82,6 +82,9 @@ public class ProveedorService : CrudServiceBase<Proveedor, int>
     private IQueryable<Proveedor> BuildQuery()
     {
         return _context.Proveedores
-            .Include(proveedor => proveedor.IdProveedorNavigation);
+            .Include(proveedor => proveedor.IdProveedorNavigation)
+                .ThenInclude(persona => persona.IdDireccionNavigation)
+                    .ThenInclude(direccion => direccion.IdCiudadNavigation)
+                        .ThenInclude(ciudad => ciudad.IdPaisNavigation);
     }
 }
