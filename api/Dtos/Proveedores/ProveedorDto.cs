@@ -34,26 +34,7 @@ public class DireccionProveedorDto
     public string Descripcion { get; set; } = string.Empty;
 
     public int IdCiudad { get; set; }
-
-    public CiudadProveedorDto? Ciudad { get; set; }
-}
-
-public class CiudadProveedorDto
-{
-    public int IdCiudad { get; set; }
-
-    public string Nombre { get; set; } = string.Empty;
-
     public int IdPais { get; set; }
-
-    public PaisProveedorDto? Pais { get; set; }
-}
-
-public class PaisProveedorDto
-{
-    public int IdPais { get; set; }
-
-    public string Nombre { get; set; } = string.Empty;
 }
 
 public class ProveedorUpsertDto
