@@ -19,7 +19,6 @@ public class ProveedoresController : CrudControllerBase<Proveedor, ProveedorDto,
         var persona = entity.IdProveedorNavigation;
         var direccion = persona?.IdDireccionNavigation;
         var ciudad = direccion?.IdCiudadNavigation;
-        var pais = ciudad?.IdPaisNavigation;
 
         return new ProveedorDto
         {
@@ -37,21 +36,7 @@ public class ProveedoresController : CrudControllerBase<Proveedor, ProveedorDto,
                     Calle2 = direccion.Calle2,
                     Descripcion = direccion.Descripcion,
                     IdCiudad = direccion.IdCiudad,
-                    Ciudad = ciudad is null
-                        ? null
-                        : new CiudadProveedorDto
-                        {
-                            IdCiudad = ciudad.IdCiudad,
-                            Nombre = ciudad.Nombre,
-                            IdPais = ciudad.IdPais,
-                            Pais = pais is null
-                                ? null
-                                : new PaisProveedorDto
-                                {
-                                    IdPais = pais.IdPais,
-                                    Nombre = pais.Nombre
-                                }
-                        }
+                    IdPais = ciudad?.IdPais ?? 0
                 },
             Nombres = persona?.Nombres ?? string.Empty,
             Apellidos = persona?.Apellidos ?? string.Empty,
