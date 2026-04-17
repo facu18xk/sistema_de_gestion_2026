@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "/0xeeuLaiNo=",
+  "dgSpecHash": "soNi/JiIdpgHbgRQZyXlZKTD1I3Rm6XlusXVpgHaIIuYg1NScwl0m1N1LwAjFvyeWxb4hRkhbnshWh2cE3wj1w==",
   "success": true,
   "projectFilePath": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/api.csproj",
   "expectedPackageFiles": [
@@ -62,8 +62,7 @@
     "/home/facu/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "/home/facu/.nuget/packages/system.text.encoding.codepages/6.0.0/system.text.encoding.codepages.6.0.0.nupkg.sha512",
     "/home/facu/.nuget/packages/system.threading.channels/6.0.0/system.threading.channels.6.0.0.nupkg.sha512",
-    "/home/facu/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.25/microsoft.aspnetcore.app.ref.8.0.25.nupkg.sha512",
-    "/home/facu/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.25/microsoft.netcore.app.host.linux-x64.8.0.25.nupkg.sha512"
+    "/home/facu/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.25/microsoft.aspnetcore.app.ref.8.0.25.nupkg.sha512"
   ],
   "logs": []
 }
