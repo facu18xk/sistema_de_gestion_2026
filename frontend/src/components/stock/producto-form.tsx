@@ -1,12 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { FormContainer } from "@/components/FormContainer"
+import { FieldWrapper } from "@/components/FieldWrapper"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-// Definimos la estructura del producto para TypeScript
-interface Producto {
+export interface Producto {
   id?: string
   descripcion: string
   marca: string
@@ -16,12 +22,20 @@ interface Producto {
 }
 
 interface ProductoFormProps {
-  productoEditado?: Producto | null // Si viene un producto, es modo edición
+  productoEditado?: Producto | null
+  categorias: string[]
+  marcas: string[]
   onSubmit: (data: Producto) => void
   onCancel: () => void
 }
 
-export function ProductoForm({ productoEditado, onSubmit, onCancel }: ProductoFormProps) {
+export function ProductoForm({
+  productoEditado,
+  categorias,
+  marcas,
+  onSubmit,
+  onCancel
+}: ProductoFormProps) {
   const [formData, setFormData] = useState<Producto>({
     descripcion: "",
     marca: "",
@@ -30,82 +44,105 @@ export function ProductoForm({ productoEditado, onSubmit, onCancel }: ProductoFo
     cantidad: 0,
   })
 
-  // Si productoEditado cambia (porque abrimos uno para editar), actualizamos el formulario
   useEffect(() => {
     if (productoEditado) {
-      setFormData(productoEditado)
+      setFormData({
+        ...productoEditado,
+        marca: productoEditado.marca || "",
+        categoria: productoEditado.categoria || "",
+      })
+    } else {
+      setFormData({
+        descripcion: "",
+        marca: "",
+        categoria: "",
+        precio: 0,
+        cantidad: 0,
+      })
     }
   }, [productoEditado])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
+  const updateField = (id: keyof Producto, value: any) => {
+    setFormData((prev) => ({ ...prev, [id]: value }))
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-      <div className="grid gap-2">
-        <Label htmlFor="descripcion">Descripción</Label>
-        <Input 
-          id="descripcion" 
-          value={formData.descripcion}
-          onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
-          placeholder="Ej: Neumático Radial 17" 
-          required 
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="marca">Marca</Label>
-          <Input 
-            id="marca" 
-            value={formData.marca}
-            onChange={(e) => setFormData({...formData, marca: e.target.value})}
-            placeholder="McQueen" 
+    <FormContainer
+      onSubmit={(e) => { e.preventDefault(); onSubmit(formData) }}
+      onCancel={onCancel}
+      isEditing={!!productoEditado}
+      submitText={{ save: "Guardar Producto", update: "Actualizar Producto" }}
+    >
+      <div className="grid gap-4">
+        <FieldWrapper id="descripcion" label="Descripción">
+          <Input
+            id="descripcion"
+            value={formData.descripcion}
+            onChange={(e) => updateField("descripcion", e.target.value)}
+            placeholder="Ej: Neumático Radial 17"
+            required
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="categoria">Categoría</Label>
-          <Input 
-            id="categoria" 
-            value={formData.categoria}
-            onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-            placeholder="Pista" 
-          />
-        </div>
-      </div>
+        </FieldWrapper>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="precio">Precio Unitario</Label>
-          <Input 
-            id="precio" 
-            type="number" 
-            step="0.01"
-            value={formData.precio}
-            onChange={(e) => setFormData({...formData, precio: parseFloat(e.target.value)})}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="cantidad">Stock</Label>
-          <Input 
-            id="cantidad" 
-            type="number" 
-            value={formData.cantidad}
-            onChange={(e) => setFormData({...formData, cantidad: parseInt(e.target.value)})}
-          />
-        </div>
-      </div>
+        <div className="grid grid-cols-2 gap-4">
+          {/* MARCA */}
+          <FieldWrapper id="marca" label="Marca">
+            <Select
+              // Si el value no existe en la lista de marcas, mostrará el placeholder
+              value={formData.marca}
+              onValueChange={(value) => updateField("marca", value)}
+            >
+              <SelectTrigger id="marca">
+                <SelectValue placeholder="Seleccionar marca" />
+              </SelectTrigger>
+              <SelectContent>
+                {marcas.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldWrapper>
 
-      <div className="flex justify-end gap-3 mt-6">
-        <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer">
-          Cancelar
-        </Button>
-        <Button type="submit" className="cursor-pointer">
-          {productoEditado ? "Actualizar Producto" : "Guardar Producto"}
-        </Button>
+          {/* CATEGORÍA */}
+          <FieldWrapper id="categoria" label="Categoría">
+            <Select
+              value={formData.categoria}
+              onValueChange={(value) => updateField("categoria", value)}
+            >
+              <SelectTrigger id="categoria">
+                <SelectValue placeholder="Seleccionar categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {categorias.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldWrapper>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FieldWrapper id="precio" label="Precio Unitario">
+            <Input
+              type="number"
+              step="0.01"
+              value={formData.precio}
+              onChange={(e) => updateField("precio", parseFloat(e.target.value) || 0)}
+            />
+          </FieldWrapper>
+          <FieldWrapper id="cantidad" label="Stock">
+            <Input
+              type="number"
+              value={formData.cantidad}
+              onChange={(e) => updateField("cantidad", parseInt(e.target.value) || 0)}
+            />
+          </FieldWrapper>
+        </div>
       </div>
-    </form>
+    </FormContainer>
   )
 }

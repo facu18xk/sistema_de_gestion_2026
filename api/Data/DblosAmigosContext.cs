@@ -222,7 +222,7 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdOrdenCompra).HasColumnName("Id_Orden_Compra");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
             entity.Property(e => e.NroComprobante)
@@ -287,9 +287,9 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.FechaPago)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("Fecha_Pago");
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdMedioPagoCompra).HasColumnName("Id_Medio_Pago_Compra");
@@ -383,7 +383,7 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Notas_Creditos_Compras");
 
             entity.Property(e => e.IdNotaCreditoCompra).HasColumnName("Id_Nota_Credito_Compra");
-            entity.Property(e => e.FechaEmision).HasColumnType("datetime");
+            entity.Property(e => e.FechaEmision).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdFacturaCompra).HasColumnName("Id_Factura_Compra");
             entity.Property(e => e.IdNotaDevolucionCompra).HasColumnName("Id_Nota_Devolucion_Compra");
             entity.Property(e => e.Motivo)
@@ -438,7 +438,7 @@ public partial class DblosAmigosContext : DbContext
 
             entity.Property(e => e.IdNotaCreditoVenta).HasColumnName("Id_Nota_Credito_Venta");
             entity.Property(e => e.FechaEmision)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("Fecha_Emision");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
             entity.Property(e => e.IdNotaDevolucionVenta).HasColumnName("Id_Nota_Devolucion_Venta");
@@ -496,7 +496,7 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Notas_Devoluciones_Compras");
 
             entity.Property(e => e.IdNotaDevolucionCompra).HasColumnName("Id_Nota_Devolucion_Compra");
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdFacturaCompra).HasColumnName("Id_Factura_Compra");
             entity.Property(e => e.Motivo)
                 .HasMaxLength(100)
@@ -540,7 +540,7 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Notas_Devoluciones_Ventas");
 
             entity.Property(e => e.IdNotaDevolucionVenta).HasColumnName("Id_Nota_Devolucion_Venta");
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
             entity.Property(e => e.Motivo)
                 .HasMaxLength(100)
@@ -587,7 +587,7 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
@@ -661,7 +661,7 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
 
@@ -708,7 +708,7 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPresupuesto).HasColumnName("Id_Presupuesto");
@@ -786,7 +786,7 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Pedidos_Compras");
 
             entity.Property(e => e.IdPedidoCompra).HasColumnName("Id_Pedido_Compra");
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.NumeroPedido).HasColumnName("Numero_Pedido");
 
@@ -830,7 +830,7 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Pedidos_Cotizaciones");
 
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPedidoCompra).HasColumnName("Id_Pedido_Compra");
             entity.Property(e => e.NumeroPedido).HasColumnName("Numero_Pedido");
@@ -909,9 +909,9 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
             entity.Property(e => e.FechaVencimiento)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("Fecha_Vencimiento");
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
