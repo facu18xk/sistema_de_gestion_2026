@@ -1,88 +1,38 @@
 using api.Dtos.Categorias;
 using api.Services;
-using DatabaseHastaCompraVenta.Models;
+using api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CategoriasController : ControllerBase
+public class CategoriasController : CrudControllerBase<Categoria, CategoriaDto, CategoriaUpsertDto, int>
 {
-    private readonly ICrudService<Categoria, int> _categoriaService;
-
     public CategoriasController(ICrudService<Categoria, int> categoriaService)
+        : base(categoriaService)
     {
-        _categoriaService = categoriaService;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoriaDto>>> GetAll()
-    {
-        var categorias = await _categoriaService.GetAllAsync();
-        return Ok(categorias.Select(MapToDto));
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<CategoriaDto>> GetById(int id)
-    {
-        var categoria = await _categoriaService.GetByIdAsync(id);
-        if (categoria is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(MapToDto(categoria));
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<CategoriaDto>> Create(CategoriaUpsertDto categoriaDto)
-    {
-        var createdCategoria = await _categoriaService.CreateAsync(MapToEntity(categoriaDto));
-        return CreatedAtAction(nameof(GetById), new { id = createdCategoria.IdCategoria }, MapToDto(createdCategoria));
-    }
-
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<CategoriaDto>> Update(int id, CategoriaUpsertDto categoriaDto)
-    {
-        try
-        {
-            var updatedCategoria = await _categoriaService.UpdateAsync(id, MapToEntity(categoriaDto));
-            return Ok(MapToDto(updatedCategoria));
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-    }
-
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var categoria = await _categoriaService.GetByIdAsync(id);
-        if (categoria is null)
-        {
-            return NotFound();
-        }
-
-        await _categoriaService.DeleteAsync(id);
-        return NoContent();
-    }
-
-    private static CategoriaDto MapToDto(Categoria categoria)
+    protected override CategoriaDto ToReadDto(Categoria entity)
     {
         return new CategoriaDto
         {
-            IdCategoria = categoria.IdCategoria,
-            Nombre = categoria.Nombre
+            IdCategoria = entity.IdCategoria,
+            Nombre = entity.Nombre
         };
     }
 
-    private static Categoria MapToEntity(CategoriaUpsertDto categoriaDto)
+    protected override Categoria ToEntity(CategoriaUpsertDto dto)
     {
         return new Categoria
         {
-            Nombre = categoriaDto.Nombre
+            Nombre = dto.Nombre
         };
+    }
+
+    protected override int GetId(Categoria entity)
+    {
+        return entity.IdCategoria;
     }
 }

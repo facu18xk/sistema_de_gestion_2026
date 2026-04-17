@@ -1,4 +1,4 @@
-using DatabaseHastaCompraVenta.Models;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
