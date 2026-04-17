@@ -4,6 +4,13 @@ import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { FormContainer } from "@/components/FormContainer"
 import { FieldWrapper } from "@/components/FieldWrapper"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export interface Empleado {
   id?: string
@@ -17,12 +24,14 @@ export interface Empleado {
 
 interface EmpleadoFormProps {
   empleadoEditado?: Empleado | null
+  cargos: string[]
   onSubmit: (data: Empleado) => void
   onCancel: () => void
 }
 
 export function EmpleadoForm({
   empleadoEditado,
+  cargos,
   onSubmit,
   onCancel
 }: EmpleadoFormProps) {
@@ -37,7 +46,10 @@ export function EmpleadoForm({
 
   useEffect(() => {
     if (empleadoEditado) {
-      setFormData(empleadoEditado)
+      setFormData({
+        ...empleadoEditado,
+        cargo: empleadoEditado.cargo ?? ""
+      })
     } else {
       setFormData({
         nombre: "", apellido: "", ciRuc: "", fechaIngreso: "", salario: "", cargo: "",
@@ -111,13 +123,21 @@ export function EmpleadoForm({
         </FieldWrapper>
 
         <FieldWrapper id="cargo" label="Cargo">
-          <Input
-            id="cargo"
-            value={formData.cargo}
-            onChange={(e) => updateField("cargo", e.target.value)}
-            placeholder="Ej: Vendedor"
-            required
-          />
+          <Select
+            value={formData.cargo || undefined}
+            onValueChange={(value) => updateField("cargo", value)}
+          >
+            <SelectTrigger id="cargo">
+              <SelectValue placeholder="Elegir cargo" />
+            </SelectTrigger>
+            <SelectContent>
+              {cargos.map((cargo) => (
+                <SelectItem key={cargo} value={cargo}>
+                  {cargo}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FieldWrapper>
       </div>
     </FormContainer>

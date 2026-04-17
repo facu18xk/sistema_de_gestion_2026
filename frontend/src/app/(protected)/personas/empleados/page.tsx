@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -38,6 +38,14 @@ const empleadosIniciales: Empleado[] = [
 export default function EmpleadosPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [empleadoAEditar, setEmpleadoAEditar] = useState<Empleado | null>(null)
+
+  // Lista de cargos que se inyecta al formulario
+  const [listaCargos, setListaCargos] = useState<string[]>([])
+
+  useEffect(() => {
+    // Simulación de carga de datos iniciales
+    setListaCargos(["Vendedor", "Administrador", "Cajero", "Mecánico", "Depósito"])
+  }, [])
 
   const handleCrearNuevo = () => {
     setEmpleadoAEditar(null)
@@ -123,6 +131,7 @@ export default function EmpleadosPage() {
             <EmpleadoForm
               key={empleadoAEditar?.id || "nuevo-empleado"}
               empleadoEditado={empleadoAEditar}
+              cargos={listaCargos}
               onSubmit={handleFormSubmit}
               onCancel={() => setIsSheetOpen(false)}
             />
