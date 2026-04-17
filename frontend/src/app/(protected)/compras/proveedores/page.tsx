@@ -1,163 +1,103 @@
 "use client"
 
+import React, { useState } from "react"
 import Navbar from "@/components/navbar"
-import { useState } from "react"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ProveedorForm } from "@/components/compras/proveedor-form"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { ProveedorForm, Proveedor } from "@/components/compras/proveedor-form"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { TableRow, TableCell, TableHead } from "@/components/ui/table"
 
-// Datos de Proveedores
-const proveedores = [
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
+import { PageHeader } from "@/components/shared/page-header"
+import { DataTable } from "@/components/shared/data-table"
+
+const proveedoresIniciales: Proveedor[] = [
   {
     id: "PR001",
-    razonSocial: "Tires S.A.",
-    nombreFantasia: "Tires",
-    ruc: "80012345-6",
-    direccion: "Asunción",
-  },
-  {
-    id: "PR002",
-    razonSocial: "Kempf S.R.L.",
-    nombreFantasia: "Kempf Tires",
-    ruc: "80067891-8",
-    direccion: "Hohenau",
+    nombreFantasia: "McQueen Tires",
+    razonSocial: "Distribuidora McQueen S.A.",
+    ruc: "80011223-4",
+    direccion: "Fernando de la Mora",
+    telefono: "021 123 456",
+    email: "info@mcqueen.com",
+    contactoNombre: "Sr. Rayo"
   },
 ]
 
 export default function ProveedoresPage() {
-    const [isSheetOpen, setIsSheetOpen] = useState(false)
-    const [proveedorAEditar, setProveedorAEditar] = useState<any>(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [proveedorAEditar, setProveedorAEditar] = useState<Proveedor | null>(null)
 
-    const handleCrearNuevo = () => {
-      setProveedorAEditar(null) // Limpiamos para que sea "Crear"
-      setIsSheetOpen(true)
-    }
-
-    const handleEditar = (producto: any) => {
-      setProveedorAEditar(producto) // Pasamos los datos para que sea "Editar"
-      setIsSheetOpen(true)
-    }
-
-    const handleFormSubmit = (data: any) => {
-      if (proveedorAEditar) {
-        console.log("Actualizando en DB:", data)
-      } else {
-        console.log("Creando en DB:", data)
-      }
-      setIsSheetOpen(false)
-    }
+  const handleCrearNuevo = () => { setProveedorAEditar(null); setIsSheetOpen(true); }
+  const handleEditar = (p: Proveedor) => { setProveedorAEditar(p); setIsSheetOpen(true); }
 
   return (
     <div>
-        <Navbar />
-        <div className="container mx-auto p-6 space-y-6">
-          
-          {/* BREADCRUMB */}
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">Inicio</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="#">Compras</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Proveedores</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-    
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold tracking-tight">Listado de Proveedores</h1>
-            <div className="flex justify-between items-center">
-              <Button onClick={handleCrearNuevo} className="gap-2 cursor-pointer">
-                <Plus className="size-4" /> Nuevo Proveedor
-              </Button>
-            </div>
-          </div>
-    
-          {/* TABLA DE PRODUCTOS */}
-          <div className="rounded-md border bg-white">
-            <Table>
-              <TableCaption>Lista actualizada de proveedores.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[100px]">ID</TableHead>
-                    <TableHead>Razón Social</TableHead>
-                    <TableHead>Nombre Fantasía</TableHead>
-                    <TableHead>RUC</TableHead>
-                    <TableHead>Dirección</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {proveedores.map((proveedor) => (
-                    <TableRow key={proveedor.id}>
-                    <TableCell className="font-medium">{proveedor.id}</TableCell>
-                    <TableCell className="font-semibold">{proveedor.razonSocial}</TableCell>
-                    <TableCell>{proveedor.nombreFantasia}</TableCell>
-                    <TableCell>{proveedor.ruc}</TableCell>
-                    <TableCell>{proveedor.direccion}</TableCell>
-                    <TableCell className="text-right">
-                      <Button className="cursor-pointer hover:bg-slate-300" variant="ghost" size="icon" onClick={() => handleEditar(proveedor)}>
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button className="cursor-pointer hover:bg-slate-300" variant="ghost" size="icon">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </TableCell>
-                    </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+      <Navbar />
+      <div className="container mx-auto p-6 space-y-6">
+        <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Proveedores" }]} />
+        <PageHeader title="Listado de Proveedores" buttonLabel="Nuevo Proveedor" onButtonClick={handleCrearNuevo} />
 
-          {/* EL ÚNICO SHEET PARA AMBAS ACCIONES */}
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetContent className="px-6 sm:max-w-[540px]">
-              <SheetHeader>
-                <SheetTitle>
-                  {proveedorAEditar ? "Editar Proveedor" : "Nuevo Proveedor"}
-                </SheetTitle>
-                <SheetDescription>
-                  Completa la información del inventario.
-                </SheetDescription>
-              </SheetHeader>
-              
-              <ProveedorForm 
-                proveedorEditado={proveedorAEditar} 
-                onSubmit={handleFormSubmit}
-                onCancel={() => setIsSheetOpen(false)}
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
+        <DataTable
+          caption="Lista de proveedores y distribuidores."
+          headerRow={
+            <TableRow>
+              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Nombre Fantasía</TableHead>
+              <TableHead>Razón Social</TableHead>
+              <TableHead>RUC</TableHead>
+              <TableHead>Contacto</TableHead>
+              <TableHead>Dirección / Tel.</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          }
+        >
+          {proveedoresIniciales.map((p) => (
+            <TableRow key={p.id}>
+              <TableCell className="font-medium text-slate-500">{p.id}</TableCell>
+              <TableCell className="font-bold text-slate-900">{p.nombreFantasia}</TableCell>
+              <TableCell>{p.razonSocial}</TableCell>
+              <TableCell className="font-mono text-sm">{p.ruc}</TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium">{p.contactoNombre}</span>
+                  <span className="text-xs text-muted-foreground">{p.email}</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-sm">
+                <div className="flex flex-col">
+                  <span>{p.direccion}</span>
+                  <span className="text-xs text-slate-500">{p.telefono}</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-right space-x-1">
+                <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
+                  <Pencil className="size-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="cursor-pointer text-destructive hover:bg-destructive/10">
+                  <Trash2 className="size-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </DataTable>
+
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetContent className="px-6 sm:max-w-[540px]">
+            <SheetHeader>
+              <SheetTitle>{proveedorAEditar ? "Editar Proveedor" : "Nuevo Proveedor"}</SheetTitle>
+              <SheetDescription>Información comercial y fiscal del proveedor.</SheetDescription>
+            </SheetHeader>
+            <ProveedorForm
+              key={proveedorAEditar?.id || "nuevo"}
+              proveedorEditado={proveedorAEditar}
+              onSubmit={() => setIsSheetOpen(false)}
+              onCancel={() => setIsSheetOpen(false)}
+            />
+          </SheetContent>
+        </Sheet>
       </div>
+    </div>
   )
 }
