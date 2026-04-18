@@ -92,7 +92,7 @@ export default function ProductosPage() {
             caption="Lista actualizada de productos en inventario."
             headerRow={
               <TableRow>
-                <TableHead className="w-[80px]">ID</TableHead>
+                {/*<TableHead className="w-[80px]">ID</TableHead>*/}
                 <TableHead>Descripción</TableHead>
                 <TableHead>Marca</TableHead>
                 <TableHead>Categoría</TableHead>
@@ -104,7 +104,7 @@ export default function ProductosPage() {
           >
             {productos.map((p) => (
               <TableRow key={p.idProducto}>
-                <TableCell className="font-medium">{p.idProducto}</TableCell>
+                {/*<TableCell className="font-medium">{p.idProducto}</TableCell>*/}
                 <TableCell>{p.descripcion}</TableCell>
                 <TableCell>{p.marca}</TableCell>
                 <TableCell>{p.categoria}</TableCell>
@@ -124,7 +124,7 @@ export default function ProductosPage() {
         )}
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent className="px-6 sm:max-w-[540px]">
+          <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
             <SheetHeader>
               <SheetTitle>{productoAEditar ? "Editar Producto" : "Nuevo Producto"}</SheetTitle>
               <SheetDescription>Completa la información del inventario.</SheetDescription>
