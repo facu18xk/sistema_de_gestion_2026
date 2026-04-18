@@ -1,11 +1,21 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import { Pencil, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductoForm } from "@/components/stock/producto-form"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { TableRow, TableCell, TableHead } from "@/components/ui/table"
 
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
@@ -22,6 +32,8 @@ export default function ProductosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null)
+  const [productoAEliminar, setProductoAEliminar] = useState<ProductoDTO | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [marcas, setMarcas] = useState<Marca[]>([])
 
@@ -51,16 +63,19 @@ export default function ProductosPage() {
   
   const handleEditar = (p: ProductoDTO) => { setProductoAEditar(p); setIsSheetOpen(true); }
 
-  const handleEliminar = async (id: number) => {
-    if (confirm("¿Estás seguro de eliminar este producto?")) {
+  const confirmarEliminacion = async () => {
+    if (productoAEliminar) {
       try {
-        await productosAPI.delete(id)
-        await cargarPagina() // Refrescar lista
+        await productosAPI.delete(productoAEliminar.idProducto);
+        await cargarPagina();
       } catch (error) {
-        alert("Error al eliminar")
+        console.error("Error al eliminar", error);
+      } finally {
+        setIsAlertOpen(false);
+        setProductoAEliminar(null);
       }
     }
-  }
+  };
 
   const handleFormSubmit = async (data: ProductoSaveDTO) => {
     try {
@@ -78,13 +93,41 @@ export default function ProductosPage() {
     }
   }
 
+  console.log(productoAEliminar)
+
   return (
     <div>
       <Navbar />
       <div className="container mx-auto p-6 space-y-6">
+        {/*BREADCRUMB*/}
         <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]} />
+        {/*BOTÓN ADD*/}
         <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
-
+        {/*ALERT DIALOG*/}
+        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Eliminarás permanentemente el producto{" "}
+              <span className="font-bold text-foreground">
+                "{productoAEliminar?.descripcion}"
+              </span>{" "}
+              y se quitará del servidor.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmarEliminacion}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar Producto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+        </AlertDialog>
+        {/*TABLA*/}
         {isLoading ? (
           <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>
         ) : (
@@ -114,7 +157,7 @@ export default function ProductosPage() {
                   <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
                     <Pencil className="size-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleEliminar(p.idProducto)} className="cursor-pointer">
+                  <Button variant="ghost" size="icon" onClick={() => {setProductoAEliminar(p); setIsAlertOpen(true);}} className="cursor-pointer">
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
                 </TableCell>
@@ -122,7 +165,7 @@ export default function ProductosPage() {
             ))}
           </DataTable>
         )}
-
+        {/*SHEET LATERAL*/}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
             <SheetHeader>
