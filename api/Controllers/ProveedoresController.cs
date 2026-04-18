@@ -47,30 +47,24 @@ public class ProveedoresController : CrudControllerBase<Proveedor, ProveedorDto,
 
     protected override Proveedor ToEntity(ProveedorUpsertDto dto)
     {
-        var direccion = dto.Direccion is null
-            ? null
-            : new Direccion
-            {
-                IdDireccion = dto.Direccion.IdDireccion,
-                Calle1 = dto.Direccion.Calle1,
-                Calle2 = dto.Direccion.Calle2,
-                Descripcion = dto.Direccion.Descripcion,
-                IdCiudad = dto.Direccion.IdCiudad
-            };
+        var direccion = new Direccion
+        {
+            Calle1 = dto.Direccion.Calle1,
+            Calle2 = dto.Direccion.Calle2,
+            Descripcion = dto.Direccion.Descripcion,
+            IdCiudad = dto.Direccion.IdCiudad
+        };
 
         var persona = new Persona
         {
-            IdDireccion = direccion?.IdDireccion ?? dto.IdDireccion,
+            IdDireccion = direccion.IdDireccion,
             Nombres = dto.Nombres,
             Apellidos = dto.Apellidos,
             Correo = dto.Correo,
             Telefono = dto.Telefono
         };
 
-        if (direccion is not null)
-        {
-            persona.IdDireccionNavigation = direccion;
-        }
+        persona.IdDireccionNavigation = direccion;
 
         return new Proveedor
         {
