@@ -25,7 +25,600 @@ if [[ -e "${controller_file}" || -e "${service_file}" || -e "${dto_file}" ]]; th
   exit 1
 fi
 
-if [[ "${entity_name}" == "Proveedor" ]]; then
+if [[ "${entity_name}" == "PedidosCotizaciones" ]]; then
+cat > "${dto_file}" <<EOF
+namespace api.Dtos.${plural_name};
+
+public class ${entity_name}Dto
+{
+    public int IdPedidoCotizacion { get; set; }
+
+    public int IdPedidoCompra { get; set; }
+
+    public int NumeroPedidoCompra { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
+    public int NumeroPedido { get; set; }
+
+    public DateTime Fecha { get; set; }
+}
+
+public class ${entity_name}UpsertDto
+{
+    public int IdPedidoCompra { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public int NumeroPedido { get; set; }
+
+    public DateTime Fecha { get; set; }
+}
+EOF
+
+cat > "${service_file}" <<EOF
+using System.Linq.Expressions;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Services;
+
+public class ${entity_name}Service : CrudServiceBase<${entity_name}, int>
+{
+    private readonly DblosAmigosContext _context;
+
+    public ${entity_name}Service(DblosAmigosContext context)
+        : base(context)
+    {
+        _context = context;
+    }
+
+    protected override DbSet<${entity_name}> Set => _context.${plural_name};
+
+    protected override IQueryable<${entity_name}> BuildReadQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override IQueryable<${entity_name}> BuildGetByIdQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override Expression<Func<${entity_name}, bool>> BuildKeyPredicate(int id)
+    {
+        return entity => entity.IdPedidoCotizacion == id;
+    }
+
+    protected override void UpdateEntity(${entity_name} existingEntity, ${entity_name} incomingEntity)
+    {
+        existingEntity.IdPedidoCompra = incomingEntity.IdPedidoCompra;
+        existingEntity.IdEstado = incomingEntity.IdEstado;
+        existingEntity.NumeroPedido = incomingEntity.NumeroPedido;
+        existingEntity.Fecha = incomingEntity.Fecha;
+    }
+
+    private IQueryable<${entity_name}> BuildQuery()
+    {
+        return _context.${plural_name}
+            .Include(pedido => pedido.IdPedidoCompraNavigation)
+            .Include(pedido => pedido.IdEstadoNavigation);
+    }
+}
+EOF
+
+cat > "${controller_file}" <<EOF
+using api.Dtos.${plural_name};
+using api.Models;
+using api.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ${plural_name}Controller : CrudControllerBase<${entity_name}, ${entity_name}Dto, ${entity_name}UpsertDto, int>
+{
+    public ${plural_name}Controller(ICrudService<${entity_name}, int> ${entity_name,,}Service)
+        : base(${entity_name,,}Service)
+    {
+    }
+
+    protected override ${entity_name}Dto ToReadDto(${entity_name} entity)
+    {
+        return new ${entity_name}Dto
+        {
+            IdPedidoCotizacion = entity.IdPedidoCotizacion,
+            IdPedidoCompra = entity.IdPedidoCompra,
+            NumeroPedidoCompra = entity.IdPedidoCompraNavigation?.NumeroPedido ?? 0,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
+            NumeroPedido = entity.NumeroPedido,
+            Fecha = entity.Fecha
+        };
+    }
+
+    protected override ${entity_name} ToEntity(${entity_name}UpsertDto dto)
+    {
+        return new ${entity_name}
+        {
+            IdPedidoCompra = dto.IdPedidoCompra,
+            IdEstado = dto.IdEstado,
+            NumeroPedido = dto.NumeroPedido,
+            Fecha = dto.Fecha
+        };
+    }
+
+    protected override int GetId(${entity_name} entity)
+    {
+        return entity.IdPedidoCotizacion;
+    }
+
+    protected override async Task<${entity_name}> RefreshCreatedEntityAsync(${entity_name} entity)
+    {
+        return await CrudService.GetByIdAsync(entity.IdPedidoCotizacion) ?? entity;
+    }
+}
+EOF
+
+echo "Created:"
+echo "  ${controller_file}"
+echo "  ${service_file}"
+echo "  ${dto_file}"
+elif [[ "${entity_name}" == "OrdenesCompra" ]]; then
+cat > "${dto_file}" <<EOF
+namespace api.Dtos.${plural_name};
+
+public class ${entity_name}Dto
+{
+    public int IdOrdenCompra { get; set; }
+
+    public int IdPedidoCotizacion { get; set; }
+
+    public int NumeroPedidoCotizacion { get; set; }
+
+    public int IdProveedor { get; set; }
+
+    public string Proveedor { get; set; } = string.Empty;
+
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+}
+
+public class ${entity_name}UpsertDto
+{
+    public int IdPedidoCotizacion { get; set; }
+
+    public int IdProveedor { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+}
+EOF
+
+cat > "${service_file}" <<EOF
+using System.Linq.Expressions;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Services;
+
+public class ${entity_name}Service : CrudServiceBase<${entity_name}, int>
+{
+    private readonly DblosAmigosContext _context;
+
+    public ${entity_name}Service(DblosAmigosContext context)
+        : base(context)
+    {
+        _context = context;
+    }
+
+    protected override DbSet<${entity_name}> Set => _context.${plural_name};
+
+    protected override IQueryable<${entity_name}> BuildReadQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override IQueryable<${entity_name}> BuildGetByIdQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override Expression<Func<${entity_name}, bool>> BuildKeyPredicate(int id)
+    {
+        return entity => entity.IdOrdenCompra == id;
+    }
+
+    protected override void UpdateEntity(${entity_name} existingEntity, ${entity_name} incomingEntity)
+    {
+        existingEntity.IdPedidoCotizacion = incomingEntity.IdPedidoCotizacion;
+        existingEntity.IdProveedor = incomingEntity.IdProveedor;
+        existingEntity.IdEstado = incomingEntity.IdEstado;
+        existingEntity.Fecha = incomingEntity.Fecha;
+        existingEntity.Descripcion = incomingEntity.Descripcion;
+    }
+
+    private IQueryable<${entity_name}> BuildQuery()
+    {
+        return _context.${plural_name}
+            .Include(orden => orden.IdPedidoCotizacionNavigation)
+            .Include(orden => orden.IdProveedorNavigation)
+            .Include(orden => orden.IdEstadoNavigation);
+    }
+}
+EOF
+
+cat > "${controller_file}" <<EOF
+using api.Dtos.${plural_name};
+using api.Models;
+using api.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ${plural_name}Controller : CrudControllerBase<${entity_name}, ${entity_name}Dto, ${entity_name}UpsertDto, int>
+{
+    public ${plural_name}Controller(ICrudService<${entity_name}, int> ${entity_name,,}Service)
+        : base(${entity_name,,}Service)
+    {
+    }
+
+    protected override ${entity_name}Dto ToReadDto(${entity_name} entity)
+    {
+        return new ${entity_name}Dto
+        {
+            IdOrdenCompra = entity.IdOrdenCompra,
+            IdPedidoCotizacion = entity.IdPedidoCotizacion,
+            NumeroPedidoCotizacion = entity.IdPedidoCotizacionNavigation?.NumeroPedido ?? 0,
+            IdProveedor = entity.IdProveedor,
+            Proveedor = entity.IdProveedorNavigation?.RazonSocial ?? string.Empty,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
+            Fecha = entity.Fecha,
+            Descripcion = entity.Descripcion
+        };
+    }
+
+    protected override ${entity_name} ToEntity(${entity_name}UpsertDto dto)
+    {
+        return new ${entity_name}
+        {
+            IdPedidoCotizacion = dto.IdPedidoCotizacion,
+            IdProveedor = dto.IdProveedor,
+            IdEstado = dto.IdEstado,
+            Fecha = dto.Fecha,
+            Descripcion = dto.Descripcion
+        };
+    }
+
+    protected override int GetId(${entity_name} entity)
+    {
+        return entity.IdOrdenCompra;
+    }
+
+    protected override async Task<${entity_name}> RefreshCreatedEntityAsync(${entity_name} entity)
+    {
+        return await CrudService.GetByIdAsync(entity.IdOrdenCompra) ?? entity;
+    }
+}
+EOF
+
+echo "Created:"
+echo "  ${controller_file}"
+echo "  ${service_file}"
+echo "  ${dto_file}"
+elif [[ "${entity_name}" == "FacturasCompra" ]]; then
+cat > "${dto_file}" <<EOF
+namespace api.Dtos.${plural_name};
+
+public class ${entity_name}Dto
+{
+    public int IdFacturaCompra { get; set; }
+
+    public int IdOrdenCompra { get; set; }
+
+    public string OrdenCompraDescripcion { get; set; } = string.Empty;
+
+    public int IdProveedor { get; set; }
+
+    public string Proveedor { get; set; } = string.Empty;
+
+    public string NroComprobante { get; set; } = string.Empty;
+
+    public string Timbrado { get; set; } = string.Empty;
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+}
+
+public class ${entity_name}UpsertDto
+{
+    public int IdOrdenCompra { get; set; }
+
+    public int IdProveedor { get; set; }
+
+    public string NroComprobante { get; set; } = string.Empty;
+
+    public string Timbrado { get; set; } = string.Empty;
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+}
+EOF
+
+cat > "${service_file}" <<EOF
+using System.Linq.Expressions;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Services;
+
+public class ${entity_name}Service : CrudServiceBase<${entity_name}, int>
+{
+    private readonly DblosAmigosContext _context;
+
+    public ${entity_name}Service(DblosAmigosContext context)
+        : base(context)
+    {
+        _context = context;
+    }
+
+    protected override DbSet<${entity_name}> Set => _context.${plural_name};
+
+    protected override IQueryable<${entity_name}> BuildReadQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override IQueryable<${entity_name}> BuildGetByIdQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override Expression<Func<${entity_name}, bool>> BuildKeyPredicate(int id)
+    {
+        return entity => entity.IdFacturaCompra == id;
+    }
+
+    protected override void UpdateEntity(${entity_name} existingEntity, ${entity_name} incomingEntity)
+    {
+        existingEntity.IdOrdenCompra = incomingEntity.IdOrdenCompra;
+        existingEntity.IdProveedor = incomingEntity.IdProveedor;
+        existingEntity.NroComprobante = incomingEntity.NroComprobante;
+        existingEntity.Timbrado = incomingEntity.Timbrado;
+        existingEntity.Fecha = incomingEntity.Fecha;
+        existingEntity.Descripcion = incomingEntity.Descripcion;
+    }
+
+    private IQueryable<${entity_name}> BuildQuery()
+    {
+        return _context.${plural_name}
+            .Include(factura => factura.IdOrdenCompraNavigation)
+            .Include(factura => factura.IdProveedorNavigation);
+    }
+}
+EOF
+
+cat > "${controller_file}" <<EOF
+using api.Dtos.${plural_name};
+using api.Models;
+using api.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ${plural_name}Controller : CrudControllerBase<${entity_name}, ${entity_name}Dto, ${entity_name}UpsertDto, int>
+{
+    public ${plural_name}Controller(ICrudService<${entity_name}, int> ${entity_name,,}Service)
+        : base(${entity_name,,}Service)
+    {
+    }
+
+    protected override ${entity_name}Dto ToReadDto(${entity_name} entity)
+    {
+        return new ${entity_name}Dto
+        {
+            IdFacturaCompra = entity.IdFacturaCompra,
+            IdOrdenCompra = entity.IdOrdenCompra,
+            OrdenCompraDescripcion = entity.IdOrdenCompraNavigation?.Descripcion ?? string.Empty,
+            IdProveedor = entity.IdProveedor,
+            Proveedor = entity.IdProveedorNavigation?.RazonSocial ?? string.Empty,
+            NroComprobante = entity.NroComprobante,
+            Timbrado = entity.Timbrado,
+            Fecha = entity.Fecha,
+            Descripcion = entity.Descripcion
+        };
+    }
+
+    protected override ${entity_name} ToEntity(${entity_name}UpsertDto dto)
+    {
+        return new ${entity_name}
+        {
+            IdOrdenCompra = dto.IdOrdenCompra,
+            IdProveedor = dto.IdProveedor,
+            NroComprobante = dto.NroComprobante,
+            Timbrado = dto.Timbrado,
+            Fecha = dto.Fecha,
+            Descripcion = dto.Descripcion
+        };
+    }
+
+    protected override int GetId(${entity_name} entity)
+    {
+        return entity.IdFacturaCompra;
+    }
+
+    protected override async Task<${entity_name}> RefreshCreatedEntityAsync(${entity_name} entity)
+    {
+        return await CrudService.GetByIdAsync(entity.IdFacturaCompra) ?? entity;
+    }
+}
+EOF
+
+echo "Created:"
+echo "  ${controller_file}"
+echo "  ${service_file}"
+echo "  ${dto_file}"
+elif [[ "${entity_name}" == "OrdenesPagosCompra" ]]; then
+cat > "${dto_file}" <<EOF
+namespace api.Dtos.${plural_name};
+
+public class ${entity_name}Dto
+{
+    public int IdOrdenPagoCompra { get; set; }
+
+    public int IdProveedor { get; set; }
+
+    public string Proveedor { get; set; } = string.Empty;
+
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+}
+
+public class ${entity_name}UpsertDto
+{
+    public int IdProveedor { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+}
+EOF
+
+cat > "${service_file}" <<EOF
+using System.Linq.Expressions;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Services;
+
+public class ${entity_name}Service : CrudServiceBase<${entity_name}, int>
+{
+    private readonly DblosAmigosContext _context;
+
+    public ${entity_name}Service(DblosAmigosContext context)
+        : base(context)
+    {
+        _context = context;
+    }
+
+    protected override DbSet<${entity_name}> Set => _context.${plural_name};
+
+    protected override IQueryable<${entity_name}> BuildReadQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override IQueryable<${entity_name}> BuildGetByIdQuery()
+    {
+        return BuildQuery().AsNoTracking();
+    }
+
+    protected override Expression<Func<${entity_name}, bool>> BuildKeyPredicate(int id)
+    {
+        return entity => entity.IdOrdenPagoCompra == id;
+    }
+
+    protected override void UpdateEntity(${entity_name} existingEntity, ${entity_name} incomingEntity)
+    {
+        existingEntity.IdProveedor = incomingEntity.IdProveedor;
+        existingEntity.IdEstado = incomingEntity.IdEstado;
+        existingEntity.Fecha = incomingEntity.Fecha;
+        existingEntity.Descripcion = incomingEntity.Descripcion;
+    }
+
+    private IQueryable<${entity_name}> BuildQuery()
+    {
+        return _context.${plural_name}
+            .Include(ordenPago => ordenPago.IdProveedorNavigation)
+            .Include(ordenPago => ordenPago.IdEstadoNavigation);
+    }
+}
+EOF
+
+cat > "${controller_file}" <<EOF
+using api.Dtos.${plural_name};
+using api.Models;
+using api.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ${plural_name}Controller : CrudControllerBase<${entity_name}, ${entity_name}Dto, ${entity_name}UpsertDto, int>
+{
+    public ${plural_name}Controller(ICrudService<${entity_name}, int> ${entity_name,,}Service)
+        : base(${entity_name,,}Service)
+    {
+    }
+
+    protected override ${entity_name}Dto ToReadDto(${entity_name} entity)
+    {
+        return new ${entity_name}Dto
+        {
+            IdOrdenPagoCompra = entity.IdOrdenPagoCompra,
+            IdProveedor = entity.IdProveedor,
+            Proveedor = entity.IdProveedorNavigation?.RazonSocial ?? string.Empty,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
+            Fecha = entity.Fecha,
+            Descripcion = entity.Descripcion
+        };
+    }
+
+    protected override ${entity_name} ToEntity(${entity_name}UpsertDto dto)
+    {
+        return new ${entity_name}
+        {
+            IdProveedor = dto.IdProveedor,
+            IdEstado = dto.IdEstado,
+            Fecha = dto.Fecha,
+            Descripcion = dto.Descripcion
+        };
+    }
+
+    protected override int GetId(${entity_name} entity)
+    {
+        return entity.IdOrdenPagoCompra;
+    }
+
+    protected override async Task<${entity_name}> RefreshCreatedEntityAsync(${entity_name} entity)
+    {
+        return await CrudService.GetByIdAsync(entity.IdOrdenPagoCompra) ?? entity;
+    }
+}
+EOF
+
+echo "Created:"
+echo "  ${controller_file}"
+echo "  ${service_file}"
+echo "  ${dto_file}"
+elif [[ "${entity_name}" == "Proveedor" ]]; then
 cat > "${dto_file}" <<EOF
 namespace api.Dtos.${plural_name};
 

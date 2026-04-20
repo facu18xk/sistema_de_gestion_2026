@@ -45,9 +45,7 @@ public class ProveedorUpsertDto
 
     public string NombreFantasia { get; set; } = string.Empty;
 
-    public int IdDireccion { get; set; }
-
-    public DireccionProveedorUpsertDto? Direccion { get; set; }
+    public DireccionProveedorUpsertDto Direccion { get; set; } = new();
 
     public string Nombres { get; set; } = string.Empty;
 
@@ -60,8 +58,6 @@ public class ProveedorUpsertDto
 
 public class DireccionProveedorUpsertDto
 {
-    public int IdDireccion { get; set; }
-
     public string Calle1 { get; set; } = string.Empty;
 
     public string Calle2 { get; set; } = string.Empty;
