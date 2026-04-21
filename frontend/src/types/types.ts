@@ -121,20 +121,28 @@ export interface Pedido {
     total: number;
 }
 
-// 🔹 Lo que viene del backend (lectura)
 export interface PedidoDTO {
-    id: number;
-    nroCotizacion: string;
-    idProveedor: number;
-    nombreProveedor: string;
-    fecha: string;
-    estado: string;
-    items: DetallePedido[];
-    total: number;
+    id: number
+    nroCotizacion: string
+    idProveedor: number
+    nombreProveedor: string
+    fecha: string
+    estado: string
+    items: DetallePedido[]
+    total: number
 }
 
-// 🔹 Lo que enviás (crear/editar)
-export type PedidoSaveDTO = Omit<
-    PedidoDTO,
-    "id" | "nombreProveedor" | "estado"
->;
+export interface PedidoForm {
+    nroCotizacion: string
+    idProveedor: number
+    fecha: string
+    estado: string
+    items: DetallePedido[]
+}
+export interface PedidoSaveDTO {
+    nroCotizacion: string
+    idProveedor: number
+    fecha: string
+    items: DetallePedido[]
+    total: number
+}
