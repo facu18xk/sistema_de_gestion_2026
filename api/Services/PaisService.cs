@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+using api.Dtos.Common;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +13,28 @@ namespace api.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Pais>> GetAllAsync()
+        public async Task<PagedResultDto<Pais>> GetAllAsync(PaginationQueryDto pagination)
         {
-            return await _context.Paises.ToListAsync();
+            var page = pagination.GetNormalizedPage();
+            var pageSize = pagination.GetNormalizedPageSize();
+            var query = _context.Paises.AsNoTracking();
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            return new PagedResultDto<Pais>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                HasPreviousPage = page > 1 && totalPages > 0,
+                HasNextPage = page < totalPages
+            };
         }
 
         public async Task<Pais?> GetByIdAsync(int id)

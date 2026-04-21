@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using api.Dtos.Common;
 using Microsoft.EntityFrameworkCore;
 using api.Models;
 using api.Services;
@@ -15,11 +16,30 @@ namespace api.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Direccion>> GetAllAsync()
+        public async Task<PagedResultDto<Direccion>> GetAllAsync(PaginationQueryDto pagination)
         {
-            return await _context.Direcciones
+            var page = pagination.GetNormalizedPage();
+            var pageSize = pagination.GetNormalizedPageSize();
+            var query = _context.Direcciones
                 .Include(d => d.IdCiudadNavigation)
+                .AsNoTracking();
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            return new PagedResultDto<Direccion>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                HasPreviousPage = page > 1 && totalPages > 0,
+                HasNextPage = page < totalPages
+            };
         }
 
         public async Task<Direccion?> GetByIdAsync(int id)

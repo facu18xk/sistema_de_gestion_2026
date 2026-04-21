@@ -1,3 +1,4 @@
+using api.Dtos.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Services;
@@ -14,11 +15,35 @@ public abstract class CompositeCrudServiceBase<TEntity, TKey1, TKey2> : IComposi
 
     protected abstract DbSet<TEntity> Set { get; }
 
+    protected virtual IQueryable<TEntity> BuildReadQuery()
+    {
+        return Set.AsNoTracking();
+    }
+
     protected abstract void UpdateEntity(TEntity existingEntity, TEntity incomingEntity);
 
-    public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
+    public virtual async Task<PagedResultDto<TEntity>> GetAllAsync(PaginationQueryDto pagination)
     {
-        return await Set.AsNoTracking().ToListAsync();
+        var page = pagination.GetNormalizedPage();
+        var pageSize = pagination.GetNormalizedPageSize();
+        var query = BuildReadQuery();
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedResultDto<TEntity>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = page > 1 && totalPages > 0,
+            HasNextPage = page < totalPages
+        };
     }
 
     public virtual async Task<TEntity?> GetByIdAsync(TKey1 key1, TKey2 key2)

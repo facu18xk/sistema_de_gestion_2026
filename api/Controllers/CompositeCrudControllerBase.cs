@@ -1,3 +1,4 @@
+using api.Dtos.Common;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +15,20 @@ public abstract class CompositeCrudControllerBase<TEntity, TReadDto, TUpsertDto,
     }
 
     [HttpGet]
-    public virtual async Task<ActionResult<IEnumerable<TReadDto>>> GetAll()
+    public virtual async Task<ActionResult<PagedResultDto<TReadDto>>> GetAll([FromQuery] PaginationQueryDto pagination)
     {
-        var entities = await CrudService.GetAllAsync();
-        return Ok(entities.Select(ToReadDto));
+        var result = await CrudService.GetAllAsync(pagination);
+
+        return Ok(new PagedResultDto<TReadDto>
+        {
+            Items = result.Items.Select(ToReadDto).ToArray(),
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalCount = result.TotalCount,
+            TotalPages = result.TotalPages,
+            HasPreviousPage = result.HasPreviousPage,
+            HasNextPage = result.HasNextPage
+        });
     }
 
     [HttpGet("{key1}/{key2}")]
