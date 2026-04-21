@@ -48,6 +48,17 @@ export interface ProductoDTO {
 // Usamos Omit para quitar lo que el backend genera solo o lo que no se envía al insertar
 export type ProductoSaveDTO = Omit<ProductoDTO, 'idProducto' | 'marca' | 'categoria' | 'cantidadTotal'>;
 
+//Formato de aquellos endpoints tipo GET, donde <T> es el objeto.
+export interface PaginatedResponse<T> {
+    items: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+}
+
 export interface Marca {
     idMarca: number;
     nombre: string

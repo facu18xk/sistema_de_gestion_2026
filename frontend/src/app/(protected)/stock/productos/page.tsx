@@ -27,6 +27,7 @@ import { marcasAPI } from "@/services/marcasAPI"
 import { categoriasAPI } from "@/services/categoriasAPI"
 import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types"
 import { formatGuaranies } from "@/utils/money-format"
+import { notify } from "@/lib/notifications"
 
 export default function ProductosPage() {
   const [productos, setProductos] = useState<ProductoDTO[]>([])
@@ -37,19 +38,23 @@ export default function ProductosPage() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [marcas, setMarcas] = useState<Marca[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [itemsPerPage] = useState(8) //10 por defecto
 
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const [resProductos, resMarcas, resCategorias] = await Promise.all([
-        productosAPI.getAll(),
+      const [resPaginada, resMarcas, resCategorias] = await Promise.all([
+        productosAPI.getAll(currentPage, 8), //10 por defecto
         marcasAPI.getAll(),
         categoriasAPI.getAll()
       ])
-      setProductos(resProductos)
-      setMarcas(resMarcas)
-      setCategorias(resCategorias)
+      setProductos(resPaginada.items)
+      setTotalPages(resPaginada.totalPages)
+      setMarcas(resMarcas.items)
+      setCategorias(resCategorias.items)
     } catch (error) {
       console.error("Error al cargar datos:", error)
     } finally {
@@ -57,7 +62,7 @@ export default function ProductosPage() {
     }
   }
 
-  useEffect(() => { cargarPagina() }, [])
+  useEffect(() => { cargarPagina() }, [currentPage])
 
   // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
   const handleCrearNuevo = () => { setProductoAEditar(null); setIsSheetOpen(true); }
@@ -68,9 +73,10 @@ export default function ProductosPage() {
     if (productoAEliminar) {
       try {
         await productosAPI.delete(productoAEliminar.idProducto);
-        await cargarPagina();
+        notify.success("Eliminado", "Producto quitado del stock");
+        await cargarPagina(); // Recarga la página actual
       } catch (error) {
-        console.error("Error al eliminar", error);
+        notify.error("Error", "No se pudo eliminar");
       } finally {
         setIsAlertOpen(false);
         setProductoAEliminar(null);
@@ -145,6 +151,9 @@ export default function ProductosPage() {
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             }
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
           >
             {productos.map((p) => (
               <TableRow key={p.idProducto}>
