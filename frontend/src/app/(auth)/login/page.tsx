@@ -15,7 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Cookies from 'js-cookie'
-import { authAPI } from "@/services/authAPI";
+import { authAPI } from "@/services/authAPI"
+import { notify } from "@/lib/notifications"
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -35,11 +36,15 @@ export default function LoginPage() {
             Cookies.set("token", data.token, { expires: 1, path: '/' });
             // 2. Guardar los datos del usuario en localStorage (para mostrar el nombre en el Navbar)
             localStorage.setItem("user", JSON.stringify(data.user));
+            //Notificación de éxito
+            notify.success("¡Bienvenido!", "Has iniciado sesión correctamente.");
             // 3. Redirigimos a /dashboard
             router.push("/dashboard");
 
           } catch (err: any) {
             setError(err.response?.data?.message || "Error al iniciar sesión");
+            //Notificación de error
+            notify.error("Error de autenticación", "Usuario o contraseña incorrectos.");
           } finally {
             setIsLoading(false);
         }

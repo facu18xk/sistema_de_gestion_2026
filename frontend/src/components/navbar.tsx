@@ -23,6 +23,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import Cookies from 'js-cookie'
+import { notify } from "@/lib/notifications"
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
@@ -55,6 +56,7 @@ export default function Navbar() {
     router.push("/login")
     //4. Opcional: Forzar un refresco para limpiar estados de React
     router.refresh()
+    notify.warning("¡Sesión cerrada!");
   }
 
   return (
