@@ -29,6 +29,14 @@ namespace api.Services
                 .FirstOrDefaultAsync(c => c.IdCiudad == id);
         }
 
+        public async Task<IEnumerable<Ciudad>> GetByPaisAsync(int idPais)
+        {
+            return await _context.Ciudades
+                .Where(c => c.IdPais == idPais)
+                .Include(c => c.IdPaisNavigation)
+                .ToListAsync();
+        }
+
         public async Task<Ciudad> CreateAsync(Ciudad entity)
         {
             _context.Ciudades.Add(entity);

@@ -14,6 +14,15 @@ public class CiudadesController : CrudControllerBase<Ciudad, CiudadDto, CiudadUp
     {
     }
 
+    [HttpGet("PorPais/{idPais}")]
+    public async Task<ActionResult<IEnumerable<CiudadDto>>> GetByPais(int idPais)
+    {
+        var service = (CiudadService)CrudService;
+        var ciudades = await service.GetByPaisAsync(idPais);
+        
+        return Ok(ciudades.Select(ToReadDto));
+    }
+    
     protected override CiudadDto ToReadDto(Ciudad entity)
     {
         var pais = entity.IdPaisNavigation;
