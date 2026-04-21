@@ -48,14 +48,14 @@ export interface ProductoDTO {
 // Usamos Omit para quitar lo que el backend genera solo o lo que no se envía al insertar
 export type ProductoSaveDTO = Omit<ProductoDTO, 'idProducto' | 'marca' | 'categoria' | 'cantidadTotal'>;
 
-export interface Marca { 
-    idMarca: number; 
-    nombre: string 
+export interface Marca {
+    idMarca: number;
+    nombre: string
 }
 
-export interface Categoria { 
-    idCategoria: number; 
-    nombre: string 
+export interface Categoria {
+    idCategoria: number;
+    nombre: string
 }
 
 export interface ProductoFormState {
@@ -66,3 +66,75 @@ export interface ProductoFormState {
     idCategoria: string;
     porcentajeIva: string;
 }
+
+
+export interface Pais {
+    idPais: number;
+    nombre: string;
+}
+
+export interface Ciudad {
+    idCiudad: number;
+    nombre: string;
+    idPais: number;
+}
+
+export interface Direccion {
+    idDireccion?: number;
+    calle1: string;
+    calle2: string | null;
+    descripcion: string | null;
+    idCiudad: number;
+    idPais: number; //para chequeo en edicion y creacion de proveedor
+}
+
+export interface Proveedor {
+    idProveedor: number;
+    ruc: string;
+    razonSocial: string;
+    nombreFantasia: string;
+    idDireccion: number | null;
+    direccion?: Direccion;
+    nombres: string | null;
+    apellidos: string | null;
+    correo: string | null;
+    telefono: string | null;
+}
+
+
+export interface DetallePedido {
+    idProducto: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface Pedido {
+    id?: string;
+    nroCotizacion: string;
+    idProveedor: number;
+    nombreProveedor?: string;
+    fecha: string;
+    estado: string;
+    items: DetallePedido[];
+    total: number;
+}
+
+// 🔹 Lo que viene del backend (lectura)
+export interface PedidoDTO {
+    id: number;
+    nroCotizacion: string;
+    idProveedor: number;
+    nombreProveedor: string;
+    fecha: string;
+    estado: string;
+    items: DetallePedido[];
+    total: number;
+}
+
+// 🔹 Lo que enviás (crear/editar)
+export type PedidoSaveDTO = Omit<
+    PedidoDTO,
+    "id" | "nombreProveedor" | "estado"
+>;

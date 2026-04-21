@@ -14,24 +14,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-  } from "@/components/ui/navigation-menu"
-  import Cookies from 'js-cookie'
-  
-  //Para listar los diferentes módulos en el navbar
-  const modulos = [
-    { title: "Ventas", items: ["Facturación", "Clientes", "Reportes"] },
-    { title: "Compras", items: ["Proveedores", "Órdenes", "Pagos"] },
-    { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
-    { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
-    { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
-  ]
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import Cookies from 'js-cookie'
+
+//Para listar los diferentes módulos en el navbar
+const modulos = [
+  { title: "Ventas", items: ["Facturación", "Clientes", "Reportes"] },
+  { title: "Compras", items: ["Proveedores", "Órdenes", "Pedidos", "Pagos"] },
+  { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
+  { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
+  { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
+]
 
 export default function Navbar() {
   const [userName, setUserName] = useState("Usuario");
@@ -60,7 +60,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        
+
         {/* IZQUIERDA: Logo y Selects */}
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="font-bold text-xl text-primary shrink-0">
@@ -70,7 +70,7 @@ export default function Navbar() {
           {/* Selects de Módulos (Estilo Native Select con Tailwind) */}
           <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
-              
+
               <NavigationMenuItem>
                 <Link href="/dashboard" legacyBehavior passHref>
                   <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -87,15 +87,16 @@ export default function Navbar() {
                       {modulo.items.map((item) => (
                         <li key={item}>
                           <NavigationMenuLink asChild>
-                            <Link 
-                                href={item === "Productos" ? "/stock/productos" : 
-                                  item == "Proveedores" ? "/compras/proveedores" :
+                            <Link
+                              href={item === "Productos" ? "/stock/productos" :
+                                item == "Proveedores" ? "/compras/proveedores" :
                                   item === "Clientes" ? "/ventas/clientes" :
-                                  item === "Empleados" ? "/personas/empleados" :
-                                  "#"
-                                } 
-                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-                              >
+                                    item === "Empleados" ? "/personas/empleados" :
+                                      item === "Pedidos" ? "/compras/pedidos" :
+                                        "#"
+                              }
+                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                            >
                               <div className="text-sm font-medium leading-none">{item}</div>
                             </Link>
                           </NavigationMenuLink>
@@ -105,7 +106,7 @@ export default function Navbar() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ))}
-              
+
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -131,7 +132,7 @@ export default function Navbar() {
               <DropdownMenuItem>Perfil</DropdownMenuItem>
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="text-destructive focus:bg-destructive"
                 onClick={handleLogout}
               >

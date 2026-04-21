@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
-import { Pencil, Trash2, Loader2 } from "lucide-react"
+import { Pencil, Trash2, Loader2, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ProductoForm } from "@/components/stock/producto-form"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import {
   AlertDialog,
@@ -22,35 +21,25 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 
-import { productosAPI } from "@/services/productosAPI"
-import { marcasAPI } from "@/services/marcasAPI"
-import { categoriasAPI } from "@/services/categoriasAPI"
-import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types"
+import { PedidoForm } from "@/components/compras/pedido-form" // El que crearemos abajo
+import { pedidosAPI } from "@/services/pedidosAPI"
+import { PedidoDTO } from "@/types/types"
 
-export default function ProductosPage() {
-  const [productos, setProductos] = useState<ProductoDTO[]>([])
+export default function PedidosPage() {
+  const [pedidos, setPedidos] = useState<PedidoDTO[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null)
-  const [productoAEliminar, setProductoAEliminar] = useState<ProductoDTO | null>(null);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [marcas, setMarcas] = useState<Marca[]>([])
+  const [pedidoAEditar, setPedidoAEditar] = useState<PedidoDTO | null>(null)
+  const [pedidoAEliminar, setPedidoAEliminar] = useState<PedidoDTO | null>(null)
+  const [isAlertOpen, setIsAlertOpen] = useState(false)
 
-  // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const [resProductos, resMarcas, resCategorias] = await Promise.all([
-        productosAPI.getAll(),
-        marcasAPI.getAll(),
-        categoriasAPI.getAll()
-      ])
-      setProductos(resProductos)
-      setMarcas(resMarcas)
-      setCategorias(resCategorias)
+      const res = await pedidosAPI.getAll()
+      setPedidos(res)
     } catch (error) {
-      console.error("Error al cargar datos:", error)
+      console.error("Error al cargar pedidos:", error)
     } finally {
       setIsLoading(false)
     }
@@ -58,106 +47,69 @@ export default function ProductosPage() {
 
   useEffect(() => { cargarPagina() }, [])
 
-  // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
-  const handleCrearNuevo = () => { setProductoAEditar(null); setIsSheetOpen(true); }
-  
-  const handleEditar = (p: ProductoDTO) => { setProductoAEditar(p); setIsSheetOpen(true); }
+  const handleCrearNuevo = () => { setPedidoAEditar(null); setIsSheetOpen(true); }
+  const handleEditar = (p: PedidoDTO) => { setPedidoAEditar(p); setIsSheetOpen(true); }
 
   const confirmarEliminacion = async () => {
-    if (productoAEliminar) {
+    if (pedidoAEliminar) {
       try {
-        await productosAPI.delete(productoAEliminar.idProducto);
-        await cargarPagina();
-      } catch (error) {
-        console.error("Error al eliminar", error);
-      } finally {
-        setIsAlertOpen(false);
-        setProductoAEliminar(null);
-      }
-    }
-  };
-
-  const handleFormSubmit = async (data: ProductoSaveDTO) => {
-    try {
-      if (productoAEditar) {
-        //console.log(data);
-        await productosAPI.update(productoAEditar.idProducto, data)
-      } else {
-        //console.log(data);
-        await productosAPI.create(data)
-      }
-      setIsSheetOpen(false)
-      cargarPagina() // Refrescar la tabla
-    } catch (error) {
-      console.error("Error al guardar:", error)
+        await pedidosAPI.delete(pedidoAEliminar.idPedido)
+        await cargarPagina()
+      } catch (error) { console.error(error) }
+      finally { setIsAlertOpen(false); setPedidoAEliminar(null); }
     }
   }
-
-  console.log(productoAEliminar)
 
   return (
     <div>
       <Navbar />
       <div className="container mx-auto p-6 space-y-6">
-        {/*BREADCRUMB*/}
-        <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]} />
-        {/*BOTÓN ADD*/}
-        <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
-        {/*ALERT DIALOG*/}
+        <PageBreadcrumb steps={[{ label: "Compras", href: "#" }, { label: "Pedidos" }]} />
+
+        <PageHeader title="Gestión de Pedidos" buttonLabel="Nuevo Pedido" onButtonClick={handleCrearNuevo} />
+
+        {/* ALERT DIALOG ELIMINAR */}
         <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Eliminarás permanentemente el producto{" "}
-              <span className="font-bold text-foreground">
-                "{productoAEliminar?.descripcion}"
-              </span>{" "}
-              y se quitará del servidor.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmarEliminacion}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Eliminar Producto
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar pedido?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Se borrará el pedido de <span className="font-bold">"{pedidoAEliminar?.nombreFantasia}"</span>.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmarEliminacion} className="bg-destructive text-white">Eliminar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
-        {/*TABLA*/}
+
         {isLoading ? (
           <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>
         ) : (
           <DataTable
-            caption="Lista actualizada de productos en inventario."
+            caption="Registro histórico de pedidos a proveedores."
             headerRow={
               <TableRow>
-                {/*<TableHead className="w-[80px]">ID</TableHead>*/}
-                <TableHead>Descripción</TableHead>
-                <TableHead>Marca</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead className="text-right">Precio Unit.</TableHead>
-                <TableHead className="text-right">Stock Total</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Proveedor</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             }
           >
-            {productos.map((p) => (
-              <TableRow key={p.idProducto}>
-                {/*<TableCell className="font-medium">{p.idProducto}</TableCell>*/}
-                <TableCell>{p.descripcion}</TableCell>
-                <TableCell>{p.marca}</TableCell>
-                <TableCell>{p.categoria}</TableCell>
-                <TableCell className="text-right">${p.precioUnitario.toFixed(2)}</TableCell>
-                <TableCell className="text-right font-semibold">{p.cantidadTotal}</TableCell>
+            {pedidos.map((p) => (
+              <TableRow key={p.idPedido}>
+                <TableCell>{p.fecha}</TableCell>
+                <TableCell className="font-medium">{p.nombreFantasia}</TableCell>
+                <TableCell className="text-right">${p.total.toFixed(2)}</TableCell>
+                <TableCell className="text-center">{p.estado}</TableCell>
                 <TableCell className="text-right space-x-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditar(p)}>
                     <Pencil className="size-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => {setProductoAEliminar(p); setIsAlertOpen(true);}} className="cursor-pointer">
+                  <Button variant="ghost" size="icon" onClick={() => { setPedidoAEliminar(p); setIsAlertOpen(true); }}>
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
                 </TableCell>
@@ -165,20 +117,19 @@ export default function ProductosPage() {
             ))}
           </DataTable>
         )}
-        {/*SHEET LATERAL*/}
+
+        {/* SHEET DE PEDIDO - Aquí es donde "crece" a pantalla casi completa */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
+          <SheetContent className="px-6 sm:max-w-[90vw] lg:max-w-[80vw] overflow-y-auto">
             <SheetHeader>
-              <SheetTitle>{productoAEditar ? "Editar Producto" : "Nuevo Producto"}</SheetTitle>
-              <SheetDescription>Completa la información del inventario.</SheetDescription>
+              <SheetTitle>{pedidoAEditar ? "Detalle del Pedido" : "Nuevo Pedido"}</SheetTitle>
+              <SheetDescription>Administra los productos y el proveedor del pedido.</SheetDescription>
             </SheetHeader>
-            <ProductoForm
-              key={productoAEditar?.idProducto ?? "nuevo"}
-              productoEditado={productoAEditar}
-              categorias={categorias} 
-              marcas={marcas}
-              onSubmit={handleFormSubmit}
+
+            <PedidoForm
+              pedidoEditado={pedidoAEditar}
               onCancel={() => setIsSheetOpen(false)}
+              onSuccess={() => { setIsSheetOpen(false); cargarPagina(); }}
             />
           </SheetContent>
         </Sheet>

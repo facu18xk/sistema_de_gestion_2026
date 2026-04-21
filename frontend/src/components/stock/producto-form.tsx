@@ -75,11 +75,11 @@ export function ProductoForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-          ...formData,
-          idMarca: Number.parseInt(formData.idMarca, 10),
-          idCategoria: Number.parseInt(formData.idCategoria, 10),
-          porcentajeIva: Number.parseInt(formData.porcentajeIva, 10),
-        });
+      ...formData,
+      idMarca: Number.parseInt(formData.idMarca, 10),
+      idCategoria: Number.parseInt(formData.idCategoria, 10),
+      porcentajeIva: Number.parseInt(formData.porcentajeIva, 10),
+    });
   }
 
   return (
@@ -87,12 +87,12 @@ export function ProductoForm({
       {/*DESCRIPCIÓN*/}
       <div className="grid gap-2">
         <Label htmlFor="descripcion">Descripción</Label>
-        <Input 
+        <Input
           id="descripcion"
           value={formData.descripcion}
           onChange={(e) => updateField("descripcion", e.target.value)}
           placeholder="Ej: Neumático Radial 17"
-          required 
+          required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -100,50 +100,50 @@ export function ProductoForm({
         <div className="grid gap-2">
           <Label htmlFor="marca">Marca</Label>
           <Select
-              key={`marca-${formData.idMarca}-${marcas.length}`}
-              value={formData.idMarca || undefined}
-              onValueChange={(value) => updateField("idMarca", value)}
-              required
-            >
-              <SelectTrigger id="idMarca" className="w-full">
-                <SelectValue placeholder="Seleccionar marca">
-                  {marcaSeleccionada}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {marcas.map((m) => (
-                  <SelectItem key={m.idMarca} value={m.idMarca.toString()}>
-                    {m.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            key={`marca-${formData.idMarca}-${marcas.length}`}
+            value={formData.idMarca || undefined}
+            onValueChange={(value) => updateField("idMarca", value)}
+            required
+          >
+            <SelectTrigger id="idMarca" className="w-full">
+              <SelectValue placeholder="Seleccionar marca">
+                {marcaSeleccionada}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {marcas.map((m) => (
+                <SelectItem key={m.idMarca} value={m.idMarca.toString()}>
+                  {m.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         {/*CATEGORÍA*/}
         <div className="grid gap-2">
           <Label htmlFor="categoria">Categoría</Label>
           <Select
-              key={`categoria-${formData.idCategoria}-${categorias.length}`}
-              value={formData.idCategoria || undefined}
-              onValueChange={(value) => updateField("idCategoria", value)}
-              required
-            >
-              <SelectTrigger id="idCategoria" className="w-full">
-                <SelectValue placeholder="Seleccionar categoría">
-                  {categoriaSeleccionada}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {categorias.map((cat) => (
-                  <SelectItem
-                    key={cat.idCategoria}
-                    value={cat.idCategoria.toString()}
-                  >
-                    {cat.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            key={`categoria-${formData.idCategoria}-${categorias.length}`}
+            value={formData.idCategoria || undefined}
+            onValueChange={(value) => updateField("idCategoria", value)}
+            required
+          >
+            <SelectTrigger id="idCategoria" className="w-full">
+              <SelectValue placeholder="Seleccionar categoría">
+                {categoriaSeleccionada}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {categorias.map((cat) => (
+                <SelectItem
+                  key={cat.idCategoria}
+                  value={cat.idCategoria.toString()}
+                >
+                  {cat.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
