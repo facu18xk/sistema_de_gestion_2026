@@ -1,11 +1,12 @@
 import api from './api';
 import { API_CONFIG } from "../config/api";
-import { Pais, Ciudad, Direccion } from '@/types/types';
+import { Pais, Ciudad, Direccion, PaginatedResponse } from '@/types/types';
 
 export const ubicacionesAPI = {
-    getPaises: async (page: number = 1, size: number = 10) => {
+    // --- PAÍSES ---
+    getPaises: async (page: number = 1, pageSize: number = 30): Promise<PaginatedResponse<Pais>> => {
         const response = await api.get(API_CONFIG.ENDPOINTS.PAISES, {
-            params: { page, size }
+            params: { Page: page, PageSize: pageSize }
         });
         return response.data;
     },
@@ -15,9 +16,10 @@ export const ubicacionesAPI = {
         return response.data;
     },
 
-    getCiudades: async (idPais: number, page: number = 1, size: number = 10) => {
+    // --- CIUDADES ---
+    getCiudades: async (idPais: number, page: number = 1, pageSize: number = 30): Promise<PaginatedResponse<Ciudad>> => {
         const response = await api.get(API_CONFIG.ENDPOINTS.CIUDADES, {
-            params: { idPais, page, size }
+            params: {idPais: idPais, Page: page, PageSize: pageSize }
         });
         return response.data;
     },
@@ -27,6 +29,7 @@ export const ubicacionesAPI = {
         return response.data;
     },
 
+    // --- DIRECCIONES ---
     createDireccion: async (data: Partial<Direccion>): Promise<Direccion> => {
         const response = await api.post(API_CONFIG.ENDPOINTS.DIRECCIONES, data);
         return response.data;

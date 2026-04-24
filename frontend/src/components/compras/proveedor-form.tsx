@@ -77,13 +77,12 @@ export function ProveedorForm({
       }
       setLoadingLocs(true);
       try {
+        // Usamos el nuevo endpoint del backend
         const data = await ubicacionesAPI.getCiudadesPorPais(Number(formData.idPais));
         setCiudades(data);
       } catch (err) {
-        notify.warning(
-          "Error de ubicación",
-          "No se pudieron cargar las ciudades para el país seleccionado."
-        );
+        console.error("Error al cargar ciudades por país:", err);
+        notify.warning("Error de ubicación", "No se pudieron cargar las ciudades para el país seleccionado.");
       } finally {
         setLoadingLocs(false);
       }
@@ -98,8 +97,10 @@ export function ProveedorForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+  
     setIsSubmitting(true);
-
+  
     const proveedorFullReq = {
       idProveedor: proveedorEditado?.idProveedor || 0,
       ruc: formData.ruc,
@@ -117,12 +118,13 @@ export function ProveedorForm({
       correo: formData.correo,
       telefono: formData.telefono,
     };
-
+  
     try {
       await onSubmit(proveedorFullReq);
     } catch (error) {
-      // La notificación de error se puede manejar aquí o en el padre según prefieras
-      // En este caso, el padre (ProveedoresPage) ya tiene el try/catch con notify.error
+      console.error("Error en el formulario:", error);
+      // Nota: El notify ya lo manejas en el padre (ProveedoresPage), 
+      // así que aquí solo capturamos para evitar que el loading se quede infinito
     } finally {
       setIsSubmitting(false);
     }
@@ -170,6 +172,7 @@ export function ProveedorForm({
         <div className="grid gap-2">
           <Label htmlFor="pais">País</Label>
           <Select
+            // El key fuerza el re-render cuando cambia el id para asegurar que se muestre el texto correcto
             key={`pais-${formData.idPais}`}
             value={formData.idPais}
             onValueChange={(value) => {

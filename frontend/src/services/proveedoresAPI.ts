@@ -1,19 +1,11 @@
 import api from './api';
 import { API_CONFIG } from "../config/api";
-import { Proveedor } from '@/types/types';
+import { Proveedor, PaginatedResponse } from '@/types/types';
 
-interface ProveedoresPaginados {
-    items: Proveedor[];
-    totalPages: number;
-    totalItems: number;
-}
 export const proveedoresAPI = {
-    getAll: async (page: number = 1, size: number = 8): Promise<ProveedoresPaginados> => {
+    getAll: async (page: number = 1, pageSize: number = 10): Promise<PaginatedResponse<Proveedor>> => {
         const response = await api.get(API_CONFIG.ENDPOINTS.PROVEEDORES, {
-            params: {
-                page: page,
-                size: size
-            }
+            params: { Page: page, PageSize: pageSize }
         });
         return response.data;
     },
