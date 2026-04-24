@@ -143,7 +143,7 @@ export function ProveedorForm({
           required
         />
       </div>
-
+      {/* RUC */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="ruc">RUC</Label>
@@ -155,6 +155,7 @@ export function ProveedorForm({
             required
           />
         </div>
+        {/* RAZÓN SOCIAL */}
         <div className="grid gap-2">
           <Label htmlFor="razonSocial">Razón Social</Label>
           <Input
@@ -166,13 +167,12 @@ export function ProveedorForm({
           />
         </div>
       </div>
-
       {/* UBICACIÓN */}
       <div className="grid grid-cols-2 gap-4">
+        {/* PAÍS */}
         <div className="grid gap-2">
           <Label htmlFor="pais">País</Label>
           <Select
-            // El key fuerza el re-render cuando cambia el id para asegurar que se muestre el texto correcto
             key={`pais-${formData.idPais}`}
             value={formData.idPais}
             onValueChange={(value) => {
@@ -193,7 +193,7 @@ export function ProveedorForm({
             </SelectContent>
           </Select>
         </div>
-
+        {/* CIUDAD */}
         <div className="grid gap-2">
           <Label htmlFor="ciudad">Ciudad</Label>
           <Select
@@ -223,7 +223,7 @@ export function ProveedorForm({
           </Select>
         </div>
       </div>
-
+      {/* CALLE PRINCIPAL */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="calle1">Calle Principal</Label>
@@ -234,6 +234,7 @@ export function ProveedorForm({
             required
           />
         </div>
+        {/* CALLE SECUNDARIA */}
         <div className="grid gap-2">
           <Label htmlFor="calle2">Calle Secundaria / Nro</Label>
           <Input
@@ -243,7 +244,7 @@ export function ProveedorForm({
           />
         </div>
       </div>
-
+      {/* NOMBRE */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="nombres">Nombres del contacto</Label>
@@ -253,6 +254,7 @@ export function ProveedorForm({
             onChange={(e) => updateField("nombres", e.target.value)}
           />
         </div>
+        {/* APELLIDO */}
         <div className="grid gap-2">
           <Label htmlFor="apellidos">Apellidos</Label>
           <Input
@@ -262,8 +264,9 @@ export function ProveedorForm({
           />
         </div>
       </div>
-
+      
       <div className="grid grid-cols-2 gap-4">
+      {/* CORREO */}
         <div className="grid gap-2">
           <Label htmlFor="correo">Correo</Label>
           <Input
@@ -274,6 +277,7 @@ export function ProveedorForm({
             placeholder="ejemplo@correo.com"
           />
         </div>
+        {/* TELÉFONO */}
         <div className="grid gap-2">
           <Label htmlFor="telefono">Teléfono</Label>
           <Input
