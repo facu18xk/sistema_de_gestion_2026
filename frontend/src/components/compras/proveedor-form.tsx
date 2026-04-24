@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
 import { Proveedor, Pais, Ciudad } from "@/types/types";
 import { ubicacionesAPI } from "@/services/ubicacionesAPI";
 import { Loader2 } from "lucide-react";
+import { notify } from "@/lib/notifications";
 
 interface ProveedorFormProps {
   proveedorEditado?: Proveedor | null;
@@ -47,7 +48,7 @@ export function ProveedorForm({
     descripcionDireccion: "",
   });
 
-  // 1. Efecto para cargar los datos cuando se entra en modo Edición
+  // Efecto para cargar los datos cuando se entra en modo Edición
   useEffect(() => {
     if (proveedorEditado) {
       setFormData({
@@ -67,7 +68,7 @@ export function ProveedorForm({
     }
   }, [proveedorEditado]);
 
-  // 2. Efecto para filtrar ciudades cada vez que el idPais cambie
+  // Efecto para filtrar ciudades cada vez que el idPais cambie
   useEffect(() => {
     const cargarCiudades = async () => {
       if (!formData.idPais) {
@@ -76,11 +77,13 @@ export function ProveedorForm({
       }
       setLoadingLocs(true);
       try {
-        // Usamos el nuevo endpoint del backend
         const data = await ubicacionesAPI.getCiudadesPorPais(Number(formData.idPais));
         setCiudades(data);
       } catch (err) {
-        console.error("Error al cargar ciudades por país:", err);
+        notify.warning(
+          "Error de ubicación",
+          "No se pudieron cargar las ciudades para el país seleccionado."
+        );
       } finally {
         setLoadingLocs(false);
       }
@@ -103,7 +106,7 @@ export function ProveedorForm({
       razonSocial: formData.razonSocial,
       nombreFantasia: formData.nombreFantasia,
       direccion: {
-        idDireccion: proveedorEditado?.idDireccion || 0,
+        idDireccion: proveedorEditado?.direccion?.idDireccion || 0,
         calle1: formData.calle1,
         calle2: formData.calle2 || "",
         descripcion: formData.descripcionDireccion || "",
@@ -115,9 +118,14 @@ export function ProveedorForm({
       telefono: formData.telefono,
     };
 
-    // Pasamos el objeto completo al onSubmit de la página
-    await onSubmit(proveedorFullReq);
-    setIsSubmitting(false);
+    try {
+      await onSubmit(proveedorFullReq);
+    } catch (error) {
+      // La notificación de error se puede manejar aquí o en el padre según prefieras
+      // En este caso, el padre (ProveedoresPage) ya tiene el try/catch con notify.error
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -129,6 +137,7 @@ export function ProveedorForm({
           id="nombreFantasia"
           value={formData.nombreFantasia}
           onChange={(e) => updateField("nombreFantasia", e.target.value)}
+          placeholder="Ej: Distribuidora Central"
           required
         />
       </div>
@@ -140,6 +149,7 @@ export function ProveedorForm({
             id="ruc"
             value={formData.ruc}
             onChange={(e) => updateField("ruc", e.target.value)}
+            placeholder="80000000-0"
             required
           />
         </div>
@@ -149,22 +159,22 @@ export function ProveedorForm({
             id="razonSocial"
             value={formData.razonSocial}
             onChange={(e) => updateField("razonSocial", e.target.value)}
+            placeholder="Nombre legal de la empresa"
             required
           />
         </div>
       </div>
 
-      {/* UBICACIÓN - Aquí está la corrección del filtrado y preselección */}
+      {/* UBICACIÓN */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="pais">País</Label>
           <Select
-            // El key fuerza el re-render cuando cambia el id para asegurar que se muestre el texto correcto
             key={`pais-${formData.idPais}`}
             value={formData.idPais}
             onValueChange={(value) => {
               updateField("idPais", value);
-              updateField("idCiudad", ""); // Resetear ciudad si cambia el país manualmente
+              updateField("idCiudad", "");
             }}
             required
           >
@@ -258,6 +268,7 @@ export function ProveedorForm({
             type="email"
             value={formData.correo}
             onChange={(e) => updateField("correo", e.target.value)}
+            placeholder="ejemplo@correo.com"
           />
         </div>
         <div className="grid gap-2">
@@ -266,11 +277,12 @@ export function ProveedorForm({
             id="telefono"
             value={formData.telefono}
             onChange={(e) => updateField("telefono", e.target.value)}
+            placeholder="09xx xxx xxx"
           />
         </div>
       </div>
 
-      {/* BOTONES - Diseño idéntico a ProductoForm */}
+      {/* BOTONES */}
       <div className="flex justify-end gap-3 mt-6">
         <Button
           type="button"

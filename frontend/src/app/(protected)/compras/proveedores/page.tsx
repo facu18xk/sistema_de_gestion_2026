@@ -1,5 +1,5 @@
 "use client"
-import { Proveedor, Pais } from "@/types/types" // 1. Añadimos Pais a los tipos
+import { Proveedor, Pais } from "@/types/types"
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import { Pencil, Trash2, Loader2 } from "lucide-react"
@@ -7,41 +7,42 @@ import { Button } from "@/components/ui/button"
 import { ProveedorForm } from "@/components/compras/proveedor-form"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { TableRow, TableCell, TableHead } from "@/components/ui/table"
-
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { proveedoresAPI } from "@/services/proveedoresAPI"
-import { ubicacionesAPI } from "@/services/ubicacionesAPI" // 2. Importamos el nuevo servicio
+import { ubicacionesAPI } from "@/services/ubicacionesAPI"
+import { notify } from "@/lib/notifications"
 
 export default function ProveedoresPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [proveedorAEditar, setProveedorAEditar] = useState<Proveedor | null>(null)
   const [proveedores, setProveedores] = useState<Proveedor[]>([])
-  const [paises, setPaises] = useState<Pais[]>([]) // 3. Estado para países
+  const [paises, setPaises] = useState<Pais[]>([])
   const [loading, setLoading] = useState(true)
-
-  // --- LLAMADAS A API ---
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [itemsPerPage] = useState(8)
 
   const fetchProveedores = async () => {
     try {
       setLoading(true)
-      const data = await proveedoresAPI.getAll()
-      setProveedores(data)
+      const data = await proveedoresAPI.getAll(currentPage, itemsPerPage)
+      setProveedores(data.items)
+      setTotalPages(data.totalPages)
     } catch (error) {
-      console.error("Error al cargar proveedores:", error)
+      notify.error("Error de conexión", "No se pudo obtener la lista de proveedores.")
     } finally {
       setLoading(false)
     }
   }
 
-  // 4. Nueva función para cargar países
   const fetchPaises = async () => {
     try {
-      const data = await ubicacionesAPI.getPaises()
-      setPaises(data)
+      const data = await ubicacionesAPI.getPaises(1, 1000)
+      setPaises(data.items)
     } catch (error) {
-      console.error("Error al cargar países:", error)
+      console.error("Error al cargar países")
     }
   }
 
@@ -49,14 +50,15 @@ export default function ProveedoresPage() {
     try {
       if (proveedorAEditar?.idProveedor) {
         await proveedoresAPI.update(proveedorAEditar.idProveedor, data)
+        notify.success("Proveedor actualizado", `${data.nombreFantasia} se actualizó correctamente.`)
       } else {
         await proveedoresAPI.create(data)
+        notify.success("Proveedor registrado", "El nuevo proveedor ha sido guardado.")
       }
       setIsSheetOpen(false)
       fetchProveedores()
     } catch (error) {
-      console.error("Error al guardar el proveedor:", error)
-      alert("Ocurrió un error al procesar la solicitud.")
+      notify.error("Error al guardar", "Ocurrió un problema al procesar la solicitud.")
     }
   }
 
@@ -64,15 +66,19 @@ export default function ProveedoresPage() {
     if (!confirm("¿Estás seguro de que deseas eliminar este proveedor?")) return
     try {
       await proveedoresAPI.delete(id)
+      notify.success("Eliminado", "El proveedor ha sido removido del sistema.")
       fetchProveedores()
     } catch (error) {
-      console.error("Error al eliminar el proveedor:", error)
+      notify.error("Error al eliminar", "El proveedor podría tener registros asociados.")
     }
   }
 
   useEffect(() => {
     fetchProveedores()
-    fetchPaises() // 5. Cargamos países al iniciar la página
+  }, [currentPage])
+
+  useEffect(() => {
+    fetchPaises()
   }, [])
 
   const handleCrearNuevo = () => {
@@ -88,7 +94,7 @@ export default function ProveedoresPage() {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-3 space-y-3">
         <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Proveedores" }]} />
         <PageHeader title="Listado de Proveedores" buttonLabel="Nuevo Proveedor" onButtonClick={handleCrearNuevo} />
 
@@ -105,6 +111,9 @@ export default function ProveedoresPage() {
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           }
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
         >
           {loading ? (
             <TableRow><TableCell colSpan={7} className="text-center py-10"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>

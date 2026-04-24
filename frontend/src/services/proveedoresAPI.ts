@@ -2,9 +2,19 @@ import api from './api';
 import { API_CONFIG } from "../config/api";
 import { Proveedor } from '@/types/types';
 
+interface ProveedoresPaginados {
+    items: Proveedor[];
+    totalPages: number;
+    totalItems: number;
+}
 export const proveedoresAPI = {
-    getAll: async (): Promise<Proveedor[]> => {
-        const response = await api.get(API_CONFIG.ENDPOINTS.PROVEEDORES);
+    getAll: async (page: number = 1, size: number = 8): Promise<ProveedoresPaginados> => {
+        const response = await api.get(API_CONFIG.ENDPOINTS.PROVEEDORES, {
+            params: {
+                page: page,
+                size: size
+            }
+        });
         return response.data;
     },
 

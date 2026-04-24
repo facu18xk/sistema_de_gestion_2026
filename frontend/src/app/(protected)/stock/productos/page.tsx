@@ -66,7 +66,7 @@ export default function ProductosPage() {
 
   // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
   const handleCrearNuevo = () => { setProductoAEditar(null); setIsSheetOpen(true); }
-  
+
   const handleEditar = (p: ProductoDTO) => { setProductoAEditar(p); setIsSheetOpen(true); }
 
   const confirmarEliminacion = async () => {
@@ -105,34 +105,34 @@ export default function ProductosPage() {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-3 space-y-3">
         {/*BREADCRUMB*/}
         <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]} />
         {/*BOTÓN ADD*/}
         <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
         {/*ALERT DIALOG*/}
         <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Eliminarás permanentemente el producto{" "}
-              <span className="font-bold text-foreground">
-                "{productoAEliminar?.descripcion}"
-              </span>{" "}
-              y se quitará del servidor.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmarEliminacion}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Eliminar Producto
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Eliminarás permanentemente el producto{" "}
+                <span className="font-bold text-foreground">
+                  "{productoAEliminar?.descripcion}"
+                </span>{" "}
+                y se quitará del servidor.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmarEliminacion}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Eliminar Producto
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
         {/*TABLA*/}
         {isLoading ? (
@@ -167,7 +167,7 @@ export default function ProductosPage() {
                   <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
                     <Pencil className="size-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => {setProductoAEliminar(p); setIsAlertOpen(true);}} className="cursor-pointer">
+                  <Button variant="ghost" size="icon" onClick={() => { setProductoAEliminar(p); setIsAlertOpen(true); }} className="cursor-pointer">
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
                 </TableCell>
@@ -185,7 +185,7 @@ export default function ProductosPage() {
             <ProductoForm
               key={productoAEditar?.idProducto ?? "nuevo"}
               productoEditado={productoAEditar}
-              categorias={categorias} 
+              categorias={categorias}
               marcas={marcas}
               onSubmit={handleFormSubmit}
               onCancel={() => setIsSheetOpen(false)}
