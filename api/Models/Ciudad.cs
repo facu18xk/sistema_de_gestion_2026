@@ -13,5 +13,5 @@ public partial class Ciudad
 
     public virtual ICollection<Direccion> Direcciones { get; set; } = new List<Direccion>();
 
-    public virtual Pais IdPaisNavigation { get; set; } = null!;
+    public virtual Pais? IdPaisNavigation { get; set; }
 }
