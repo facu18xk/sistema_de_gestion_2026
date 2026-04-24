@@ -18,5 +18,11 @@ Backend:
 - Postgresql
 - ef core
 
+## GitHub Pages
+
+The frontend is configured as a static Next.js export in [`frontend`](./frontend) and is deployed from `.github/workflows/frontend-github-pages.yml`.
+
+If you deploy the app under GitHub Pages, it will use the repository name as the base path and the Railway API URL by default.
+
 Sintaxis de commits
 https://www.conventionalcommits.org/en/v1.0.0/

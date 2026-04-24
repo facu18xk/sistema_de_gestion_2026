@@ -14,24 +14,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-//Para probar
-let users = [
-    {
-        email: "admin@admin.com",
-        password: "test123"
-    },
-    {
-        email: "user@user.com",
-        password: "test123"
-    }
-];
-
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null) // Para mostrar errores de la API
     const router = useRouter();
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5066";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,7 +28,7 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const response = await fetch("http://localhost:5066/api/Auth/iniciar",{
+            const response = await fetch(`${apiBaseUrl}/api/Auth/iniciar`,{
                 method: "POST",
                 headers: {
                     "Content-Type":"application/json",
@@ -59,27 +48,11 @@ export default function LoginPage() {
             localStorage.setItem("token", data.token) // O como se llame el campo en tu API
 
             router.push("/dashboard")
-        } catch(err: any){
-            setError(err.message);
+        } catch(err: unknown){
+            setError(err instanceof Error ? err.message : "Error inesperado");
         } finally {
             setIsLoading(false);
         }
-
-        /*let found = users.find(u => u.email === email && u.password === password);
-
-        //Simulamos una comunicación con el backend
-        setTimeout(() => {
-            if (found) {
-                setIsLoading(false);
-                alert("¡Login exitoso!");
-                router.push("/dashboard"); //Redirige a la página principal
-            }
-            else {
-                setIsLoading(false);
-                alert("Email y/o Contraseña incorrectos!");
-            }
-        }, 1500)*/
-
     }
 
     return (
