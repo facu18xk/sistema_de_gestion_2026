@@ -42,15 +42,21 @@ public class CiudadesController : CrudControllerBase<Ciudad, CiudadDto, CiudadUp
         };
     }
 
-    protected override Ciudad ToEntity(CiudadUpsertDto dto)
+protected override Ciudad ToEntity(CiudadUpsertDto dto)
+{
+    var entity = new Ciudad
     {
-        return new Ciudad
-        {
-            IdCiudad = dto.IdCiudad, 
-            IdPais = dto.IdPais,
-            Nombre = dto.Nombre
-        };
+        IdPais = dto.IdPais,
+        Nombre = dto.Nombre
+    };
+
+    if (dto.IdCiudad > 0)
+    {
+        entity.IdCiudad = dto.IdCiudad;
     }
+
+    return entity;
+}
 
     protected override int GetId(Ciudad entity)
     {
