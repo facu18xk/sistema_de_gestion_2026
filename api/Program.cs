@@ -93,7 +93,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("http://localhost:3000")
+        policy => policy.WithOrigins("http://localhost:3000", "https://facu18xk.github.io",
+                "https://facu18xk.github.io/sistema_de_gestion_2026")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
 });
