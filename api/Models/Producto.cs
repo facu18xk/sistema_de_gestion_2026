@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
-namespace DatabaseHastaCompraVenta.Models;
+namespace api.Models;
 
 public partial class Producto
 {
@@ -18,6 +20,9 @@ public partial class Producto
     public bool EsServicio { get; set; }
 
     public decimal PorcentajeIva { get; set; }
+
+    [NotMapped]
+    public int CantidadTotal => StocksDepositos.Sum(stock => stock.Cantidad);
 
     public virtual ICollection<FacturasComprasDetalle> FacturasComprasDetalles { get; set; } = new List<FacturasComprasDetalle>();
 

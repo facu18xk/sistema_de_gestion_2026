@@ -1,61 +1,35 @@
-using DatabaseHastaCompraVenta.Models;
+using System.Linq.Expressions;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Services;
 
-public class CategoriaService : ICrudService<Categoria, int>
+public class CategoriaService : CrudServiceBase<Categoria, int>
 {
     private readonly DblosAmigosContext _context;
 
     public CategoriaService(DblosAmigosContext context)
+        : base(context)
     {
         _context = context;
     }
 
-    public async Task<IEnumerable<Categoria>> GetAllAsync()
+    protected override DbSet<Categoria> Set => _context.Categorias;
+
+    protected override IQueryable<Categoria> BuildReadQuery()
     {
-        return await _context.Categorias
+        return _context.Categorias
             .OrderBy(c => c.Nombre)
-            .ToListAsync();
+            .AsNoTracking();
     }
 
-    public async Task<Categoria?> GetByIdAsync(int id)
+    protected override Expression<Func<Categoria, bool>> BuildKeyPredicate(int id)
     {
-        return await _context.Categorias.FindAsync(id);
+        return categoria => categoria.IdCategoria == id;
     }
 
-    public async Task<Categoria> CreateAsync(Categoria entity)
+    protected override void UpdateEntity(Categoria existingEntity, Categoria incomingEntity)
     {
-        _context.Categorias.Add(entity);
-        await _context.SaveChangesAsync();
-        return entity;
-    }
-
-    public async Task<Categoria> UpdateAsync(int id, Categoria entity)
-    {
-        var existe = await _context.Categorias.FindAsync(id);
-
-        if (existe is null)
-        {
-            throw new KeyNotFoundException($"No existe la categoria con ID {id}");
-        }
-
-        existe.Nombre = entity.Nombre;
-
-        _context.Categorias.Update(existe);
-        await _context.SaveChangesAsync();
-        return existe;
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var categoria = await _context.Categorias.FindAsync(id);
-        if (categoria is null)
-        {
-            return;
-        }
-
-        _context.Categorias.Remove(categoria);
-        await _context.SaveChangesAsync();
+        existingEntity.Nombre = incomingEntity.Nombre;
     }
 }

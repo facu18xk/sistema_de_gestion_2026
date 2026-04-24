@@ -3,3 +3,10 @@
 
 # Node
 **/node_modules/
+
+# .NET
+api/bin/
+api/obj/
+
+# Node
+node_modules/

@@ -2,7 +2,7 @@ using System.Text;
 using api.Data;
 using api.Services;
 using api.Settings;
-using DatabaseHastaCompraVenta.Models;
+using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -34,9 +34,7 @@ var jwtSettings = builder.Configuration
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<ICrudService<Producto, int>, ProductoService>();
-builder.Services.AddScoped<ICrudService<Marca, int>, MarcaService>();
-builder.Services.AddScoped<ICrudService<Categoria, int>, CategoriaService>();
+builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

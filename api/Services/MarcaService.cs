@@ -1,61 +1,35 @@
-using DatabaseHastaCompraVenta.Models;
+using System.Linq.Expressions;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Services;
 
-public class MarcaService : ICrudService<Marca, int>
+public class MarcaService : CrudServiceBase<Marca, int>
 {
     private readonly DblosAmigosContext _context;
 
     public MarcaService(DblosAmigosContext context)
+        : base(context)
     {
         _context = context;
     }
 
-    public async Task<IEnumerable<Marca>> GetAllAsync()
+    protected override DbSet<Marca> Set => _context.Marcas;
+
+    protected override IQueryable<Marca> BuildReadQuery()
     {
-        return await _context.Marcas
+        return _context.Marcas
             .OrderBy(m => m.Nombre)
-            .ToListAsync();
+            .AsNoTracking();
     }
 
-    public async Task<Marca?> GetByIdAsync(int id)
+    protected override Expression<Func<Marca, bool>> BuildKeyPredicate(int id)
     {
-        return await _context.Marcas.FindAsync(id);
+        return marca => marca.IdMarca == id;
     }
 
-    public async Task<Marca> CreateAsync(Marca entity)
+    protected override void UpdateEntity(Marca existingEntity, Marca incomingEntity)
     {
-        _context.Marcas.Add(entity);
-        await _context.SaveChangesAsync();
-        return entity;
-    }
-
-    public async Task<Marca> UpdateAsync(int id, Marca entity)
-    {
-        var existe = await _context.Marcas.FindAsync(id);
-
-        if (existe is null)
-        {
-            throw new KeyNotFoundException($"No existe la marca con ID {id}");
-        }
-
-        existe.Nombre = entity.Nombre;
-
-        _context.Marcas.Update(existe);
-        await _context.SaveChangesAsync();
-        return existe;
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var marca = await _context.Marcas.FindAsync(id);
-        if (marca is null)
-        {
-            return;
-        }
-
-        _context.Marcas.Remove(marca);
-        await _context.SaveChangesAsync();
+        existingEntity.Nombre = incomingEntity.Nombre;
     }
 }

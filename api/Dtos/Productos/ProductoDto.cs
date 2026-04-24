@@ -12,6 +12,8 @@ public class ProductoDto
 
     public decimal PorcentajeIva { get; set; }
 
+    public int CantidadTotal { get; set; }
+
     public int IdMarca { get; set; }
 
     public string Marca { get; set; } = string.Empty;

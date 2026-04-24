@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace DatabaseHastaCompraVenta.Models;
+namespace api.Models;
 
 public partial class DblosAmigosContext : DbContext
 {
