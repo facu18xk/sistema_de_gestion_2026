@@ -1,2 +1,5 @@
-api/obj
-api/bin
+**/bin/
+**/obj/
+
+# Node
+**/node_modules/
