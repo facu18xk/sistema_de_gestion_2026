@@ -72,13 +72,10 @@ export default function Navbar() {
           {/* Selects de Módulos (Estilo Native Select con Tailwind) */}
           <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
-
               <NavigationMenuItem>
-                <Link href="/dashboard" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Inicio
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
+                    <Link href="/dashboard">Inicio</Link>
                   </NavigationMenuLink>
-                </Link>
               </NavigationMenuItem>
 
               {modulos.map((modulo) => (
@@ -146,5 +143,5 @@ export default function Navbar() {
 
       </div>
     </nav>
-  )
+  );
 }

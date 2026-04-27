@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
 import { Proveedor, Pais, Ciudad } from "@/types/types";
 import { ubicacionesAPI } from "@/services/ubicacionesAPI";
 import { Loader2 } from "lucide-react";
+import { notify } from "@/lib/notifications";
 
 interface ProveedorFormProps {
   proveedorEditado?: Proveedor | null;
@@ -47,7 +48,7 @@ export function ProveedorForm({
     descripcionDireccion: "",
   });
 
-  // 1. Efecto para cargar los datos cuando se entra en modo Edición
+  // Efecto para cargar los datos cuando se entra en modo Edición
   useEffect(() => {
     if (proveedorEditado) {
       setFormData({
@@ -67,7 +68,7 @@ export function ProveedorForm({
     }
   }, [proveedorEditado]);
 
-  // 2. Efecto para filtrar ciudades cada vez que el idPais cambie
+  // Efecto para filtrar ciudades cada vez que el idPais cambie
   useEffect(() => {
     const cargarCiudades = async () => {
       if (!formData.idPais) {
@@ -81,6 +82,7 @@ export function ProveedorForm({
         setCiudades(data);
       } catch (err) {
         console.error("Error al cargar ciudades por país:", err);
+        notify.warning("Error de ubicación", "No se pudieron cargar las ciudades para el país seleccionado.");
       } finally {
         setLoadingLocs(false);
       }
@@ -95,15 +97,17 @@ export function ProveedorForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+  
     setIsSubmitting(true);
-
+  
     const proveedorFullReq = {
       idProveedor: proveedorEditado?.idProveedor || 0,
       ruc: formData.ruc,
       razonSocial: formData.razonSocial,
       nombreFantasia: formData.nombreFantasia,
       direccion: {
-        idDireccion: proveedorEditado?.idDireccion || 0,
+        idDireccion: proveedorEditado?.direccion?.idDireccion || 0,
         calle1: formData.calle1,
         calle2: formData.calle2 || "",
         descripcion: formData.descripcionDireccion || "",
@@ -114,10 +118,16 @@ export function ProveedorForm({
       correo: formData.correo,
       telefono: formData.telefono,
     };
-
-    // Pasamos el objeto completo al onSubmit de la página
-    await onSubmit(proveedorFullReq);
-    setIsSubmitting(false);
+  
+    try {
+      await onSubmit(proveedorFullReq);
+    } catch (error) {
+      console.error("Error en el formulario:", error);
+      // Nota: El notify ya lo manejas en el padre (ProveedoresPage), 
+      // así que aquí solo capturamos para evitar que el loading se quede infinito
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -129,10 +139,11 @@ export function ProveedorForm({
           id="nombreFantasia"
           value={formData.nombreFantasia}
           onChange={(e) => updateField("nombreFantasia", e.target.value)}
+          placeholder="Ej: Distribuidora Central"
           required
         />
       </div>
-
+      {/* RUC */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="ruc">RUC</Label>
@@ -140,31 +151,33 @@ export function ProveedorForm({
             id="ruc"
             value={formData.ruc}
             onChange={(e) => updateField("ruc", e.target.value)}
+            placeholder="80000000-0"
             required
           />
         </div>
+        {/* RAZÓN SOCIAL */}
         <div className="grid gap-2">
           <Label htmlFor="razonSocial">Razón Social</Label>
           <Input
             id="razonSocial"
             value={formData.razonSocial}
             onChange={(e) => updateField("razonSocial", e.target.value)}
+            placeholder="Nombre legal de la empresa"
             required
           />
         </div>
       </div>
-
-      {/* UBICACIÓN - Aquí está la corrección del filtrado y preselección */}
+      {/* UBICACIÓN */}
       <div className="grid grid-cols-2 gap-4">
+        {/* PAÍS */}
         <div className="grid gap-2">
           <Label htmlFor="pais">País</Label>
           <Select
-            // El key fuerza el re-render cuando cambia el id para asegurar que se muestre el texto correcto
             key={`pais-${formData.idPais}`}
             value={formData.idPais}
             onValueChange={(value) => {
               updateField("idPais", value);
-              updateField("idCiudad", ""); // Resetear ciudad si cambia el país manualmente
+              updateField("idCiudad", "");
             }}
             required
           >
@@ -180,7 +193,7 @@ export function ProveedorForm({
             </SelectContent>
           </Select>
         </div>
-
+        {/* CIUDAD */}
         <div className="grid gap-2">
           <Label htmlFor="ciudad">Ciudad</Label>
           <Select
@@ -210,7 +223,7 @@ export function ProveedorForm({
           </Select>
         </div>
       </div>
-
+      {/* CALLE PRINCIPAL */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="calle1">Calle Principal</Label>
@@ -221,6 +234,7 @@ export function ProveedorForm({
             required
           />
         </div>
+        {/* CALLE SECUNDARIA */}
         <div className="grid gap-2">
           <Label htmlFor="calle2">Calle Secundaria / Nro</Label>
           <Input
@@ -230,7 +244,7 @@ export function ProveedorForm({
           />
         </div>
       </div>
-
+      {/* NOMBRE */}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="nombres">Nombres del contacto</Label>
@@ -240,6 +254,7 @@ export function ProveedorForm({
             onChange={(e) => updateField("nombres", e.target.value)}
           />
         </div>
+        {/* APELLIDO */}
         <div className="grid gap-2">
           <Label htmlFor="apellidos">Apellidos</Label>
           <Input
@@ -249,8 +264,9 @@ export function ProveedorForm({
           />
         </div>
       </div>
-
+      
       <div className="grid grid-cols-2 gap-4">
+      {/* CORREO */}
         <div className="grid gap-2">
           <Label htmlFor="correo">Correo</Label>
           <Input
@@ -258,19 +274,22 @@ export function ProveedorForm({
             type="email"
             value={formData.correo}
             onChange={(e) => updateField("correo", e.target.value)}
+            placeholder="ejemplo@correo.com"
           />
         </div>
+        {/* TELÉFONO */}
         <div className="grid gap-2">
           <Label htmlFor="telefono">Teléfono</Label>
           <Input
             id="telefono"
             value={formData.telefono}
             onChange={(e) => updateField("telefono", e.target.value)}
+            placeholder="09xx xxx xxx"
           />
         </div>
       </div>
 
-      {/* BOTONES - Diseño idéntico a ProductoForm */}
+      {/* BOTONES */}
       <div className="flex justify-end gap-3 mt-6">
         <Button
           type="button"
