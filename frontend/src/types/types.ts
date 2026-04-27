@@ -102,47 +102,56 @@ export interface Proveedor {
 }
 
 
-export interface DetallePedido {
-    idProducto: number;
-    descripcion: string;
-    cantidad: number;
-    precioUnitario: number;
-    subtotal: number;
+export interface PedidoItem {
+  idPedidoCompraDetalle?: number
+  idPedidoCompra?: number
+  idProducto: number
+  producto?: string
+  categoria: string
+  descripcion: string
+  cantidad: number
+  ultimoPrecio: number
 }
 
 export interface Pedido {
-    id?: string;
-    nroCotizacion: string;
-    idProveedor: number;
-    nombreProveedor?: string;
-    fecha: string;
-    estado: string;
-    items: DetallePedido[];
-    total: number;
+  id?: string
+  nroPedido: string
+  fecha: string
+  estado: string
+  items: PedidoItem[]
 }
 
 export interface PedidoDTO {
-    id: number
-    nroCotizacion: string
-    idProveedor: number
-    nombreProveedor: string
-    fecha: string
-    estado: string
-    items: DetallePedido[]
-    total: number
+  idPedidoCompra: number
+  idEstado: number
+  estado: string
+  numeroPedido: number
+  fecha: string
 }
 
-export interface PedidoForm {
-    nroCotizacion: string
-    idProveedor: number
-    fecha: string
-    estado: string
-    items: DetallePedido[]
-}
 export interface PedidoSaveDTO {
-    nroCotizacion: string
-    idProveedor: number
-    fecha: string
-    items: DetallePedido[]
-    total: number
+  idEstado: number
+  numeroPedido: number
+  fecha: string
+}
+
+export interface PedidoDetalleDTO {
+  idPedidoCompraDetalle: number
+  idPedidoCompra: number
+  numeroPedidoCompra: number
+  idProducto: number
+  producto: string
+  categoria: string
+  descripcion: string
+  cantidad: number
+  ultimoPrecio: number
+}
+
+export interface PedidoDetalleSaveDTO {
+  idPedidoCompra: number
+  idProducto: number
+  categoria: string
+  descripcion: string
+  cantidad: number
+  ultimoPrecio: number
 }

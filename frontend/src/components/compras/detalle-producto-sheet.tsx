@@ -33,9 +33,9 @@ export function DetalleProductoSheet({
             onOpenChange={onOpenChange}
             title="Detalle producto"
             description="Información detallada del producto seleccionado."
-            contentClassName="px-6 sm:max-w-[420px]"
+            contentClassName="px-6 sm:max-w-[420px] overflow-y-auto"
         >
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 max-h-[calc(100vh-120px)] pr-2">
                 <div className="border rounded-md h-40 flex items-center justify-center">
                     {productoDetalle.imagen ? (
                         <img
