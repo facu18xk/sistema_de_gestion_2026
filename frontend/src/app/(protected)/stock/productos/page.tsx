@@ -53,7 +53,7 @@ export default function ProductosPage() {
       setProductos(resPaginada.items);
       setTotalPages(resPaginada.totalPages);
       setMarcas(resMarcas.items);
-      setCategorias(resCategorias.items);
+      setCategorias(resCategorias);
     } catch (error) {
       console.error("Error al cargar datos:", error);
     } finally {
