@@ -99,17 +99,45 @@ export interface Direccion {
     idPais: number; //para chequeo en edicion y creacion de proveedor
 }
 
+// --- Dentro de types/types.ts ---
+
+// Lo que viene dentro de la lista de categorías del proveedor en el GET
+export interface ProveedorCategoriaDTO {
+    idCategoria: number;
+    categoria: string;
+}
+
+
 export interface Proveedor {
     idProveedor: number;
     ruc: string;
     razonSocial: string;
     nombreFantasia: string;
-    idDireccion: number | null;
-    direccion?: Direccion;
+    idDireccion: number;
+    direccion: Direccion;
     nombres: string | null;
     apellidos: string | null;
     correo: string | null;
     telefono: string | null;
+    categorias: ProveedorCategoriaDTO[];
+}
+
+export interface ProveedorSaveDTO {
+    ruc: string;
+    razonSocial: string;
+    nombreFantasia: string;
+    direccion: {
+        calle1: string;
+        calle2: string | null;
+        descripcion: string | null;
+        idCiudad: number;
+
+    };
+    nombres: string | null;
+    apellidos: string | null;
+    correo: string | null;
+    telefono: string | null;
+    categoriaIds: number[];
 }
 
 
