@@ -58,6 +58,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "api",
