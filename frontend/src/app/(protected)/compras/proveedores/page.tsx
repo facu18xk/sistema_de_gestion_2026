@@ -41,23 +41,30 @@ export default function ProveedoresPage() {
   const cargarPagina = async () => {
     setIsLoading(true);
     try {
-      const [resPaginada, resPaises] = await Promise.all([
-        proveedoresAPI.getAll(currentPage, itemsPerPage),
-        ubicacionesAPI.getPaises(1, 300)
-      ])
+      const resPaginada = await proveedoresAPI.getAll(currentPage, itemsPerPage);
       setProveedores(resPaginada.items);
-      setPaises(resPaises.items);
       setTotalPages(resPaginada.totalPages);
     } catch (error) {
-      console.error("Error al cargar datos de proveedores y/o países:", error);
+      console.error("Error al cargar datos de proveedores:", error);
       notify.error("Error de conexión", "No se pudo obtener la lista de proveedores.")
     } finally {
       setIsLoading(false);
     }
   }
 
-  useEffect(() => { cargarPagina() }, [currentPage]);
+  const cargarPaises = async () => {
+    try {
+      const resPaises = await ubicacionesAPI.getPaises(1, 300);
+      setPaises(resPaises.items)
+    } catch (error) {
+      console.error("Error al cargar datos de países:", error);
+      notify.error("Error de conexión", "No se pudo obtener la lista de países.")
+    }
+  }
 
+  useEffect(() => { cargarPaises() }, []);
+  useEffect(() => { cargarPagina() }, [currentPage]);
+  
   // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
   const handleCrearNuevo = () => { setProveedorAEditar(null); setIsSheetOpen(true); }
 

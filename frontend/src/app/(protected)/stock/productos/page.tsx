@@ -55,9 +55,30 @@ export default function ProductosPage() {
       setMarcas(resMarcas.items);
       setCategorias(resCategorias.items);
     } catch (error) {
-      console.error("Error al cargar datos:", error);
+      console.error("Error al cargar datos de la página:", error);
+      notify.error ("Error", "Error al cargar la página");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  const cargarMarcas = async () => {
+    try {
+      const response = await marcasAPI.getAll();
+      setMarcas(response.items);
+    } catch (error) {
+      console.error("Error al cargar datos de marcas:", error);
+      notify.error ("Error", "Error al cargar las marcas");
+    }
+  }
+
+  const cargarCategorias = async () => {
+    try {
+      const response = await categoriasAPI.getAll();
+      setCategorias(response.items);
+    } catch (error) {
+      console.error("Error al cargar datos de categorías:", error);
+      notify.error ("Error", "Error al cargar las categorías");
     }
   }
 
@@ -187,6 +208,10 @@ export default function ProductosPage() {
             marcas={marcas}
             onSubmit={handleFormSubmit}
             onCancel={() => setIsSheetOpen(false)}
+            onRefreshData={async () => {
+              await cargarMarcas();
+              await cargarCategorias();
+           }}
           />
         </SheetContent>
       </Sheet>

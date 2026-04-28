@@ -64,8 +64,16 @@ export interface Marca {
     nombre: string
 }
 
+export interface MarcaDTO {
+    nombre: string;
+}
+
 export interface Categoria {
     idCategoria: number;
+    nombre: string
+}
+
+export interface CategoriaDTO {
     nombre: string
 }
 

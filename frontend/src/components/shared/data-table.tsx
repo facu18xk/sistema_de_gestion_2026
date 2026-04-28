@@ -28,7 +28,7 @@ export function DataTable({
         <div className="space-y-3">
             <div className="rounded-md border bg-white shadow-sm">
                 <Table>
-                    <TableCaption>{caption}</TableCaption>
+                    {/*<TableCaption>{caption}</TableCaption>*/}
                     <TableHeader>
                         {headerRow}
                     </TableHeader>

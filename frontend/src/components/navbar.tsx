@@ -27,8 +27,8 @@ import { notify } from "@/lib/notifications"
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
-  { title: "Ventas", items: ["Facturación", "Clientes", "Reportes"] },
-  { title: "Compras", items: ["Proveedores", "Órdenes", "Pedidos", "Pagos"] },
+  { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
+  { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"] },
   { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
   { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
   { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
