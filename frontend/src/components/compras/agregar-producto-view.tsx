@@ -1,8 +1,9 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -10,41 +11,41 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/components/ui/table"
-import { PageHeader } from "@/components/shared/page-header"
-import { DetalleProductoSheet } from "@/components/compras/detalle-producto-sheet"
+} from "@/components/ui/table";
+import { PageHeader } from "@/components/shared/page-header";
+import { DetalleProductoSheet } from "@/components/compras/detalle-producto-sheet";
 
 export interface ProductoSeleccionable {
-  id: number
-  descripcion: string
-  marca: string
-  categoria: string
-  precio: number
-  disponible: number
-  imagen?: string
+  id: number;
+  descripcion: string;
+  marca: string;
+  categoria: string;
+  precio: number;
+  disponible: number;
+  imagen?: string;
 }
 
 export interface ProductoSeleccionadoParaPedido {
-  id: number
-  descripcion: string
-  categoria: string
-  precio: number
-  cantidad: number
+  id: number;
+  descripcion: string;
+  categoria: string;
+  precio: number;
+  cantidad: number;
 }
 
 interface ProductoConSeleccion extends ProductoSeleccionable {
-  cantidadSeleccionada: number
-  marcado: boolean
+  cantidadSeleccionada: number;
+  marcado: boolean;
 }
 
 interface AgregarProductosViewProps {
-  productos: ProductoSeleccionable[]
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
-  onCancel: () => void
-  onCargarProductos: (productos: ProductoSeleccionadoParaPedido[]) => void
-  onNuevoProducto: () => void
+  productos: ProductoSeleccionable[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onCancel: () => void;
+  onCargarProductos: (productos: ProductoSeleccionadoParaPedido[]) => void;
+  onNuevoProducto: () => void;
 }
 
 export function AgregarProductosView({
@@ -56,13 +57,16 @@ export function AgregarProductosView({
   onCargarProductos,
   onNuevoProducto,
 }: AgregarProductosViewProps) {
-  const [productosEstado, setProductosEstado] = useState<ProductoConSeleccion[]>([])
-  const [productoDetalle, setProductoDetalle] = useState<ProductoConSeleccion | null>(null)
-  const [sheetDetalleOpen, setSheetDetalleOpen] = useState(false)
+  const [productosEstado, setProductosEstado] = useState<
+    ProductoConSeleccion[]
+  >([]);
+  const [productoDetalle, setProductoDetalle] =
+    useState<ProductoConSeleccion | null>(null);
+  const [sheetDetalleOpen, setSheetDetalleOpen] = useState(false);
 
-  const [filtroNombre, setFiltroNombre] = useState("")
-  const [filtroCategoria, setFiltroCategoria] = useState("")
-  const [filtroMarca, setFiltroMarca] = useState("")
+  const [filtroNombre, setFiltroNombre] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroMarca, setFiltroMarca] = useState("");
 
   useEffect(() => {
     setProductosEstado(
@@ -70,31 +74,34 @@ export function AgregarProductosView({
         ...p,
         cantidadSeleccionada: 0,
         marcado: false,
-      }))
-    )
-  }, [productos])
+      })),
+    );
+  }, [productos]);
 
-  const actualizarProducto = (id: number, cambios: Partial<ProductoConSeleccion>) => {
+  const actualizarProducto = (
+    id: number,
+    cambios: Partial<ProductoConSeleccion>,
+  ) => {
     setProductosEstado((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...cambios } : p))
-    )
-  }
+      prev.map((p) => (p.id === id ? { ...p, ...cambios } : p)),
+    );
+  };
 
   const productosFiltrados = productosEstado.filter((p) => {
     const coincideNombre = p.descripcion
       .toLowerCase()
-      .includes(filtroNombre.toLowerCase())
+      .includes(filtroNombre.toLowerCase());
 
     const coincideCategoria = p.categoria
       .toLowerCase()
-      .includes(filtroCategoria.toLowerCase())
+      .includes(filtroCategoria.toLowerCase());
 
     const coincideMarca = p.marca
       .toLowerCase()
-      .includes(filtroMarca.toLowerCase())
+      .includes(filtroMarca.toLowerCase());
 
-    return coincideNombre && coincideCategoria && coincideMarca
-  })
+    return coincideNombre && coincideCategoria && coincideMarca;
+  });
 
   const cargarSeleccionados = () => {
     const seleccionados = productosEstado
@@ -105,45 +112,53 @@ export function AgregarProductosView({
         categoria: p.categoria,
         precio: p.precio,
         cantidad: p.cantidadSeleccionada,
-      }))
+      }));
 
-    onCargarProductos(seleccionados)
-  }
+    onCargarProductos(seleccionados);
+  };
 
   return (
     <>
-      <div className="rounded-md border p-6 space-y-6">
-        <PageHeader
-          title="Agregar productos"
-          buttonLabel="Nuevo Producto"
-          onButtonClick={onNuevoProducto}
-        />
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold tracking-tight">
+            Agregar productos
+          </h1>
 
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="text-sm">Buscar:</span>
+          <Button
+            type="button"
+            onClick={onNuevoProducto}
+            size="sm"
+            className="h-8 gap-2 bg-zinc-500 text-white hover:bg-zinc-600"
+          >
+            <Plus className="size-4" />
+            Nuevo Producto
+          </Button>
+        </div>
 
-            <Input
-              placeholder="Nombre"
-              className="max-w-[180px]"
-              value={filtroNombre}
-              onChange={(e) => setFiltroNombre(e.target.value)}
-            />
+        <div className="flex items-center gap-3">
+          <span className="text-sm">Buscar:</span>
 
-            <Input
-              placeholder="Categoría"
-              className="max-w-[180px]"
-              value={filtroCategoria}
-              onChange={(e) => setFiltroCategoria(e.target.value)}
-            />
+          <Input
+            placeholder="Nombre"
+            className="max-w-[180px]"
+            value={filtroNombre}
+            onChange={(e) => setFiltroNombre(e.target.value)}
+          />
 
-            <Input
-              placeholder="Marca"
-              className="max-w-[180px]"
-              value={filtroMarca}
-              onChange={(e) => setFiltroMarca(e.target.value)}
-            />
-          </div>
+          <Input
+            placeholder="Categoría"
+            className="max-w-[180px]"
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+          />
+
+          <Input
+            placeholder="Marca"
+            className="max-w-[180px]"
+            value={filtroMarca}
+            onChange={(e) => setFiltroMarca(e.target.value)}
+          />
         </div>
 
         <div className="overflow-x-auto rounded-md border">
@@ -165,7 +180,10 @@ export function AgregarProductosView({
             <TableBody>
               {productosFiltrados.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={9}
+                    className="text-center text-muted-foreground"
+                  >
                     No se encontraron productos.
                   </TableCell>
                 </TableRow>
@@ -183,8 +201,8 @@ export function AgregarProductosView({
                         type="button"
                         variant="ghost"
                         onClick={() => {
-                          setProductoDetalle(p)
-                          setSheetDetalleOpen(true)
+                          setProductoDetalle(p);
+                          setSheetDetalleOpen(true);
                         }}
                       >
                         ≡
@@ -226,48 +244,47 @@ export function AgregarProductosView({
         </div>
 
         <div className="flex justify-between items-center pt-4">
-            {/* IZQUIERDA: PAGINACIÓN */}
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(currentPage - 1)}
-          >
-            Anterior
-          </Button>
+          {/* IZQUIERDA: PAGINACIÓN */}
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => onPageChange(currentPage - 1)}
+            >
+              Anterior
+            </Button>
 
-          <span className="text-sm">
-            Página {currentPage} de {totalPages}
-          </span>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
 
-          <Button
-            type="button"
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
-          >
-            Siguiente
-          </Button>
-        </div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(currentPage + 1)}
+            >
+              Siguiente
+            </Button>
+          </div>
 
-        <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
 
-          <Button type="button" onClick={cargarSeleccionados}>
-            Cargar productos
-          </Button>
+            <Button type="button" onClick={cargarSeleccionados}>
+              Cargar productos
+            </Button>
+          </div>
         </div>
       </div>
-      </div>
-
       <DetalleProductoSheet
         open={sheetDetalleOpen}
         onOpenChange={setSheetDetalleOpen}
         productoDetalle={productoDetalle}
       />
     </>
-  )
+  );
 }

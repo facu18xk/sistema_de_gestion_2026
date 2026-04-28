@@ -142,7 +142,6 @@ export interface PedidoDTO {
 
 export interface PedidoSaveDTO {
   idEstado: number
-  numeroPedido: number
   fecha: string
 }
 
@@ -155,7 +154,7 @@ export interface PedidoDetalleDTO {
   categoria: string
   descripcion: string
   cantidad: number
-  ultimoPrecio: number
+  
 }
 
 export interface PedidoDetalleSaveDTO {
@@ -164,5 +163,5 @@ export interface PedidoDetalleSaveDTO {
   categoria: string
   descripcion: string
   cantidad: number
-  ultimoPrecio: number
+  
 }

@@ -11,5 +11,6 @@ export const API_CONFIG = {
     DIRECCIONES: "/api/Direcciones",
     CIUDADES_POR_PAIS: "/api/Ciudades/PorPais",
     PEDIDOS: "/api/PedidosCompras",
+    PEDIDOS_DETALLES: "/api/PedidosComprasDetalles"
   },
 } as const;

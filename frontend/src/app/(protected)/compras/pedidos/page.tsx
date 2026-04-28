@@ -35,7 +35,9 @@ export default function PedidosPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [itemsPerPage] = useState(10)
-
+  const formatearNumeroPedido = (numero: number | string) => {
+    return `PD-${String(numero).padStart(4, "0")}`
+  }
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
     setIsLoading(true)
@@ -84,7 +86,6 @@ export default function PedidosPage() {
 
   return (
     <>
-    <div className="container mx-auto p-6 space-y-6">
       {/*BREADCRUMB*/}
       <PageBreadcrumb steps={[{ label: "Compras", href: "#" }, { label: "Pedidos" }]} />
 
@@ -103,7 +104,7 @@ export default function PedidosPage() {
             <AlertDialogDescription>
               Esta acción no se puede deshacer. Eliminarás permanentemente el pedido{" "}
               <span className="font-bold text-foreground">
-                "{pedidoAEliminar?.numeroPedido}"
+                "{pedidoAEliminar ? formatearNumeroPedido(pedidoAEliminar.idPedidoCompra) : ""}"
               </span>{" "}
               y se quitará del servidor.
             </AlertDialogDescription>
@@ -143,13 +144,11 @@ export default function PedidosPage() {
         >
           {pedidos.map((p) => (
             <TableRow key={p.idPedidoCompra}>
-              <TableCell>{p.numeroPedido}</TableCell>
+              <TableCell>{formatearNumeroPedido(p.idPedidoCompra)}</TableCell>
               <TableCell>{p.fecha.substring(0, 10)}</TableCell>
               <TableCell>{p.estado}</TableCell>
 
               <TableCell className="text-right space-x-1">
-                {p.estado === "Pendiente" && (
-                  <>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -158,7 +157,7 @@ export default function PedidosPage() {
                     >
                       <Pencil className="size-3.5" />
                     </Button>
-
+                    {p.estado === "Pendiente" && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -170,14 +169,12 @@ export default function PedidosPage() {
                     >
                       <Trash2 className="size-3.5 text-destructive" />
                     </Button>
-                  </>
-                )}
+                    )}
               </TableCell>
             </TableRow>
           ))}
         </DataTable>
       )}
-      </div>
     </>
   )
 }
