@@ -107,61 +107,97 @@ export interface Direccion {
     idPais: number; //para chequeo en edicion y creacion de proveedor
 }
 
+// --- Dentro de types/types.ts ---
+
+// Lo que viene dentro de la lista de categorías del proveedor en el GET
+export interface ProveedorCategoriaDTO {
+    idCategoria: number;
+    categoria: string;
+}
+
+
 export interface Proveedor {
     idProveedor: number;
     ruc: string;
     razonSocial: string;
     nombreFantasia: string;
-    idDireccion: number | null;
-    direccion?: Direccion;
+    idDireccion: number;
+    direccion: Direccion;
     nombres: string | null;
     apellidos: string | null;
     correo: string | null;
     telefono: string | null;
+    categorias: ProveedorCategoriaDTO[];
+}
+
+export interface ProveedorSaveDTO {
+    ruc: string;
+    razonSocial: string;
+    nombreFantasia: string;
+    direccion: {
+        calle1: string;
+        calle2: string | null;
+        descripcion: string | null;
+        idCiudad: number;
+
+    };
+    nombres: string | null;
+    apellidos: string | null;
+    correo: string | null;
+    telefono: string | null;
+    categoriaIds: number[];
 }
 
 
-export interface DetallePedido {
-    idProducto: number;
-    descripcion: string;
-    cantidad: number;
-    precioUnitario: number;
-    subtotal: number;
+export interface PedidoItem {
+  idPedidoCompraDetalle?: number
+  idPedidoCompra?: number
+  idProducto: number
+  producto?: string
+  categoria: string
+  descripcion: string
+  cantidad: number
+  ultimoPrecio: number
 }
 
 export interface Pedido {
-    id?: string;
-    nroCotizacion: string;
-    idProveedor: number;
-    nombreProveedor?: string;
-    fecha: string;
-    estado: string;
-    items: DetallePedido[];
-    total: number;
+  id?: string
+  nroPedido: string
+  fecha: string
+  estado: string
+  items: PedidoItem[]
 }
 
 export interface PedidoDTO {
-    id: number
-    nroCotizacion: string
-    idProveedor: number
-    nombreProveedor: string
-    fecha: string
-    estado: string
-    items: DetallePedido[]
-    total: number
+  idPedidoCompra: number
+  idEstado: number
+  estado: string
+  numeroPedido: number
+  fecha: string
 }
 
-export interface PedidoForm {
-    nroCotizacion: string
-    idProveedor: number
-    fecha: string
-    estado: string
-    items: DetallePedido[]
-}
 export interface PedidoSaveDTO {
-    nroCotizacion: string
-    idProveedor: number
-    fecha: string
-    items: DetallePedido[]
-    total: number
+  idEstado: number
+  fecha: string
+}
+
+export interface PedidoDetalleDTO {
+  idPedidoCompraDetalle: number
+  idPedidoCompra: number
+  numeroPedidoCompra: number
+  idProducto: number
+  producto: string
+  categoria: string
+  descripcion: string
+  cantidad: number
+  
+}
+
+export interface PedidoDetalleSaveDTO {
+  idPedidoCompra: number
+  idProducto: number
+  categoria: string
+  descripcion: string
+  cantidad: number
+  
 }

@@ -53,7 +53,7 @@ export default function ProductosPage() {
       setProductos(resPaginada.items);
       setTotalPages(resPaginada.totalPages);
       setMarcas(resMarcas.items);
-      setCategorias(resCategorias.items);
+      setCategorias(resCategorias);
     } catch (error) {
       console.error("Error al cargar datos de la página:", error);
       notify.error ("Error", "Error al cargar la página");
@@ -75,7 +75,7 @@ export default function ProductosPage() {
   const cargarCategorias = async () => {
     try {
       const response = await categoriasAPI.getAll();
-      setCategorias(response.items);
+      setCategorias(response);
     } catch (error) {
       console.error("Error al cargar datos de categorías:", error);
       notify.error ("Error", "Error al cargar las categorías");
@@ -197,7 +197,7 @@ export default function ProductosPage() {
       {/*SHEET LATERAL*/}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
-          <SheetHeader>
+          <SheetHeader className="border-b pt-4">
             <SheetTitle>{productoAEditar ? "Editar Producto" : "Nuevo Producto"}</SheetTitle>
             <SheetDescription>Completa la información del inventario.</SheetDescription>
           </SheetHeader>

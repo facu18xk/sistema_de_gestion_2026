@@ -1,219 +1,290 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
 import {
-    Table,
-    TableHeader,
-    TableBody,
-    TableRow,
-    TableHead,
-    TableCell,
-} from "@/components/ui/table"
-import { DetalleProductoSheet } from "@/components/compras/detalle-producto-sheet"
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { PageHeader } from "@/components/shared/page-header";
+import { DetalleProductoSheet } from "@/components/compras/detalle-producto-sheet";
 
 export interface ProductoSeleccionable {
-    id: number
-    descripcion: string
-    marca: string
-    categoria: string
-    precio: number
-    disponible: number
-    imagen?: string
+  id: number;
+  descripcion: string;
+  marca: string;
+  categoria: string;
+  precio: number;
+  disponible: number;
+  imagen?: string;
 }
 
 export interface ProductoSeleccionadoParaPedido {
-    id: number
-    descripcion: string
-    categoria: string
-    precio: number
-    cantidad: number
+  id: number;
+  descripcion: string;
+  categoria: string;
+  precio: number;
+  cantidad: number;
 }
 
 interface ProductoConSeleccion extends ProductoSeleccionable {
-    cantidadSeleccionada: number
-    marcado: boolean
+  cantidadSeleccionada: number;
+  marcado: boolean;
 }
 
 interface AgregarProductosViewProps {
-    productos: ProductoSeleccionable[]
-    onCancel: () => void
-    onCargarProductos: (productosSeleccionados: ProductoSeleccionadoParaPedido[]) => void
+  productos: ProductoSeleccionable[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onCancel: () => void;
+  onCargarProductos: (productos: ProductoSeleccionadoParaPedido[]) => void;
+  onNuevoProducto: () => void;
 }
 
 export function AgregarProductosView({
-    productos,
-    onCancel,
-    onCargarProductos,
+  productos,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onCancel,
+  onCargarProductos,
+  onNuevoProducto,
 }: AgregarProductosViewProps) {
-    const [productosEstado, setProductosEstado] = useState<ProductoConSeleccion[]>([])
-    const [productoDetalle, setProductoDetalle] = useState<ProductoConSeleccion | null>(null)
-    const [sheetDetalleOpen, setSheetDetalleOpen] = useState(false)
+  const [productosEstado, setProductosEstado] = useState<
+    ProductoConSeleccion[]
+  >([]);
+  const [productoDetalle, setProductoDetalle] =
+    useState<ProductoConSeleccion | null>(null);
+  const [sheetDetalleOpen, setSheetDetalleOpen] = useState(false);
 
-    useEffect(() => {
-        setProductosEstado(
-            productos.map((p) => ({
-                ...p,
-                cantidadSeleccionada: 0,
-                marcado: false,
-            }))
-        )
-    }, [productos])
+  const [filtroNombre, setFiltroNombre] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroMarca, setFiltroMarca] = useState("");
 
-    const actualizarProducto = (
-        id: number,
-        cambios: Partial<ProductoConSeleccion>
-    ) => {
-        setProductosEstado((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, ...cambios } : p))
-        )
-    }
+  useEffect(() => {
+    setProductosEstado(
+      productos.map((p) => ({
+        ...p,
+        cantidadSeleccionada: 0,
+        marcado: false,
+      })),
+    );
+  }, [productos]);
 
-    const cargarSeleccionados = () => {
-        const seleccionados = productosEstado
-            .filter((p) => p.marcado && p.cantidadSeleccionada > 0)
-            .map((p) => ({
-                id: p.id,
-                descripcion: p.descripcion,
-                categoria: p.categoria,
-                precio: p.precio,
-                cantidad: p.cantidadSeleccionada,
-            }))
+  const actualizarProducto = (
+    id: number,
+    cambios: Partial<ProductoConSeleccion>,
+  ) => {
+    setProductosEstado((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...cambios } : p)),
+    );
+  };
 
-        onCargarProductos(seleccionados)
-    }
+  const productosFiltrados = productosEstado.filter((p) => {
+    const coincideNombre = p.descripcion
+      .toLowerCase()
+      .includes(filtroNombre.toLowerCase());
 
-    return (
-        <>
-            <div className="rounded-md border p-6 space-y-6">
-                <h2 className="text-2xl font-bold">Agregar productos</h2>
+    const coincideCategoria = p.categoria
+      .toLowerCase()
+      .includes(filtroCategoria.toLowerCase());
 
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Lista Productos</h3>
+    const coincideMarca = p.marca
+      .toLowerCase()
+      .includes(filtroMarca.toLowerCase());
 
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm">Buscar:</span>
-                        <Input placeholder="Nombre" className="max-w-[180px]" />
-                        <Input placeholder="Categoría" className="max-w-[180px]" />
-                        <Input placeholder="Marca" className="max-w-[180px]" />
-                    </div>
-                </div>
+    return coincideNombre && coincideCategoria && coincideMarca;
+  });
 
-                <div className="overflow-x-auto rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>Descripción</TableHead>
-                                <TableHead>Marca</TableHead>
-                                <TableHead>Categoría</TableHead>
-                                <TableHead>Precio Costo Unit</TableHead>
-                                <TableHead>Detalle</TableHead>
-                                <TableHead>Disponibilidad</TableHead>
-                                <TableHead>Cantidad</TableHead>
-                                <TableHead>Check</TableHead>
-                            </TableRow>
-                        </TableHeader>
+  const cargarSeleccionados = () => {
+    const seleccionados = productosEstado
+      .filter((p) => p.marcado && p.cantidadSeleccionada > 0)
+      .map((p) => ({
+        id: p.id,
+        descripcion: p.descripcion,
+        categoria: p.categoria,
+        precio: p.precio,
+        cantidad: p.cantidadSeleccionada,
+      }));
 
-                        <TableBody>
-                            {productosEstado.map((p) => (
-                                <TableRow key={p.id}>
-                                    <TableCell>{p.id}</TableCell>
-                                    <TableCell>{p.descripcion}</TableCell>
-                                    <TableCell>{p.marca}</TableCell>
-                                    <TableCell>{p.categoria}</TableCell>
-                                    <TableCell>{p.precio}</TableCell>
+    onCargarProductos(seleccionados);
+  };
 
-                                    <TableCell>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={() => {
-                                                setProductoDetalle(p)
-                                                setSheetDetalleOpen(true)
-                                            }}
-                                        >
-                                            ≡
-                                        </Button>
-                                    </TableCell>
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold tracking-tight">
+            Agregar productos
+          </h1>
 
-                                    <TableCell>{p.disponible}</TableCell>
+          <Button
+            type="button"
+            onClick={onNuevoProducto}
+            size="sm"
+            className="h-8 gap-2 bg-zinc-500 text-white hover:bg-zinc-600"
+          >
+            <Plus className="size-4" />
+            Nuevo Producto
+          </Button>
+        </div>
 
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    actualizarProducto(p.id, {
-                                                        cantidadSeleccionada: Math.max(0, p.cantidadSeleccionada - 1),
-                                                    })
-                                                }
-                                            >
-                                                -
-                                            </Button>
+        <div className="flex items-center gap-3">
+          <span className="text-sm">Buscar:</span>
 
-                                            <Input
-                                                className="w-16 text-center"
-                                                type="number"
-                                                value={p.cantidadSeleccionada}
-                                                onChange={(e) =>
-                                                    actualizarProducto(p.id, {
-                                                        cantidadSeleccionada: Number(e.target.value),
-                                                    })
-                                                }
-                                            />
+          <Input
+            placeholder="Nombre"
+            className="max-w-[180px]"
+            value={filtroNombre}
+            onChange={(e) => setFiltroNombre(e.target.value)}
+          />
 
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    actualizarProducto(p.id, {
-                                                        cantidadSeleccionada: p.cantidadSeleccionada + 1,
-                                                    })
-                                                }
-                                            >
-                                                +
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+          <Input
+            placeholder="Categoría"
+            className="max-w-[180px]"
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+          />
 
-                                    <TableCell>
-                                        <input
-                                            type="checkbox"
-                                            checked={p.marcado}
-                                            onChange={(e) =>
-                                                actualizarProducto(p.id, {
-                                                    marcado: e.target.checked,
-                                                })
-                                            }
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+          <Input
+            placeholder="Marca"
+            className="max-w-[180px]"
+            value={filtroMarca}
+            onChange={(e) => setFiltroMarca(e.target.value)}
+          />
+        </div>
 
+        <div className="overflow-x-auto rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead>Precio</TableHead>
+                <TableHead>Detalle</TableHead>
+                <TableHead>Stock</TableHead>
+                <TableHead>Cantidad</TableHead>
+                <TableHead>Seleccionar</TableHead>
+              </TableRow>
+            </TableHeader>
 
-                <div className="flex justify-end gap-3">
-                    <Button type="button" variant="outline" onClick={onCancel}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" onClick={cargarSeleccionados}>
-                        Cargar productos
-                    </Button>
-                </div>
-            </div>
+            <TableBody>
+              {productosFiltrados.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="text-center text-muted-foreground"
+                  >
+                    No se encontraron productos.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                productosFiltrados.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>{p.id}</TableCell>
+                    <TableCell>{p.descripcion}</TableCell>
+                    <TableCell>{p.marca}</TableCell>
+                    <TableCell>{p.categoria}</TableCell>
+                    <TableCell>{p.precio}</TableCell>
 
-            <DetalleProductoSheet
-                open={sheetDetalleOpen}
-                onOpenChange={setSheetDetalleOpen}
-                productoDetalle={productoDetalle}
-            />
-        </>
-    )
+                    <TableCell>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setProductoDetalle(p);
+                          setSheetDetalleOpen(true);
+                        }}
+                      >
+                        ≡
+                      </Button>
+                    </TableCell>
+
+                    <TableCell>{p.disponible}</TableCell>
+
+                    <TableCell>
+                      <Input
+                        className="w-20"
+                        type="number"
+                        min={0}
+                        value={p.cantidadSeleccionada}
+                        onChange={(e) =>
+                          actualizarProducto(p.id, {
+                            cantidadSeleccionada: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={p.marcado}
+                        onChange={(e) =>
+                          actualizarProducto(p.id, {
+                            marcado: e.target.checked,
+                          })
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex justify-between items-center pt-4">
+          {/* IZQUIERDA: PAGINACIÓN */}
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => onPageChange(currentPage - 1)}
+            >
+              Anterior
+            </Button>
+
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(currentPage + 1)}
+            >
+              Siguiente
+            </Button>
+          </div>
+
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
+
+            <Button type="button" onClick={cargarSeleccionados}>
+              Cargar productos
+            </Button>
+          </div>
+        </div>
+      </div>
+      <DetalleProductoSheet
+        open={sheetDetalleOpen}
+        onOpenChange={setSheetDetalleOpen}
+        productoDetalle={productoDetalle}
+      />
+    </>
+  );
 }

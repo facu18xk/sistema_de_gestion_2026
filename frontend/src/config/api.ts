@@ -9,6 +9,8 @@ export const API_CONFIG = {
     PAISES: "/api/Paises",
     CIUDADES: "/api/Ciudades",
     DIRECCIONES: "/api/Direcciones",
-    CIUDADES_POR_PAIS: "/api/Ciudades/PorPais"
+    CIUDADES_POR_PAIS: "/api/Ciudades/PorPais",
+    PEDIDOS: "/api/PedidosCompras",
+    PEDIDOS_DETALLES: "/api/PedidosComprasDetalles"
   },
 } as const;

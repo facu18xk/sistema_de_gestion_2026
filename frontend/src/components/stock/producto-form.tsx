@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react"
+import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from "@/components/ui/select";
 import {
   AlertDialog,
@@ -186,9 +187,11 @@ export function ProductoForm({
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent onPointerDownOutside={(e) => {if(dialogType) e.preventDefault();}}>
-                <SelectItem value="ADD_NEW" className="text-primary font-bold">
-                  + Nueva Marca
+                <SelectItem value="ADD_NEW" className="text-blue-600 font-medium">
+                  <Plus className="inline h-4 w-4 mr-2" />
+                  Nueva Marca
                 </SelectItem>
+                <SelectSeparator />
                   {marcas.map((m) => (
                     <SelectItem key={m.idMarca} value={m.idMarca.toString()}>
                       {m.nombre}
@@ -221,9 +224,11 @@ export function ProductoForm({
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent onPointerDownOutside={(e) => {if(dialogType) e.preventDefault();}}>
-                <SelectItem value="ADD_NEW" className="text-primary font-bold">
-                  + Nueva Categoría
+                <SelectItem value="ADD_NEW" className="text-blue-600 font-medium">
+                  <Plus className="inline h-4 w-4 mr-2" />
+                  Nueva Categoría
                 </SelectItem>
+                <SelectSeparator />
                   {categorias.map((cat) => (
                     <SelectItem
                       key={cat.idCategoria}
@@ -274,7 +279,7 @@ export function ProductoForm({
           </div>
         </div>
         {/*BOTONES*/}
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 mt-6 border-t pt-4">
           <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer">
             Cancelar
           </Button>

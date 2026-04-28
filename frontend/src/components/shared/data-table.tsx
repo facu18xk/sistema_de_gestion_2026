@@ -16,13 +16,13 @@ interface DataTableProps {
     onPageChange: (page: number) => void
 }
 
-export function DataTable({ 
-    caption, 
-    headerRow, 
-    children, 
-    currentPage, 
-    totalPages, 
-    onPageChange 
+export function DataTable({
+    caption,
+    headerRow,
+    children,
+    currentPage,
+    totalPages,
+    onPageChange
 }: DataTableProps) {
     return (
         <div className="space-y-3">
@@ -37,14 +37,13 @@ export function DataTable({
                     </TableBody>
                 </Table>
             </div>
-
             {/* CONTROLES DE PAGINACIÓN */}
             <div className="flex items-center justify-between px-2 py-1">
                 <div className="text-sm text-muted-foreground">
                     Página <span className="font-medium text-foreground">{currentPage}</span> de{" "}
                     <span className="font-medium text-foreground">{totalPages || 1}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
