@@ -40,29 +40,33 @@ export default function ProveedoresPage() {
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const [resPaginada, resPaises] = await Promise.all([
-        proveedoresAPI.getAll(currentPage, itemsPerPage),
-        ubicacionesAPI.getPaises()
-      ])
-
-      setProveedores(resPaginada.items)
-      setPaises(resPaises.items)
-      setTotalPages(resPaginada.totalPages)
+      const resPaginada = await proveedoresAPI.getAll(currentPage, itemsPerPage);
+      setProveedores(resPaginada.items);
+      setTotalPages(resPaginada.totalPages);
     } catch (error) {
-      console.error("Error al cargar datos:", error)
-      notify.error("Error de conexión", "No se pudieron obtener los datos.")
+      console.error("Error al cargar datos de proveedores:", error);
+      notify.error("Error de conexión", "No se pudo obtener la lista de proveedores.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  useEffect(() => { cargarPagina() }, [currentPage])
-
-  const handleCrearNuevo = () => {
-    setProveedorAEditar(null);
-    setIsSheetOpen(true);
+  const cargarPaises = async () => {
+    try {
+      const resPaises = await ubicacionesAPI.getPaises();
+      setPaises(resPaises.items)
+    } catch (error) {
+      console.error("Error al cargar datos de países:", error);
+      notify.error("Error de conexión", "No se pudo obtener la lista de países.")
+    }
   }
 
+  useEffect(() => { cargarPaises() }, []);
+  useEffect(() => { cargarPagina() }, [currentPage]);
+  
+  // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
+  const handleCrearNuevo = () => { setProveedorAEditar(null); setIsSheetOpen(true); }
+  
   const handleEditar = (p: Proveedor) => {
     setProveedorAEditar(p);
     setIsSheetOpen(true);
@@ -206,7 +210,7 @@ export default function ProveedoresPage() {
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
-          <SheetHeader>
+          <SheetHeader className=" border-b pt-4">
             <SheetTitle>{proveedorAEditar ? "Editar Proveedor" : "Nuevo Proveedor"}</SheetTitle>
             <SheetDescription>Información comercial y fiscal del proveedor.</SheetDescription>
           </SheetHeader>

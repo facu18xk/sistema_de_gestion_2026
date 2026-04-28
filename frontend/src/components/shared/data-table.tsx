@@ -28,6 +28,7 @@ export function DataTable({
         <div className="space-y-3">
             <div className="rounded-md border bg-white shadow-sm">
                 <Table>
+                    {/*<TableCaption>{caption}</TableCaption>*/}
                     <TableHeader>
                         {headerRow}
                     </TableHeader>
@@ -36,7 +37,6 @@ export function DataTable({
                     </TableBody>
                 </Table>
             </div>
-
             {/* CONTROLES DE PAGINACIÓN */}
             <div className="flex items-center justify-between px-2 py-1">
                 <div className="text-sm text-muted-foreground">

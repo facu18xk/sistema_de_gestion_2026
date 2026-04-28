@@ -55,9 +55,30 @@ export default function ProductosPage() {
       setMarcas(resMarcas.items);
       setCategorias(resCategorias);
     } catch (error) {
-      console.error("Error al cargar datos:", error);
+      console.error("Error al cargar datos de la página:", error);
+      notify.error ("Error", "Error al cargar la página");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  const cargarMarcas = async () => {
+    try {
+      const response = await marcasAPI.getAll();
+      setMarcas(response.items);
+    } catch (error) {
+      console.error("Error al cargar datos de marcas:", error);
+      notify.error ("Error", "Error al cargar las marcas");
+    }
+  }
+
+  const cargarCategorias = async () => {
+    try {
+      const response = await categoriasAPI.getAll();
+      setCategorias(response);
+    } catch (error) {
+      console.error("Error al cargar datos de categorías:", error);
+      notify.error ("Error", "Error al cargar las categorías");
     }
   }
 
@@ -176,7 +197,7 @@ export default function ProductosPage() {
       {/*SHEET LATERAL*/}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
-          <SheetHeader>
+          <SheetHeader className="border-b pt-4">
             <SheetTitle>{productoAEditar ? "Editar Producto" : "Nuevo Producto"}</SheetTitle>
             <SheetDescription>Completa la información del inventario.</SheetDescription>
           </SheetHeader>
@@ -187,6 +208,10 @@ export default function ProductosPage() {
             marcas={marcas}
             onSubmit={handleFormSubmit}
             onCancel={() => setIsSheetOpen(false)}
+            onRefreshData={async () => {
+              await cargarMarcas();
+              await cargarCategorias();
+           }}
           />
         </SheetContent>
       </Sheet>

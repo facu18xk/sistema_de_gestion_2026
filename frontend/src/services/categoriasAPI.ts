@@ -1,7 +1,7 @@
 // services/ubicacionesAPI.ts (y categoriasAPI)
 import api from './api';
 import { API_CONFIG } from "../config/api";
-import { Pais, Ciudad, Direccion, PaginatedResponse, Categoria } from '@/types/types';
+import { Categoria, CategoriaDTO, PaginatedResponse } from '@/types/types';
 
 export const categoriasAPI = {
     getAll: async (page: number = 1, accumulated: Categoria[] = []): Promise<Categoria[]> => {
@@ -12,8 +12,8 @@ export const categoriasAPI = {
         const newAccumulated = [...accumulated, ...items];
         return page < totalPages ? categoriasAPI.getAll(page + 1, newAccumulated) : newAccumulated;
     },
-    create: async (nombre: string): Promise<Categoria> => {
-        const res = await api.post(API_CONFIG.ENDPOINTS.CATEGORIES, { idCategoria: 0, nombre });
-        return res.data;
-    }
+    create: async (newCategory: CategoriaDTO): Promise<Categoria> => {
+        const response = await api.post(API_CONFIG.ENDPOINTS.CATEGORIES, newCategory);
+        return response.data;
+    },
 };

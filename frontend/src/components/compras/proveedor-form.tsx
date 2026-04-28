@@ -174,7 +174,7 @@ export function ProveedorForm({
         const nueva = await ubicacionesAPI.createCiudad({ nombre: nuevoNombre.trim(), idPais: Number(formData.idPais) });
         await cargarCiudades(Number(formData.idPais), nueva.idCiudad.toString());
       } else if (showModal.type === "categoria") {
-        const nueva = await categoriasAPI.create(nuevoNombre.trim());
+        const nueva = await categoriasAPI.create({ nombre: nuevoNombre.trim() });
         const actualizado = await categoriasAPI.getAll();
         setAllCategorias(actualizado);
         setSelectedCats(prev => [...prev, nueva]);
@@ -224,7 +224,7 @@ export function ProveedorForm({
             required
           />
         </div>
-
+        {/* RUC */}
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="ruc">RUC</Label>
@@ -235,7 +235,6 @@ export function ProveedorForm({
             <Input id="razonSocial" value={formData.razonSocial} onChange={e => updateField("razonSocial", e.target.value)} required />
           </div>
         </div>
-
         {/* UBICACIÓN */}
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
@@ -252,6 +251,7 @@ export function ProveedorForm({
               </SelectContent>
             </Select>
           </div>
+          {/* CIUDAD */}
           <div className="grid gap-2">
             <Label>Ciudad</Label>
             <Select
@@ -268,23 +268,23 @@ export function ProveedorForm({
             </Select>
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
+          {/* CALLE PRINCIPAL */}
           <div className="grid gap-2">
             <Label htmlFor="calle1">Calle Principal</Label>
             <Input id="calle1" value={formData.calle1} onChange={e => updateField("calle1", e.target.value)} required />
           </div>
+          {/* CALLE SECUNDARIA */}
           <div className="grid gap-2">
             <Label htmlFor="calle2">Calle Secundaria / Nro</Label>
             <Input id="calle2" value={formData.calle2} onChange={e => updateField("calle2", e.target.value)} />
           </div>
         </div>
-
+        {/* REFERENCIAS DE DIRECCIÓN */}
         <div className="grid gap-2">
           <Label htmlFor="descripcionDireccion">Referencias de Dirección</Label>
           <Input id="descripcionDireccion" value={formData.descripcionDireccion} onChange={e => updateField("descripcionDireccion", e.target.value)} placeholder="Ej: Portón azul, frente al parque..." />
         </div>
-
         {/* CATEGORÍAS */}
         <div className="grid gap-3 border-y py-4 my-2 bg-slate-50/50 p-2 rounded-lg">
           <Label className="text-blue-700 font-bold">Categorías de Productos</Label>
@@ -309,7 +309,6 @@ export function ProveedorForm({
             </SelectContent>
           </Select>
         </div>
-
         {/* CONTACTO */}
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
@@ -321,18 +320,18 @@ export function ProveedorForm({
             <Input id="apellidos" value={formData.apellidos} onChange={e => updateField("apellidos", e.target.value)} />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
+          {/* CORREO ELECTRÓNICO */}
           <div className="grid gap-2">
             <Label htmlFor="correo">Correo Electrónico</Label>
             <Input id="correo" type="email" value={formData.correo} onChange={e => updateField("correo", e.target.value)} placeholder="ejemplo@correo.com" />
           </div>
+          {/* TELÉFONO/CELULAR */}
           <div className="grid gap-2">
             <Label htmlFor="telefono">Teléfono / Celular</Label>
             <Input id="telefono" value={formData.telefono} onChange={e => updateField("telefono", e.target.value)} placeholder="09xx xxx xxx" />
           </div>
         </div>
-
         {/* ACCIONES */}
         <div className="flex justify-end gap-3 mt-6 border-t pt-4">
           <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer">
@@ -344,7 +343,6 @@ export function ProveedorForm({
           </Button>
         </div>
       </form>
-
       {/* MODAL GLOBAL PARA CREACIONES RÁPIDAS */}
       <AlertDialog open={showModal.open} onOpenChange={(o) => !o && setShowModal({ ...showModal, open: o })}>
         <AlertDialogContent>

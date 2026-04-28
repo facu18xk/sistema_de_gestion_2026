@@ -34,7 +34,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         duration: 4000,
-
         classNames: {
           toast: "cn-toast",
         },
