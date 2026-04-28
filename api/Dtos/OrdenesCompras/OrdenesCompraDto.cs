@@ -8,6 +8,8 @@ public class OrdenesCompraDto
 
     public int NumeroPedidoCotizacion { get; set; }
 
+    public int? IdCotizacionCompra { get; set; }
+
     public int IdProveedor { get; set; }
 
     public string Proveedor { get; set; } = string.Empty;
@@ -24,6 +26,8 @@ public class OrdenesCompraDto
 public class OrdenesCompraUpsertDto
 {
     public int IdPedidoCotizacion { get; set; }
+
+    public int? IdCotizacionCompra { get; set; }
 
     public int IdProveedor { get; set; }
 

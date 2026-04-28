@@ -83,7 +83,13 @@ public partial class DblosAmigosContext : DbContext
 
     public virtual DbSet<PedidosCotizacionesDetalle> PedidosCotizacionesDetalles { get; set; }
 
+    public virtual DbSet<ProductoProveedor> ProductosProveedores { get; set; }
+
     public virtual DbSet<Persona> Personas { get; set; }
+
+    public virtual DbSet<CotizacionesCompra> CotizacionesCompras { get; set; }
+
+    public virtual DbSet<CotizacionesComprasDetalle> CotizacionesComprasDetalles { get; set; }
 
     public virtual DbSet<Presupuesto> Presupuestos { get; set; }
 
@@ -588,6 +594,7 @@ public partial class DblosAmigosContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.IdCotizacionCompra).HasColumnName("Id_Cotizacion_Compra");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
@@ -601,6 +608,10 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdPedidoCotizacion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ordenes_Compras_Pedidos_Cotizaciones");
+
+            entity.HasOne(d => d.IdCotizacionCompraNavigation).WithMany(p => p.OrdenesCompras)
+                .HasForeignKey(d => d.IdCotizacionCompra)
+                .HasConstraintName("FK_Ordenes_Compras_Cotizaciones_Compras");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdProveedor)
@@ -876,6 +887,30 @@ public partial class DblosAmigosContext : DbContext
                 .HasConstraintName("FK_Pedidos_Cotizaciones_Detalles_Productos");
         });
 
+        modelBuilder.Entity<ProductoProveedor>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductoId, e.ProveedorId });
+
+            entity.ToTable("Productos_Proveedores");
+
+            entity.Property(e => e.ProductoId).HasColumnName("Id_Producto");
+            entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.CodigoProveedor)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Codigo_Proveedor");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.ProductosProveedores)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_Proveedores_Productos");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.ProductosProveedores)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_Proveedores_Proveedores");
+        });
+
         modelBuilder.Entity<Persona>(entity =>
         {
             entity.HasKey(e => e.IdPersona);
@@ -899,6 +934,62 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdDireccion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Personas_Direcciones1");
+        });
+
+        modelBuilder.Entity<CotizacionesCompra>(entity =>
+        {
+            entity.HasKey(e => e.IdCotizacionCompra);
+
+            entity.ToTable("Cotizaciones_Compras");
+
+            entity.Property(e => e.IdCotizacionCompra).HasColumnName("Id_Cotizacion_Compra");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
+            entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.SolicitudCotizacionId).HasColumnName("Id_Solicitud_Cotizacion");
+            entity.Property(e => e.ValidaHasta)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("Valida_Hasta");
+
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany(p => p.CotizacionesCompras)
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Estados");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.CotizacionesCompras)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Proveedores");
+
+            entity.HasOne(d => d.SolicitudCotizacion).WithMany(p => p.CotizacionesCompras)
+                .HasForeignKey(d => d.SolicitudCotizacionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Pedidos_Cotizaciones");
+        });
+
+        modelBuilder.Entity<CotizacionesComprasDetalle>(entity =>
+        {
+            entity.HasKey(e => e.IdCotizacionCompraDetalle);
+
+            entity.ToTable("Cotizaciones_Compras_Detalles");
+
+            entity.Property(e => e.IdCotizacionCompraDetalle).HasColumnName("Id_Cotizacion_Compra_Detalle");
+            entity.Property(e => e.CotizacionCompraId).HasColumnName("Id_Cotizacion_Compra");
+            entity.Property(e => e.Descuento).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PrecioUnitario)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Unitario");
+            entity.Property(e => e.ProductoId).HasColumnName("Id_Producto");
+
+            entity.HasOne(d => d.CotizacionCompra).WithMany(p => p.CotizacionesComprasDetalles)
+                .HasForeignKey(d => d.CotizacionCompraId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Detalles_Cotizaciones_Compras");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.CotizacionesComprasDetalles)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Detalles_Productos");
         });
 
         modelBuilder.Entity<Presupuesto>(entity =>

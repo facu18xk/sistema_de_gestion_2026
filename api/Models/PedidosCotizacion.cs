@@ -19,6 +19,8 @@ public partial class PedidosCotizaciones
 
     public virtual PedidosCompra IdPedidoCompraNavigation { get; set; } = null!;
 
+    public virtual ICollection<CotizacionesCompra> CotizacionesCompras { get; set; } = new List<CotizacionesCompra>();
+
     public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
 
     public virtual ICollection<PedidosCotizacionesDetalle> PedidosCotizacionesDetalles { get; set; } = new List<PedidosCotizacionesDetalle>();

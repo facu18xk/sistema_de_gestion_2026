@@ -17,7 +17,11 @@ public partial class Proveedor
 
     public virtual Persona IdProveedorNavigation { get; set; } = null!;
 
+    public virtual ICollection<CotizacionesCompra> CotizacionesCompras { get; set; } = new List<CotizacionesCompra>();
+
     public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
 
     public virtual ICollection<OrdenesPagosCompra> OrdenesPagosCompras { get; set; } = new List<OrdenesPagosCompra>();
+
+    public virtual ICollection<ProductoProveedor> ProductosProveedores { get; set; } = new List<ProductoProveedor>();
 }

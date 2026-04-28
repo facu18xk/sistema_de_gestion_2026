@@ -3065,31 +3065,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\elike\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "/home/facu/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\elike\\Documents\\Programing\\ProyectoSistemaGestion\\copiaapi\\sistema_de_gestion_2026\\api\\api.csproj",
+      "projectUniqueName": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/api.csproj",
       "projectName": "api",
-      "projectPath": "C:\\Users\\elike\\Documents\\Programing\\ProyectoSistemaGestion\\copiaapi\\sistema_de_gestion_2026\\api\\api.csproj",
-      "packagesPath": "C:\\Users\\elike\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\elike\\Documents\\Programing\\ProyectoSistemaGestion\\copiaapi\\sistema_de_gestion_2026\\api\\obj\\",
+      "projectPath": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/api.csproj",
+      "packagesPath": "/home/facu/.nuget/packages/",
+      "outputPath": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\elike\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/home/facu/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3102,13 +3095,7 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "10.0.200"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -3152,18 +3139,6 @@
           {
             "name": "Microsoft.AspNetCore.App.Ref",
             "version": "[8.0.25, 8.0.25]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.25, 8.0.25]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.25, 8.0.25]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.25, 8.0.25]"
           }
         ],
         "frameworkReferences": {
@@ -3174,7 +3149,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.125/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
