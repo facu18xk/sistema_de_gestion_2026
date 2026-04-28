@@ -10,6 +10,10 @@ public class ProductoProveedorDto
 
     public string Proveedor { get; set; } = string.Empty;
 
+    public int CategoriaId { get; set; }
+
+    public string Categoria { get; set; } = string.Empty;
+
     public string CodigoProveedor { get; set; } = string.Empty;
 
     public bool Activo { get; set; }
@@ -20,6 +24,8 @@ public class ProductoProveedorUpsertDto
     public int ProductoId { get; set; }
 
     public int ProveedorId { get; set; }
+
+    public int CategoriaId { get; set; }
 
     public string CodigoProveedor { get; set; } = string.Empty;
 

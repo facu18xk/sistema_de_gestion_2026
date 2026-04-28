@@ -23,7 +23,8 @@ public class PedidosCotizacionesDetallesController : CrudControllerBase<PedidosC
             NumeroPedidoCotizacion = entity.IdPedidoCotizacionNavigation?.NumeroPedido ?? 0,
             IdProducto = entity.IdProducto,
             Producto = entity.IdProductoNavigation?.Descripcion ?? string.Empty,
-            Categoria = entity.Categoria,
+            IdCategoria = entity.IdCategoria,
+            Categoria = entity.IdCategoriaNavigation?.Nombre ?? string.Empty,
             Descripcion = entity.Descripcion,
             Cantidad = entity.Cantidad,
             PrecioProducto = entity.PrecioProducto
@@ -36,7 +37,7 @@ public class PedidosCotizacionesDetallesController : CrudControllerBase<PedidosC
         {
             IdPedidoCotizacion = dto.IdPedidoCotizacion,
             IdProducto = dto.IdProducto,
-            Categoria = dto.Categoria,
+            IdCategoria = dto.IdCategoria,
             Descripcion = dto.Descripcion,
             Cantidad = dto.Cantidad,
             PrecioProducto = dto.PrecioProducto

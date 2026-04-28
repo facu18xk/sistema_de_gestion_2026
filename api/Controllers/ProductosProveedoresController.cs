@@ -45,6 +45,8 @@ public class ProductosProveedoresController : CompositeCrudControllerBase<Produc
             Producto = entity.Producto?.Descripcion ?? string.Empty,
             ProveedorId = entity.ProveedorId,
             Proveedor = entity.Proveedor?.RazonSocial ?? string.Empty,
+            CategoriaId = entity.CategoriaId,
+            Categoria = entity.Categoria?.Nombre ?? string.Empty,
             CodigoProveedor = entity.CodigoProveedor,
             Activo = entity.Activo
         };
@@ -56,6 +58,7 @@ public class ProductosProveedoresController : CompositeCrudControllerBase<Produc
         {
             ProductoId = dto.ProductoId,
             ProveedorId = dto.ProveedorId,
+            CategoriaId = dto.CategoriaId,
             CodigoProveedor = dto.CodigoProveedor,
             Activo = dto.Activo
         };

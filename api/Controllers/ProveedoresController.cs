@@ -41,7 +41,14 @@ public class ProveedoresController : CrudControllerBase<Proveedor, ProveedorDto,
             Nombres = persona?.Nombres ?? string.Empty,
             Apellidos = persona?.Apellidos ?? string.Empty,
             Correo = persona?.Correo ?? string.Empty,
-            Telefono = persona?.Telefono ?? string.Empty
+            Telefono = persona?.Telefono ?? string.Empty,
+            Categorias = entity.CategoriasProveedores
+                .Select(categoriaProveedor => new CategoriaProveedorDto
+                {
+                    IdCategoria = categoriaProveedor.CategoriaId,
+                    Categoria = categoriaProveedor.Categoria?.Nombre ?? string.Empty
+                })
+                .ToArray()
         };
     }
 
@@ -66,13 +73,23 @@ public class ProveedoresController : CrudControllerBase<Proveedor, ProveedorDto,
 
         persona.IdDireccionNavigation = direccion;
 
-        return new Proveedor
+        var proveedor = new Proveedor
         {
             Ruc = dto.Ruc,
             RazonSocial = dto.RazonSocial,
             NombreFantasia = dto.NombreFantasia,
             IdProveedorNavigation = persona
         };
+
+        foreach (var categoriaId in dto.CategoriaIds.Distinct())
+        {
+            proveedor.CategoriasProveedores.Add(new CategoriaProveedor
+            {
+                CategoriaId = categoriaId
+            });
+        }
+
+        return proveedor;
     }
 
     protected override int GetId(Proveedor entity)

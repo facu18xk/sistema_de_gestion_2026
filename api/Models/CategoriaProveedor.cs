@@ -3,21 +3,13 @@ using System.Collections.Generic;
 
 namespace api.Models;
 
-public partial class ProductoProveedor
+public partial class CategoriaProveedor
 {
-    public int ProductoId { get; set; }
-
     public int ProveedorId { get; set; }
 
     public int CategoriaId { get; set; }
 
-    public string CodigoProveedor { get; set; } = null!;
-
-    public bool Activo { get; set; }
-
     public virtual Categoria Categoria { get; set; } = null!;
-
-    public virtual Producto Producto { get; set; } = null!;
 
     public virtual Proveedor Proveedor { get; set; } = null!;
 }

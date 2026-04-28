@@ -11,7 +11,7 @@ public partial class PedidosCotizacionesDetalle
 
     public int IdProducto { get; set; }
 
-    public string Categoria { get; set; } = null!;
+    public int IdCategoria { get; set; }
 
     public string Descripcion { get; set; } = null!;
 
@@ -20,6 +20,8 @@ public partial class PedidosCotizacionesDetalle
     public decimal PrecioProducto { get; set; }
 
     public virtual PedidosCotizaciones IdPedidoCotizacionNavigation { get; set; } = null!;
+
+    public virtual Categoria IdCategoriaNavigation { get; set; } = null!;
 
     public virtual Producto IdProductoNavigation { get; set; } = null!;
 }

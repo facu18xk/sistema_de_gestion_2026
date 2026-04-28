@@ -35,7 +35,7 @@ public class PedidosComprasDetalleService : CrudServiceBase<PedidosComprasDetall
     {
         existingEntity.IdPedidoCompra = incomingEntity.IdPedidoCompra;
         existingEntity.IdProducto = incomingEntity.IdProducto;
-        existingEntity.Categoria = incomingEntity.Categoria;
+        existingEntity.IdCategoria = incomingEntity.IdCategoria;
         existingEntity.Descripcion = incomingEntity.Descripcion;
         existingEntity.Cantidad = incomingEntity.Cantidad;
     }
@@ -43,6 +43,7 @@ public class PedidosComprasDetalleService : CrudServiceBase<PedidosComprasDetall
     private IQueryable<PedidosComprasDetalle> BuildQuery()
     {
         return _context.PedidosComprasDetalles
+            .Include(detalle => detalle.IdCategoriaNavigation)
             .Include(detalle => detalle.IdPedidoCompraNavigation)
             .Include(detalle => detalle.IdProductoNavigation);
     }

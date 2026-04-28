@@ -36,6 +36,7 @@ public class ProveedorService : CrudServiceBase<Proveedor, int>
         existingEntity.Ruc = incomingEntity.Ruc;
         existingEntity.RazonSocial = incomingEntity.RazonSocial;
         existingEntity.NombreFantasia = incomingEntity.NombreFantasia;
+        SyncCategorias(existingEntity, incomingEntity);
 
         if (incomingEntity.IdProveedorNavigation is not null)
         {
@@ -91,6 +92,7 @@ public class ProveedorService : CrudServiceBase<Proveedor, int>
         }
 
         Set.Remove(entity);
+        _context.CategoriasProveedores.RemoveRange(entity.CategoriasProveedores);
         if (entity.IdProveedorNavigation is not null)
         {
             _context.Personas.Remove(entity.IdProveedorNavigation);
@@ -99,9 +101,44 @@ public class ProveedorService : CrudServiceBase<Proveedor, int>
         await _context.SaveChangesAsync();
     }
 
+    private static void SyncCategorias(Proveedor existingEntity, Proveedor incomingEntity)
+    {
+        var incomingCategoriaIds = incomingEntity.CategoriasProveedores
+            .Select(categoriaProveedor => categoriaProveedor.CategoriaId)
+            .Distinct()
+            .ToHashSet();
+
+        var categoriasToRemove = existingEntity.CategoriasProveedores
+            .Where(categoriaProveedor => !incomingCategoriaIds.Contains(categoriaProveedor.CategoriaId))
+            .ToList();
+
+        foreach (var categoriaProveedor in categoriasToRemove)
+        {
+            existingEntity.CategoriasProveedores.Remove(categoriaProveedor);
+        }
+
+        var existingCategoriaIds = existingEntity.CategoriasProveedores
+            .Select(categoriaProveedor => categoriaProveedor.CategoriaId)
+            .ToHashSet();
+
+        foreach (var categoriaId in incomingCategoriaIds)
+        {
+            if (!existingCategoriaIds.Contains(categoriaId))
+            {
+                existingEntity.CategoriasProveedores.Add(new CategoriaProveedor
+                {
+                    ProveedorId = existingEntity.IdProveedor,
+                    CategoriaId = categoriaId
+                });
+            }
+        }
+    }
+
     private IQueryable<Proveedor> BuildQuery()
     {
         return _context.Proveedores
+            .Include(proveedor => proveedor.CategoriasProveedores)
+                .ThenInclude(categoriaProveedor => categoriaProveedor.Categoria)
             .Include(proveedor => proveedor.IdProveedorNavigation)
                 .ThenInclude(persona => persona.IdDireccionNavigation)
                     .ThenInclude(direccion => direccion.IdCiudadNavigation)

@@ -13,6 +13,8 @@ public partial class Proveedor
 
     public string NombreFantasia { get; set; } = null!;
 
+    public virtual ICollection<CategoriaProveedor> CategoriasProveedores { get; set; } = new List<CategoriaProveedor>();
+
     public virtual ICollection<FacturasCompra> FacturasCompras { get; set; } = new List<FacturasCompra>();
 
     public virtual Persona IdProveedorNavigation { get; set; } = null!;

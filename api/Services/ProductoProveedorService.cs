@@ -29,6 +29,7 @@ public class ProductoProveedorService : CompositeCrudServiceBase<ProductoProveed
 
     protected override void UpdateEntity(ProductoProveedor existingEntity, ProductoProveedor incomingEntity)
     {
+        existingEntity.CategoriaId = incomingEntity.CategoriaId;
         existingEntity.CodigoProveedor = incomingEntity.CodigoProveedor;
         existingEntity.Activo = incomingEntity.Activo;
     }
@@ -36,6 +37,7 @@ public class ProductoProveedorService : CompositeCrudServiceBase<ProductoProveed
     private IQueryable<ProductoProveedor> BuildQuery()
     {
         return _context.ProductosProveedores
+            .Include(entity => entity.Categoria)
             .Include(entity => entity.Producto)
             .Include(entity => entity.Proveedor);
     }

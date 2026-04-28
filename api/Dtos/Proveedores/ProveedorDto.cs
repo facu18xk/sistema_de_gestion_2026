@@ -21,6 +21,15 @@ public class ProveedorDto
     public string Correo { get; set; } = string.Empty;
 
     public string Telefono { get; set; } = string.Empty;
+
+    public IReadOnlyCollection<CategoriaProveedorDto> Categorias { get; set; } = Array.Empty<CategoriaProveedorDto>();
+}
+
+public class CategoriaProveedorDto
+{
+    public int IdCategoria { get; set; }
+
+    public string Categoria { get; set; } = string.Empty;
 }
 
 public class DireccionProveedorDto
@@ -54,6 +63,8 @@ public class ProveedorUpsertDto
     public string Correo { get; set; } = string.Empty;
 
     public string Telefono { get; set; } = string.Empty;
+
+    public IReadOnlyCollection<int> CategoriaIds { get; set; } = Array.Empty<int>();
 }
 
 public class DireccionProveedorUpsertDto

@@ -17,6 +17,8 @@ public partial class DblosAmigosContext : DbContext
 
     public virtual DbSet<Categoria> Categorias { get; set; }
 
+    public virtual DbSet<CategoriaProveedor> CategoriasProveedores { get; set; }
+
     public virtual DbSet<Ciudad> Ciudades { get; set; }
 
     public virtual DbSet<Cliente> Clientes { get; set; }
@@ -112,6 +114,26 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<CategoriaProveedor>(entity =>
+        {
+            entity.HasKey(e => new { e.ProveedorId, e.CategoriaId });
+
+            entity.ToTable("Categorias_Proveedores");
+
+            entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.CategoriaId).HasColumnName("Id_Categoria");
+
+            entity.HasOne(d => d.Categoria).WithMany(p => p.CategoriasProveedores)
+                .HasForeignKey(d => d.CategoriaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Categorias_Proveedores_Categorias");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.CategoriasProveedores)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Categorias_Proveedores_Proveedores");
         });
 
         modelBuilder.Entity<Ciudad>(entity =>
@@ -814,14 +836,17 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Pedidos_Compras_Detalles");
 
             entity.Property(e => e.IdPedidoCompraDetalle).HasColumnName("Id_Pedido_Compra_Detalle");
-            entity.Property(e => e.Categoria)
-                .HasMaxLength(100)
-                .IsUnicode(false);
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.IdCategoria).HasColumnName("Id_Categoria");
             entity.Property(e => e.IdPedidoCompra).HasColumnName("Id_Pedido_Compra");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany()
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pedidos_Compras_Detalles_Categorias");
 
             entity.HasOne(d => d.IdPedidoCompraNavigation).WithMany(p => p.PedidosComprasDetalles)
                 .HasForeignKey(d => d.IdPedidoCompra)
@@ -864,17 +889,20 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Pedidos_Cotizaciones_Detalles");
 
             entity.Property(e => e.IdPedidoCotizacionDetalle).HasColumnName("Id_Pedido_Cotizacion_Detalle");
-            entity.Property(e => e.Categoria)
-                .HasMaxLength(100)
-                .IsUnicode(false);
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.IdCategoria).HasColumnName("Id_Categoria");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
             entity.Property(e => e.PrecioProducto)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("Precio_Producto");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany()
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pedidos_Cotizaciones_Detalles_Categorias");
 
             entity.HasOne(d => d.IdPedidoCotizacionNavigation).WithMany(p => p.PedidosCotizacionesDetalles)
                 .HasForeignKey(d => d.IdPedidoCotizacion)
@@ -895,10 +923,16 @@ public partial class DblosAmigosContext : DbContext
 
             entity.Property(e => e.ProductoId).HasColumnName("Id_Producto");
             entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.CategoriaId).HasColumnName("Id_Categoria");
             entity.Property(e => e.CodigoProveedor)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("Codigo_Proveedor");
+
+            entity.HasOne(d => d.Categoria).WithMany()
+                .HasForeignKey(d => d.CategoriaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_Proveedores_Categorias");
 
             entity.HasOne(d => d.Producto).WithMany(p => p.ProductosProveedores)
                 .HasForeignKey(d => d.ProductoId)

@@ -11,13 +11,15 @@ public partial class PedidosComprasDetalle
 
     public int IdProducto { get; set; }
 
-    public string Categoria { get; set; } = null!;
+    public int IdCategoria { get; set; }
 
     public string Descripcion { get; set; } = null!;
 
     public int Cantidad { get; set; }
 
     public virtual PedidosCompra IdPedidoCompraNavigation { get; set; } = null!;
+
+    public virtual Categoria IdCategoriaNavigation { get; set; } = null!;
 
     public virtual Producto IdProductoNavigation { get; set; } = null!;
 }

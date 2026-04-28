@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using api.Models;
@@ -11,9 +12,11 @@ using api.Models;
 namespace api.Migrations.DblosAmigos
 {
     [DbContext(typeof(DblosAmigosContext))]
-    partial class DblosAmigosContextModelSnapshot : ModelSnapshot
+    [Migration("20260428140623_AddProveedorCategorias")]
+    partial class AddProveedorCategorias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

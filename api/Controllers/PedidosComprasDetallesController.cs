@@ -23,7 +23,8 @@ public class PedidosComprasDetallesController : CrudControllerBase<PedidosCompra
             NumeroPedidoCompra = entity.IdPedidoCompraNavigation?.NumeroPedido ?? 0,
             IdProducto = entity.IdProducto,
             Producto = entity.IdProductoNavigation?.Descripcion ?? string.Empty,
-            Categoria = entity.Categoria,
+            IdCategoria = entity.IdCategoria,
+            Categoria = entity.IdCategoriaNavigation?.Nombre ?? string.Empty,
             Descripcion = entity.Descripcion,
             Cantidad = entity.Cantidad
         };
@@ -35,7 +36,7 @@ public class PedidosComprasDetallesController : CrudControllerBase<PedidosCompra
         {
             IdPedidoCompra = dto.IdPedidoCompra,
             IdProducto = dto.IdProducto,
-            Categoria = dto.Categoria,
+            IdCategoria = dto.IdCategoria,
             Descripcion = dto.Descripcion,
             Cantidad = dto.Cantidad
         };
