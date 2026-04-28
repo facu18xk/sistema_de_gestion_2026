@@ -1,6 +1,6 @@
 import api from './api';
 import { API_CONFIG } from "../config/api";
-import { Proveedor, PaginatedResponse } from '@/types/types';
+import { Proveedor, ProveedorSaveDTO, PaginatedResponse } from '@/types/types';
 
 export const proveedoresAPI = {
     getAll: async (page: number = 1, pageSize: number = 10): Promise<PaginatedResponse<Proveedor>> => {
@@ -15,12 +15,12 @@ export const proveedoresAPI = {
         return response.data;
     },
 
-    create: async (data: Proveedor): Promise<Proveedor> => {
+    create: async (data: ProveedorSaveDTO): Promise<Proveedor> => {
         const response = await api.post(API_CONFIG.ENDPOINTS.PROVEEDORES, data);
         return response.data;
     },
 
-    update: async (id: number, data: Proveedor): Promise<Proveedor> => {
+    update: async (id: number, data: ProveedorSaveDTO): Promise<Proveedor> => {
         const response = await api.put(`${API_CONFIG.ENDPOINTS.PROVEEDORES}/${id}`, data);
         return response.data;
     },

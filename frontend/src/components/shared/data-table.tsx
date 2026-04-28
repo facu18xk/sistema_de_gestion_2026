@@ -16,19 +16,18 @@ interface DataTableProps {
     onPageChange: (page: number) => void
 }
 
-export function DataTable({ 
-    caption, 
-    headerRow, 
-    children, 
-    currentPage, 
-    totalPages, 
-    onPageChange 
+export function DataTable({
+    caption,
+    headerRow,
+    children,
+    currentPage,
+    totalPages,
+    onPageChange
 }: DataTableProps) {
     return (
         <div className="space-y-3">
             <div className="rounded-md border bg-white shadow-sm">
                 <Table>
-                    <TableCaption>{caption}</TableCaption>
                     <TableHeader>
                         {headerRow}
                     </TableHeader>
@@ -44,7 +43,7 @@ export function DataTable({
                     Página <span className="font-medium text-foreground">{currentPage}</span> de{" "}
                     <span className="font-medium text-foreground">{totalPages || 1}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
