@@ -26,3 +26,7 @@ If you deploy the app under GitHub Pages, it will use the repository name as the
 
 Sintaxis de commits
 https://www.conventionalcommits.org/en/v1.0.0/
+
+Feature branches worflows
+
+https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow
