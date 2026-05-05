@@ -63,10 +63,10 @@ export default function ProveedoresPage() {
 
   useEffect(() => { cargarPaises() }, []);
   useEffect(() => { cargarPagina() }, [currentPage]);
-  
+
   // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
   const handleCrearNuevo = () => { setProveedorAEditar(null); setIsSheetOpen(true); }
-  
+
   const handleEditar = (p: Proveedor) => {
     setProveedorAEditar(p);
     setIsSheetOpen(true);
@@ -169,7 +169,7 @@ export default function ProveedoresPage() {
               <TableHead>Nombre Fantasía</TableHead>
               <TableHead>Razón Social</TableHead>
               <TableHead>RUC</TableHead>
-              <TableHead>Contacto</TableHead>
+              <TableHead>Correo</TableHead> {/* Encabezado más claro */}
               <TableHead>Teléfono</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -180,16 +180,23 @@ export default function ProveedoresPage() {
         >
           {proveedores.map((p) => (
             <TableRow key={p.idProveedor}>
-              <TableCell className="font-bold text-slate-900">{p.nombreFantasia}</TableCell>
+              {/* 1. Quitamos font-bold y text-slate-900 para que sea texto normal */}
+              <TableCell className="text-foreground">{p.nombreFantasia}</TableCell>
+
               <TableCell>{p.razonSocial}</TableCell>
+
               <TableCell className="font-mono text-sm">{p.ruc}</TableCell>
+
+              {/* 2. Simplificamos la celda de contacto: Solo correo */}
               <TableCell>
-                <div className="flex flex-col">
-                  <span className="font-medium">{p.nombres} {p.apellidos}</span>
-                  <span className="text-xs text-muted-foreground">{p.correo}</span>
-                </div>
+                <span className="text-sm">{p.correo || "Sin correo"}</span>
               </TableCell>
-              <TableCell className="text-sm">{p.telefono}</TableCell>
+
+              {/* 3. Mostramos solo el número de teléfono directamente */}
+              <TableCell className="text-sm">
+                {p.telefono || "Sin teléfono"}
+              </TableCell>
+
               <TableCell className="text-right space-x-1">
                 <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
                   <Pencil className="size-3.5" />

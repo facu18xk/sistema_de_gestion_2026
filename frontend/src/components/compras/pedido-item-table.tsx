@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PedidoItem } from "@/components/compras/pedido-form";
+import { Trash2 } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -21,11 +22,13 @@ interface PedidoItemsTableProps {
     field: keyof PedidoItem,
     value: string | number,
   ) => void;
+  onDeleteItem: (index: number) => void;
 }
 
 export function PedidoItemsTable({
   items,
   onUpdateItem,
+  onDeleteItem,
   readOnly = false,
 }: PedidoItemsTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,13 +42,14 @@ export function PedidoItemsTable({
   );
 
   return (
-    <div className="overflow-x-auto rounded-md ">
+    <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted">
-            <TableHead>Cantidad</TableHead>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-[120px]">Cantidad</TableHead>
             <TableHead>Descripción</TableHead>
             <TableHead>Categoría</TableHead>
+            {!readOnly && <TableHead className="w-[80px] text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
 
@@ -53,8 +57,8 @@ export function PedidoItemsTable({
           {items.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={4}
-                className="text-center text-muted-foreground"
+                colSpan={readOnly ? 3 : 4}
+                className="text-center text-muted-foreground h-24"
               >
                 No hay productos agregados.
               </TableCell>
@@ -66,46 +70,52 @@ export function PedidoItemsTable({
               return (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <Input
-                      type="number"
-                      value={item.cantidad}
-                      readOnly={readOnly}
-                      className={readOnly ? "bg-gray-100" : ""}
-                      onChange={(e) =>
-                        onUpdateItem(index, "cantidad", Number(e.target.value))
-                      }
-                    />
+                    {readOnly ? (
+                      <span className="inline-block px-3 py-1">{item.cantidad}</span>
+                    ) : (
+                      <Input
+                        type="number"
+                        value={item.cantidad === 0 ? "" : item.cantidad}
+                        placeholder="0"
+                        className="h-8 w-20"
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? 0 : Number(e.target.value);
+                          onUpdateItem(realIndex, "cantidad", val);
+                        }}
+                      />
+                    )}
                   </TableCell>
 
-                  <TableCell>
-                    <Input
-                      value={item.descripcion}
-                      readOnly={readOnly}
-                      className={readOnly ? "bg-gray-100" : ""}
-                      onChange={(e) =>
-                        onUpdateItem(index, "descripcion", e.target.value)
-                      }
-                    />
+                  <TableCell className="py-3 px-4 text-sm">
+                    {item.descripcion}
                   </TableCell>
 
-                  <TableCell>
-                    <Input
-                      value={item.categoria}
-                      readOnly={readOnly}
-                      className={readOnly ? "bg-gray-100" : ""}
-                      onChange={(e) =>
-                        onUpdateItem(index, "categoria", e.target.value)
-                      }
-                    />
+                  <TableCell className="py-3 px-4 text-sm">
+                    {item.categoria}
                   </TableCell>
+
+                  {!readOnly && (
+                    <TableCell className="text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteItem(realIndex)}
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })
           )}
         </TableBody>
       </Table>
+
       {items.length > itemsPerPage && (
-        <div className="flex justify-start items-center gap-3 p-3">
+        <div className="flex justify-start items-center gap-3 p-3 border-t">
           <Button
             type="button"
             variant="outline"

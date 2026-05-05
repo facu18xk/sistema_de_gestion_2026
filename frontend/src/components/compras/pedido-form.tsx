@@ -107,22 +107,37 @@ export function PedidoForm({
     setFormData((prev) => ({ ...prev, items }));
   };
 
+  const handleDeleteItem = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleAgregarProductos = (
     productosSeleccionados: ProductoSeleccionadoParaPedido[],
   ) => {
-    const nuevosItems = productosSeleccionados.map((p) => ({
-      id: Date.now() + p.id,
-      idProducto: p.id,
-      cantidad: p.cantidad,
-      descripcion: p.descripcion,
-      categoria: p.categoria,
-      esNuevo: true,
-    }));
+    setFormData((prev) => {
+      // Creamos un nuevo array de items basado en lo seleccionado en el modal
+      const nuevosItems: PedidoItem[] = productosSeleccionados.map((nuevo) => {
+        // Intentamos mantener el ID original si ya existía en el pedido
+        const itemAnterior = prev.items.find(i => i.idProducto === nuevo.id);
 
-    setFormData((prev) => ({
-      ...prev,
-      items: [...prev.items, ...nuevosItems],
-    }));
+        return {
+          id: itemAnterior ? itemAnterior.id : (Date.now() + nuevo.id),
+          idProducto: nuevo.id,
+          cantidad: nuevo.cantidad,
+          descripcion: nuevo.descripcion,
+          categoria: nuevo.categoria,
+          esNuevo: !itemAnterior,
+        };
+      });
+
+      return {
+        ...prev,
+        items: nuevosItems,
+      };
+    });
 
     cambiarVista("pedido");
   };
@@ -134,6 +149,7 @@ export function PedidoForm({
           productos={productos}
           currentPage={currentPage}
           totalPages={totalPages}
+          itemsExistentes={formData.items}
           onPageChange={setCurrentPage}
           onCancel={() => cambiarVista("pedido")}
           onNuevoProducto={() => setSheetProductoOpen(true)}
@@ -147,6 +163,7 @@ export function PedidoForm({
           contentClassName="sm:max-w-[540px] px-6"
         >
           <ProductoForm
+            onRefreshData={cargarProductos}
             productoEditado={null}
             categorias={[]}
             marcas={[]}
@@ -198,9 +215,8 @@ export function PedidoForm({
             id="estado"
             value={formData.estado}
             onChange={(e) => updateField("estado", e.target.value)}
-            className={`w-full h-9 rounded-md border px-3 text-sm ${
-              !esEditable ? "bg-gray-100" : ""
-            }`}
+            className={`w-full h-9 rounded-md border px-3 text-sm ${!esEditable ? "bg-gray-100" : ""
+              }`}
           >
             <option value="Pendiente">Pendiente</option>
             <option value="Aprobado">Aprobado</option>
@@ -223,6 +239,7 @@ export function PedidoForm({
       <PedidoItemsTable
         items={formData.items}
         onUpdateItem={updateItem}
+        onDeleteItem={handleDeleteItem}
         readOnly={!esEditable}
       />
     </FormContainer>
