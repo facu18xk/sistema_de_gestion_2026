@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Plus, Menu } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -212,10 +212,10 @@ export function AgregarProductosView({
                           setSheetDetalleOpen(true);
                         }}
                       >
-                        ≡
+                        <Menu className="ml-2"/>
                       </Button>
                     </TableCell>
-                    <TableCell>{p.disponible}</TableCell>
+                    <TableCell className="pl-5">{p.disponible}</TableCell>
                     <TableCell>
                       <Input
                         className="w-20"
@@ -246,6 +246,9 @@ export function AgregarProductosView({
 
         <div className="flex justify-between items-center pt-4">
           <div className="flex items-center gap-3">
+            <span className="text-sm font-medium">
+              Página {currentPage} de {totalPages}
+            </span>
             <Button
               type="button"
               variant="outline"
@@ -254,9 +257,6 @@ export function AgregarProductosView({
             >
               Anterior
             </Button>
-            <span className="text-sm font-medium">
-              Página {currentPage} de {totalPages}
-            </span>
             <Button
               type="button"
               variant="outline"
