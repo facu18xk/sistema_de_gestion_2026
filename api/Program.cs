@@ -60,11 +60,13 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
 
-    options.SwaggerDoc("v1", new OpenApiInfo
+    foreach (var swaggerDocument in SwaggerModules.Documents)
     {
-        Title = "api",
-        Version = "v1"
-    });
+        options.SwaggerDoc(swaggerDocument.Key, swaggerDocument.Value);
+    }
+
+    options.DocInclusionPredicate(SwaggerModules.IncludesApi);
+    options.TagActionsBy(SwaggerModules.GetTags);
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -115,7 +117,15 @@ using (var scope = app.Services.CreateScope())
 app.UseForwardedHeaders();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    foreach (var swaggerDocument in SwaggerModules.Documents)
+    {
+        options.SwaggerEndpoint(
+            $"/swagger/{swaggerDocument.Key}/swagger.json",
+            swaggerDocument.Value.Title);
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
