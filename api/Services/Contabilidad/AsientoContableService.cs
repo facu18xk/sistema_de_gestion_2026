@@ -31,11 +31,9 @@ public class AsientoContableService : IAsientoContableService
             throw new KeyNotFoundException($"No existe el registro con ID {idAsiento}");
         }
 
-        var currentPeriodo = await ContabilidadRules.GetEnabledPeriodoAsync(_context, existing.IdPeriodoContable);
-        ContabilidadRules.ValidatePeriodoContable(currentPeriodo);
+        await ContabilidadRules.GetEnabledPeriodoAsync(_context, existing.IdPeriodoContable);
 
-        var periodo = await ContabilidadRules.GetEnabledPeriodoAsync(_context, dto.IdPeriodoContable);
-        ContabilidadRules.ValidateFechaDentroPeriodo(dto.Fecha, periodo);
+        var periodo = await ContabilidadRules.GetEnabledPeriodoByFechaAsync(_context, dto.Fecha);
         ContabilidadRules.ValidatePartidaDoble(dto.Detalles.Select(item => (item.TipoMovimiento, item.Monto)));
 
         foreach (var detalle in dto.Detalles)
@@ -49,7 +47,7 @@ public class AsientoContableService : IAsientoContableService
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
         existing.NumeroAsiento = dto.NumeroAsiento <= 0 ? existing.NumeroAsiento : dto.NumeroAsiento;
-        existing.IdPeriodoContable = dto.IdPeriodoContable;
+        existing.IdPeriodoContable = periodo.IdPeriodoContable;
         existing.IdModulo = dto.IdModulo;
         existing.Fecha = dto.Fecha;
         existing.Descripcion = dto.Descripcion;
@@ -122,7 +120,6 @@ public class AsientoContableService : IAsientoContableService
         return await CreateAsync(new AsientoCompletoUpsertDto
         {
             NumeroAsiento = dto.NumeroAsiento,
-            IdPeriodoContable = dto.IdPeriodoContable,
             IdModulo = modelo.IdModulo,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion ?? modelo.Descripcion,
@@ -136,8 +133,7 @@ public class AsientoContableService : IAsientoContableService
 
     private async Task<AsientoCompletoDto> CreateAsync(AsientoCompletoUpsertDto dto)
     {
-        var periodo = await ContabilidadRules.GetEnabledPeriodoAsync(_context, dto.IdPeriodoContable);
-        ContabilidadRules.ValidateFechaDentroPeriodo(dto.Fecha, periodo);
+        var periodo = await ContabilidadRules.GetEnabledPeriodoByFechaAsync(_context, dto.Fecha);
         ContabilidadRules.ValidatePartidaDoble(dto.Detalles.Select(item => (item.TipoMovimiento, item.Monto)));
 
         foreach (var detalle in dto.Detalles)
@@ -154,7 +150,7 @@ public class AsientoContableService : IAsientoContableService
         if (numeroAsiento <= 0)
         {
             var ultimoNumero = await _context.Asientos
-                .Where(item => item.IdPeriodoContable == dto.IdPeriodoContable)
+                .Where(item => item.IdPeriodoContable == periodo.IdPeriodoContable)
                 .Select(item => (int?)item.NumeroAsiento)
                 .MaxAsync() ?? 0;
             numeroAsiento = ultimoNumero + 1;
@@ -163,7 +159,7 @@ public class AsientoContableService : IAsientoContableService
         var asiento = new Asiento
         {
             NumeroAsiento = numeroAsiento,
-            IdPeriodoContable = dto.IdPeriodoContable,
+            IdPeriodoContable = periodo.IdPeriodoContable,
             IdModulo = dto.IdModulo,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,

@@ -31,8 +31,11 @@ public class EmpleadosController : CrudControllerBase<Empleado, EmpleadoDto, Emp
                 : new PersonaEmpleadoDto 
                 {
                     IdPersona = persona.IdPersona,
+                    IdDireccion = persona.IdDireccion,
                     Nombres = persona.Nombres,
-                    Apellidos = persona.Apellidos
+                    Apellidos = persona.Apellidos,
+                    Correo = persona.Correo,
+                    Telefono = persona.Telefono
                 }
         };
     }
@@ -41,11 +44,17 @@ public class EmpleadosController : CrudControllerBase<Empleado, EmpleadoDto, Emp
     {
         return new Empleado
         {
-            IdEmpleado = dto.IdEmpleado,
-            IdPersona = dto.IdPersona,
             Ci = dto.Ci,
             Ruc = dto.Ruc,
-            FechaIngreso = dto.FechaIngreso
+            FechaIngreso = dto.FechaIngreso,
+            IdPersonaNavigation = new Persona
+            {
+                IdDireccion = dto.IdDireccion,
+                Nombres = dto.Nombres,
+                Apellidos = dto.Apellidos,
+                Correo = dto.Correo,
+                Telefono = dto.Telefono
+            }
         };
     }
 

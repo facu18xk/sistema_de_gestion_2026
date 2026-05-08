@@ -90,7 +90,6 @@ public class AsientosController : CrudControllerBase<Asiento, AsientoDto, Asient
         return new Asiento
         {
             NumeroAsiento = dto.NumeroAsiento,
-            IdPeriodoContable = dto.IdPeriodoContable,
             IdModulo = dto.IdModulo,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,

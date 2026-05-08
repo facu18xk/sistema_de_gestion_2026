@@ -48,6 +48,8 @@ public partial class Producto
 
     public virtual ICollection<PedidosCotizacionesDetalle> PedidosCotizacionesDetalles { get; set; } = new List<PedidosCotizacionesDetalle>();
 
+    public virtual ICollection<PrecioVenta> PreciosVentas { get; set; } = new List<PrecioVenta>();
+
     public virtual ICollection<PresupuestosDetalle> PresupuestosDetalles { get; set; } = new List<PresupuestosDetalle>();
 
     public virtual ICollection<ProductoProveedor> ProductosProveedores { get; set; } = new List<ProductoProveedor>();

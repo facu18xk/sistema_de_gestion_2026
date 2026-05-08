@@ -33,10 +33,19 @@ public class EmpleadoService : CrudServiceBase<Empleado, int>
 
     protected override void UpdateEntity(Empleado existingEntity, Empleado incomingEntity)
     {
-        existingEntity.IdPersona = incomingEntity.IdPersona;
         existingEntity.Ci = incomingEntity.Ci;
         existingEntity.Ruc = incomingEntity.Ruc;
         existingEntity.FechaIngreso = incomingEntity.FechaIngreso;
+
+        if (incomingEntity.IdPersonaNavigation is not null)
+        {
+            existingEntity.IdPersonaNavigation ??= incomingEntity.IdPersonaNavigation;
+            existingEntity.IdPersonaNavigation.IdDireccion = incomingEntity.IdPersonaNavigation.IdDireccion;
+            existingEntity.IdPersonaNavigation.Nombres = incomingEntity.IdPersonaNavigation.Nombres;
+            existingEntity.IdPersonaNavigation.Apellidos = incomingEntity.IdPersonaNavigation.Apellidos;
+            existingEntity.IdPersonaNavigation.Correo = incomingEntity.IdPersonaNavigation.Correo;
+            existingEntity.IdPersonaNavigation.Telefono = incomingEntity.IdPersonaNavigation.Telefono;
+        }
     }
 
     public override async Task<Empleado> UpdateAsync(int id, Empleado entity)

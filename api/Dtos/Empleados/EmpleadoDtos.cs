@@ -20,15 +20,24 @@ public class EmpleadoDto
 public class PersonaEmpleadoDto
 {
     public int IdPersona { get; set; }
+    public int IdDireccion { get; set; }
     public string Nombres { get; set; } = string.Empty;
     public string Apellidos { get; set; } = string.Empty;
+    public string Correo { get; set; } = string.Empty;
+    public string Telefono { get; set; } = string.Empty;
 }
 
 public class EmpleadoUpsertDto
 {
-    public int IdEmpleado { get; set; }
-    
-    public int IdPersona { get; set; }
+    public int IdDireccion { get; set; }
+
+    public string Nombres { get; set; } = string.Empty;
+
+    public string Apellidos { get; set; } = string.Empty;
+
+    public string Correo { get; set; } = string.Empty;
+
+    public string Telefono { get; set; } = string.Empty;
     
     public string Ci { get; set; } = string.Empty;
     

@@ -16,11 +16,16 @@ public class ProductosController : CrudControllerBase<Producto, ProductoDto, Pro
 
     protected override ProductoDto ToReadDto(Producto entity)
     {
+        var activeSalePrice = entity.PreciosVentas.FirstOrDefault(precio => precio.Activo);
+
         return new ProductoDto
         {
             IdProducto = entity.IdProducto,
             Descripcion = entity.Descripcion,
             PrecioUnitario = entity.PrecioUnitario,
+            PrecioVentaActual = activeSalePrice?.PrecioVentaValor,
+            PorcentajeGananciaActual = activeSalePrice?.PorcentajeGanancia,
+            PrecioCompraBaseActual = activeSalePrice?.PrecioCompraBase,
             EsServicio = entity.EsServicio,
             PorcentajeIva = entity.PorcentajeIva,
             CantidadTotal = entity.CantidadTotal,

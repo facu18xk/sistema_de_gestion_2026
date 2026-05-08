@@ -103,6 +103,8 @@ public partial class DblosAmigosContext : DbContext
 
     public virtual DbSet<PeriodoContable> PeriodosContables { get; set; }
 
+    public virtual DbSet<PrecioVenta> PreciosVentas { get; set; }
+
     public virtual DbSet<ProductoProveedor> ProductosProveedores { get; set; }
 
     public virtual DbSet<Persona> Personas { get; set; }
@@ -791,6 +793,9 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.IdOrdenVentaDetalle).HasColumnName("Id_Orden_venta_Detalle");
             entity.Property(e => e.IdOrdenVenta).HasColumnName("Id_Orden_Venta");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
+            entity.Property(e => e.PrecioUnitario)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Unitario");
 
             entity.HasOne(d => d.IdOrdenVentaNavigation).WithMany(p => p.OrdenesVentasDetalles)
                 .HasForeignKey(d => d.IdOrdenVenta)
@@ -1072,6 +1077,42 @@ public partial class DblosAmigosContext : DbContext
                 .HasConstraintName("FK_Presupuestos_Estados");
         });
 
+        modelBuilder.Entity<PrecioVenta>(entity =>
+        {
+            entity.HasKey(e => e.IdPrecioVenta);
+
+            entity.ToTable("Precios_Ventas");
+
+            entity.HasIndex(e => e.IdProducto)
+                .IsUnique()
+                .HasFilter("\"Activo\" = TRUE")
+                .HasDatabaseName("IX_Precios_Ventas_Id_Producto_Activo");
+
+            entity.Property(e => e.IdPrecioVenta).HasColumnName("Id_Precio_Venta");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.FechaDesde)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("Fecha_Desde");
+            entity.Property(e => e.FechaHasta)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("Fecha_Hasta");
+            entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
+            entity.Property(e => e.PorcentajeGanancia)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("Porcentaje_Ganancia");
+            entity.Property(e => e.PrecioCompraBase)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Compra_Base");
+            entity.Property(e => e.PrecioVentaValor)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Venta");
+
+            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.PreciosVentas)
+                .HasForeignKey(d => d.IdProducto)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Precios_Ventas_Productos");
+        });
+
         modelBuilder.Entity<PresupuestosDetalle>(entity =>
         {
             entity.HasKey(e => e.IdPresupuestoDetalle);
@@ -1084,6 +1125,9 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Iva)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("IVA");
+            entity.Property(e => e.PrecioUnitario)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Unitario");
             entity.Property(e => e.Subtotal).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.IdPresupuestoNavigation).WithMany(p => p.PresupuestosDetalles)

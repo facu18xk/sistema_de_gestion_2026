@@ -81,6 +81,32 @@ public static class ContabilidadRules
         return periodo;
     }
 
+    public static async Task<PeriodoContable> GetEnabledPeriodoByFechaAsync(
+        DblosAmigosContext context,
+        DateOnly fecha)
+    {
+        var periodos = await context.PeriodosContables
+            .Include(item => item.IdProcesoContableNavigation)
+            .Where(item => item.FechaInicio <= fecha && item.FechaFin >= fecha)
+            .ToListAsync();
+
+        var enabledPeriodos = periodos
+            .Where(item => IsEnabled(item.Estado) && IsEnabled(item.IdProcesoContableNavigation.Estado))
+            .ToList();
+
+        if (enabledPeriodos.Count == 0)
+        {
+            throw new InvalidOperationException("No existe un periodo contable habilitado para la fecha indicada.");
+        }
+
+        if (enabledPeriodos.Count > 1)
+        {
+            throw new InvalidOperationException("Existe más de un periodo contable habilitado para la fecha indicada.");
+        }
+
+        return enabledPeriodos[0];
+    }
+
     public static async Task ValidateCuentaAsentableAsync(
         DblosAmigosContext context,
         int idCuentaContable,

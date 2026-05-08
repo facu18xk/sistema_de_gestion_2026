@@ -14,6 +14,7 @@ public static class SwaggerModules
             ["auth"] = new() { Title = "api - Auth", Version = "v1" },
             ["catalogos"] = new() { Title = "api - Catalogos", Version = "v1" },
             ["compras"] = new() { Title = "api - Compras", Version = "v1" },
+            ["ventas"] = new() { Title = "api - Ventas", Version = "v1" },
             ["contabilidad"] = new() { Title = "api - Contabilidad", Version = "v1" }
         };
 
@@ -49,6 +50,14 @@ public static class SwaggerModules
             ["PedidosComprasDetalles"] = "compras",
             ["PedidosCotizaciones"] = "compras",
             ["PedidosCotizacionesDetalles"] = "compras",
+
+            ["FacturasVentas"] = "ventas",
+            ["FacturasVentasDetalles"] = "ventas",
+            ["OrdenesVentas"] = "ventas",
+            ["OrdenesVentasDetalles"] = "ventas",
+            ["PreciosVentas"] = "ventas",
+            ["Presupuestos"] = "ventas",
+            ["PresupuestosDetalles"] = "ventas",
 
             ["Asientos"] = "contabilidad",
             ["AsientosDetalles"] = "contabilidad",

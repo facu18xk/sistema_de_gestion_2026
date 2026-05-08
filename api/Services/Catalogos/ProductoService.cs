@@ -22,6 +22,7 @@ public class ProductoService : CrudServiceBase<Producto, int>
             .Include(p => p.IdCategoriaNavigation)
             .Include(p => p.IdMarcaNavigation)
             .Include(p => p.StocksDepositos)
+            .Include(p => p.PreciosVentas.Where(precio => precio.Activo))
             .AsNoTracking();
     }
 
@@ -31,6 +32,7 @@ public class ProductoService : CrudServiceBase<Producto, int>
             .Include(p => p.IdCategoriaNavigation)
             .Include(p => p.IdMarcaNavigation)
             .Include(p => p.StocksDepositos)
+            .Include(p => p.PreciosVentas.Where(precio => precio.Activo))
             .AsNoTracking();
     }
 

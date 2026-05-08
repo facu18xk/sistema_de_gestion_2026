@@ -37,6 +37,9 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAsientoContableService, AsientoContableService>();
 builder.Services.AddScoped<IContabilidadReportesService, ContabilidadReportesService>();
 builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGeneratorService>();
+builder.Services.AddScoped<PreciosVentasService>();
+builder.Services.AddScoped<SalesPriceResolver>();
+builder.Services.AddScoped<VentasCompletasService>();
 builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
