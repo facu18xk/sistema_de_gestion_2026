@@ -1,24 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 2 || $# -gt 3 ]]; then
-  echo "Usage: $0 <EntityName> <PluralName> [IdPropertyName]" >&2
-  echo "Example: $0 Producto Productos IdProducto" >&2
+if [[ $# -lt 2 || $# -gt 4 ]]; then
+  echo "Usage: $0 <EntityName> <PluralName> [IdPropertyName] [ModuleName]" >&2
+  echo "Example: $0 Producto Productos IdProducto Catalogos" >&2
   exit 1
 fi
 
 entity_name="$1"
 plural_name="$2"
 id_property_name="${3:-Id${entity_name}}"
+module_name="${4:-}"
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-controller_file="${root_dir}/Controllers/${plural_name}Controller.cs"
-service_file="${root_dir}/Services/${entity_name}Service.cs"
+controller_dir="${root_dir}/Controllers"
+service_dir="${root_dir}/Services"
+if [[ -n "${module_name}" ]]; then
+  controller_dir="${controller_dir}/${module_name}"
+  service_dir="${service_dir}/${module_name}"
+fi
+
+controller_file="${controller_dir}/${plural_name}Controller.cs"
+service_file="${service_dir}/${entity_name}Service.cs"
 dto_dir="${root_dir}/Dtos/${plural_name}"
 dto_file="${dto_dir}/${entity_name}Dto.cs"
 
-mkdir -p "${dto_dir}"
+mkdir -p "${controller_dir}" "${service_dir}" "${dto_dir}"
 
 if [[ -e "${controller_file}" || -e "${service_file}" || -e "${dto_file}" ]]; then
   echo "One or more target files already exist. Refusing to overwrite." >&2
