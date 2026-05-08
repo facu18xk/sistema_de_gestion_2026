@@ -71,12 +71,22 @@ public class EmpleadoService : CrudServiceBase<Empleado, int>
         }
 
         Set.Remove(entity);
+        
+        if (entity.IdPersonaNavigation is not null)
+        {
+            _context.Personas.Remove(entity.IdPersonaNavigation);
+        }
+
         await _context.SaveChangesAsync();
     }
 
     private IQueryable<Empleado> BuildQuery()
     {
+
         return _context.Empleados
-            .Include(e => e.IdPersonaNavigation);
+            .Include(e => e.IdPersonaNavigation)
+                .ThenInclude(p => p.IdDireccionNavigation)
+                    .ThenInclude(d => d.IdCiudadNavigation)
+                        .ThenInclude(ciudad => ciudad.IdPaisNavigation);
     }
 }
