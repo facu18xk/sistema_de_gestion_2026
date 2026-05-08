@@ -40,7 +40,23 @@ public class EmpleadoService : CrudServiceBase<Empleado, int>
         if (incomingEntity.IdPersonaNavigation is not null)
         {
             existingEntity.IdPersonaNavigation ??= incomingEntity.IdPersonaNavigation;
-            existingEntity.IdPersonaNavigation.IdDireccion = incomingEntity.IdPersonaNavigation.IdDireccion;
+
+            if (incomingEntity.IdPersonaNavigation.IdDireccionNavigation is not null)
+            {
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation ??=
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle1 =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle1;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle2 =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle2;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.Descripcion =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.Descripcion;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.IdCiudad =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.IdCiudad;
+                existingEntity.IdPersonaNavigation.IdDireccion =
+                    existingEntity.IdPersonaNavigation.IdDireccionNavigation.IdDireccion;
+            }
+
             existingEntity.IdPersonaNavigation.Nombres = incomingEntity.IdPersonaNavigation.Nombres;
             existingEntity.IdPersonaNavigation.Apellidos = incomingEntity.IdPersonaNavigation.Apellidos;
             existingEntity.IdPersonaNavigation.Correo = incomingEntity.IdPersonaNavigation.Correo;

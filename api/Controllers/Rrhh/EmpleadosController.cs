@@ -32,19 +32,22 @@ public class EmpleadosController : CrudControllerBase<Empleado, EmpleadoDto, Emp
                 ? null
                 : new DireccionEmpleadoDto
                 {
-                    IdPersona = persona.IdPersona,
-                    IdDireccion = persona.IdDireccion,
-                    Nombres = persona.Nombres,
-                    Apellidos = persona.Apellidos,
-                    Correo = persona.Correo,
-                    Telefono = persona.Telefono
-                }
+                    IdDireccion = direccion.IdDireccion,
+                    Calle1 = direccion.Calle1,
+                    Calle2 = direccion.Calle2,
+                    Descripcion = direccion.Descripcion,
+                    IdCiudad = direccion.IdCiudad,
+                    IdPais = ciudad?.IdPais ?? 0
+                },
+            Nombres = persona?.Nombres ?? string.Empty,
+            Apellidos = persona?.Apellidos ?? string.Empty,
+            Correo = persona?.Correo ?? string.Empty,
+            Telefono = persona?.Telefono ?? string.Empty
         };
     }
 
     protected override Empleado ToEntity(EmpleadoUpsertDto dto)
     {
-        // 1. Armamos la dirección
         var direccion = new Direccion
         {
             Calle1 = dto.Direccion.Calle1,
@@ -53,7 +56,6 @@ public class EmpleadosController : CrudControllerBase<Empleado, EmpleadoDto, Emp
             IdCiudad = dto.Direccion.IdCiudad
         };
 
-        // 2. Armamos la persona y le inyectamos la dirección
         var persona = new Persona
         {
             IdDireccion = direccion.IdDireccion,
@@ -64,24 +66,12 @@ public class EmpleadosController : CrudControllerBase<Empleado, EmpleadoDto, Emp
             IdDireccionNavigation = direccion
         };
 
-        // 3. Armamos el empleado y le inyectamos la persona
         return new Empleado
         {
             Ci = dto.Ci,
             Ruc = dto.Ruc,
             FechaIngreso = dto.FechaIngreso,
-<<<<<<< HEAD
-            IdPersonaNavigation = new Persona
-            {
-                IdDireccion = dto.IdDireccion,
-                Nombres = dto.Nombres,
-                Apellidos = dto.Apellidos,
-                Correo = dto.Correo,
-                Telefono = dto.Telefono
-            }
-=======
             IdPersonaNavigation = persona
->>>>>>> origin/cliente
         };
     }
 
