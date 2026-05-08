@@ -5,34 +5,67 @@ namespace api.Dtos.Empleados;
 public class EmpleadoDto
 {
     public int IdEmpleado { get; set; }
-    
-    public int IdPersona { get; set; }
-    
+
     public string Ci { get; set; } = string.Empty;
-    
+
     public string Ruc { get; set; } = string.Empty;
-    
+
     public DateOnly FechaIngreso { get; set; }
 
-    public PersonaEmpleadoDto? Persona { get; set; }
+    public int IdDireccion { get; set; }
+
+    public DireccionEmpleadoDto? Direccion { get; set; }
+
+    public string Nombres { get; set; } = string.Empty;
+
+    public string Apellidos { get; set; } = string.Empty;
+
+    public string Correo { get; set; } = string.Empty;
+
+    public string Telefono { get; set; } = string.Empty;
 }
 
-public class PersonaEmpleadoDto
+public class DireccionEmpleadoDto
 {
-    public int IdPersona { get; set; }
-    public string Nombres { get; set; } = string.Empty;
-    public string Apellidos { get; set; } = string.Empty;
+    public int IdDireccion { get; set; }
+
+    public string Calle1 { get; set; } = string.Empty;
+
+    public string Calle2 { get; set; } = string.Empty;
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int IdCiudad { get; set; }
+    
+    public int IdPais { get; set; }
 }
 
 public class EmpleadoUpsertDto
 {
-    public int IdEmpleado { get; set; }
-    
-    public int IdPersona { get; set; }
-    
     public string Ci { get; set; } = string.Empty;
-    
+
     public string Ruc { get; set; } = string.Empty;
-    
+
     public DateOnly FechaIngreso { get; set; }
+
+    public DireccionEmpleadoUpsertDto Direccion { get; set; } = new();
+
+    public string Nombres { get; set; } = string.Empty;
+
+    public string Apellidos { get; set; } = string.Empty;
+
+    public string Correo { get; set; } = string.Empty;
+
+    public string Telefono { get; set; } = string.Empty;
+}
+
+public class DireccionEmpleadoUpsertDto
+{
+    public string Calle1 { get; set; } = string.Empty;
+
+    public string Calle2 { get; set; } = string.Empty;
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int IdCiudad { get; set; }
 }

@@ -18,34 +18,63 @@ public class EmpleadosController : CrudControllerBase<Empleado, EmpleadoDto, Emp
     protected override EmpleadoDto ToReadDto(Empleado entity)
     {
         var persona = entity.IdPersonaNavigation;
+        var direccion = persona?.IdDireccionNavigation;
+        var ciudad = direccion?.IdCiudadNavigation;
 
         return new EmpleadoDto
         {
             IdEmpleado = entity.IdEmpleado,
-            IdPersona = entity.IdPersona,
             Ci = entity.Ci,
             Ruc = entity.Ruc,
             FechaIngreso = entity.FechaIngreso,
-            Persona = persona is null 
-                ? null 
-                : new PersonaEmpleadoDto 
+            IdDireccion = persona?.IdDireccion ?? 0,
+            Direccion = direccion is null
+                ? null
+                : new DireccionEmpleadoDto
                 {
-                    IdPersona = persona.IdPersona,
-                    Nombres = persona.Nombres,
-                    Apellidos = persona.Apellidos
-                }
+                    IdDireccion = direccion.IdDireccion,
+                    Calle1 = direccion.Calle1,
+                    Calle2 = direccion.Calle2,
+                    Descripcion = direccion.Descripcion,
+                    IdCiudad = direccion.IdCiudad,
+                    IdPais = ciudad?.IdPais ?? 0
+                },
+            Nombres = persona?.Nombres ?? string.Empty,
+            Apellidos = persona?.Apellidos ?? string.Empty,
+            Correo = persona?.Correo ?? string.Empty,
+            Telefono = persona?.Telefono ?? string.Empty
         };
     }
 
     protected override Empleado ToEntity(EmpleadoUpsertDto dto)
     {
+        // 1. Armamos la dirección
+        var direccion = new Direccion
+        {
+            Calle1 = dto.Direccion.Calle1,
+            Calle2 = dto.Direccion.Calle2,
+            Descripcion = dto.Direccion.Descripcion,
+            IdCiudad = dto.Direccion.IdCiudad
+        };
+
+        // 2. Armamos la persona y le inyectamos la dirección
+        var persona = new Persona
+        {
+            IdDireccion = direccion.IdDireccion,
+            Nombres = dto.Nombres,
+            Apellidos = dto.Apellidos,
+            Correo = dto.Correo,
+            Telefono = dto.Telefono,
+            IdDireccionNavigation = direccion
+        };
+
+        // 3. Armamos el empleado y le inyectamos la persona
         return new Empleado
         {
-            IdEmpleado = dto.IdEmpleado,
-            IdPersona = dto.IdPersona,
             Ci = dto.Ci,
             Ruc = dto.Ruc,
-            FechaIngreso = dto.FechaIngreso
+            FechaIngreso = dto.FechaIngreso,
+            IdPersonaNavigation = persona
         };
     }
 

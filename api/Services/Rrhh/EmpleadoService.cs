@@ -33,10 +33,40 @@ public class EmpleadoService : CrudServiceBase<Empleado, int>
 
     protected override void UpdateEntity(Empleado existingEntity, Empleado incomingEntity)
     {
-        existingEntity.IdPersona = incomingEntity.IdPersona;
         existingEntity.Ci = incomingEntity.Ci;
         existingEntity.Ruc = incomingEntity.Ruc;
         existingEntity.FechaIngreso = incomingEntity.FechaIngreso;
+
+        if (incomingEntity.IdPersonaNavigation is not null)
+        {
+            existingEntity.IdPersonaNavigation ??= incomingEntity.IdPersonaNavigation;
+            existingEntity.IdPersonaNavigation.Nombres = incomingEntity.IdPersonaNavigation.Nombres;
+            existingEntity.IdPersonaNavigation.Apellidos = incomingEntity.IdPersonaNavigation.Apellidos;
+            existingEntity.IdPersonaNavigation.Correo = incomingEntity.IdPersonaNavigation.Correo;
+            existingEntity.IdPersonaNavigation.Telefono = incomingEntity.IdPersonaNavigation.Telefono;
+
+            if (incomingEntity.IdPersonaNavigation.IdDireccionNavigation is not null)
+            {
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation ??=
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation;
+
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle1 =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle1;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle2 =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.Calle2;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.Descripcion =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.Descripcion;
+                existingEntity.IdPersonaNavigation.IdDireccionNavigation.IdCiudad =
+                    incomingEntity.IdPersonaNavigation.IdDireccionNavigation.IdCiudad;
+                
+                existingEntity.IdPersonaNavigation.IdDireccion =
+                    existingEntity.IdPersonaNavigation.IdDireccionNavigation.IdDireccion;
+            }
+            else
+            {
+                existingEntity.IdPersonaNavigation.IdDireccion = incomingEntity.IdPersonaNavigation.IdDireccion;
+            }
+        }
     }
 
     public override async Task<Empleado> UpdateAsync(int id, Empleado entity)
@@ -62,12 +92,22 @@ public class EmpleadoService : CrudServiceBase<Empleado, int>
         }
 
         Set.Remove(entity);
+        
+        if (entity.IdPersonaNavigation is not null)
+        {
+            _context.Personas.Remove(entity.IdPersonaNavigation);
+        }
+
         await _context.SaveChangesAsync();
     }
 
     private IQueryable<Empleado> BuildQuery()
     {
+
         return _context.Empleados
-            .Include(e => e.IdPersonaNavigation);
+            .Include(e => e.IdPersonaNavigation)
+                .ThenInclude(p => p.IdDireccionNavigation)
+                    .ThenInclude(d => d.IdCiudadNavigation)
+                        .ThenInclude(ciudad => ciudad.IdPaisNavigation);
     }
 }
