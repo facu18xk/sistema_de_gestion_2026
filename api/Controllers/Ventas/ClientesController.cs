@@ -18,34 +18,60 @@ public class ClientesController : CrudControllerBase<Cliente, ClienteDto, Client
     protected override ClienteDto ToReadDto(Cliente entity)
     {
         var persona = entity.IdPersonaNavigation;
+        var direccion = persona?.IdDireccionNavigation;
+        var ciudad = direccion?.IdCiudadNavigation;
 
         return new ClienteDto
         {
             IdCliente = entity.IdCliente,
-            IdPersona = entity.IdPersona,
             Ci = entity.Ci,
             Ruc = entity.Ruc,
             FechaNacimiento = entity.FechaNacimiento,
-            Persona = persona is null 
-                ? null 
-                : new PersonaClienteDto 
+            IdDireccion = persona?.IdDireccion ?? 0,
+            Direccion = direccion is null
+                ? null
+                : new DireccionClienteDto
                 {
-                    IdPersona = persona.IdPersona,
-                    Nombres = persona.Nombres,
-                    Apellidos = persona.Apellidos
-                }
+                    IdDireccion = direccion.IdDireccion,
+                    Calle1 = direccion.Calle1,
+                    Calle2 = direccion.Calle2,
+                    Descripcion = direccion.Descripcion,
+                    IdCiudad = direccion.IdCiudad,
+                    IdPais = ciudad?.IdPais ?? 0
+                },
+            Nombres = persona?.Nombres ?? string.Empty,
+            Apellidos = persona?.Apellidos ?? string.Empty,
+            Correo = persona?.Correo ?? string.Empty,
+            Telefono = persona?.Telefono ?? string.Empty
         };
     }
 
     protected override Cliente ToEntity(ClienteUpsertDto dto)
     {
+        var direccion = new Direccion
+        {
+            Calle1 = dto.Direccion.Calle1,
+            Calle2 = dto.Direccion.Calle2,
+            Descripcion = dto.Direccion.Descripcion,
+            IdCiudad = dto.Direccion.IdCiudad
+        };
+
+        var persona = new Persona
+        {
+            IdDireccion = direccion.IdDireccion,
+            Nombres = dto.Nombres,
+            Apellidos = dto.Apellidos,
+            Correo = dto.Correo,
+            Telefono = dto.Telefono,
+            IdDireccionNavigation = direccion
+        };
+
         return new Cliente
         {
-            IdCliente = dto.IdCliente,
-            IdPersona = dto.IdPersona,
             Ci = dto.Ci,
             Ruc = dto.Ruc,
-            FechaNacimiento = dto.FechaNacimiento
+            FechaNacimiento = dto.FechaNacimiento,
+            IdPersonaNavigation = persona
         };
     }
 
