@@ -30,6 +30,24 @@ public class AsientoService : CrudServiceBase<Asiento, int>
         return entity => entity.IdAsiento == id;
     }
 
+    public override async Task<Asiento> CreateAsync(Asiento entity)
+    {
+        await Task.CompletedTask;
+        throw new InvalidOperationException("Registre asientos con sus detalles desde el endpoint /api/Asientos/completo para garantizar la partida doble.");
+    }
+
+    public override async Task<Asiento> UpdateAsync(int id, Asiento entity)
+    {
+        await Task.CompletedTask;
+        throw new InvalidOperationException("Modifique asientos con sus detalles desde el endpoint /api/Asientos/completo/{id} para garantizar la partida doble.");
+    }
+
+    public override async Task DeleteAsync(int id)
+    {
+        await ValidateExistingAsientoIsEditableAsync(id);
+        await base.DeleteAsync(id);
+    }
+
     protected override void UpdateEntity(Asiento existingEntity, Asiento incomingEntity)
     {
         existingEntity.NumeroAsiento = incomingEntity.NumeroAsiento;
@@ -50,5 +68,17 @@ public class AsientoService : CrudServiceBase<Asiento, int>
         return _context.Asientos
             .Include(asiento => asiento.IdPeriodoContableNavigation)
             .Include(asiento => asiento.IdModuloNavigation);
+    }
+
+    private async Task ValidateExistingAsientoIsEditableAsync(int id)
+    {
+        var asiento = await _context.Asientos
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.IdAsiento == id);
+
+        if (asiento is not null)
+        {
+            await ContabilidadRules.GetEnabledPeriodoAsync(_context, asiento.IdPeriodoContable);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using api.Dtos.ProcesosContables;
+using api.Dtos.PeriodosContables;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,27 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class ProcesosContablesController : CrudControllerBase<ProcesoContable, ProcesoContableDto, ProcesoContableUpsertDto, int>
 {
-    public ProcesosContablesController(ICrudService<ProcesoContable, int> service) : base(service)
+    private readonly IPeriodoContableGeneratorService _periodoGeneratorService;
+
+    public ProcesosContablesController(
+        ICrudService<ProcesoContable, int> service,
+        IPeriodoContableGeneratorService periodoGeneratorService) : base(service)
     {
+        _periodoGeneratorService = periodoGeneratorService;
+    }
+
+    [HttpPost("{id:int}/generar-periodos")]
+    public async Task<ActionResult<List<PeriodoContableDto>>> GenerateYearPeriods(int id)
+    {
+        try
+        {
+            var periods = await _periodoGeneratorService.GenerateYearPeriodsAsync(id);
+            return Ok(periods.Select(ToPeriodoDto).ToList());
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     protected override ProcesoContableDto ToReadDto(ProcesoContable entity)
@@ -45,5 +65,20 @@ public class ProcesosContablesController : CrudControllerBase<ProcesoContable, P
     protected override int GetId(ProcesoContable entity)
     {
         return entity.IdProcesoContable;
+    }
+
+    private static PeriodoContableDto ToPeriodoDto(PeriodoContable entity)
+    {
+        return new PeriodoContableDto
+        {
+            IdPeriodoContable = entity.IdPeriodoContable,
+            IdProcesoContable = entity.IdProcesoContable,
+            ProcesoContable = entity.IdProcesoContableNavigation?.Descripcion ?? entity.IdProcesoContable.ToString(),
+            Anho = entity.Anho,
+            Mes = entity.Mes,
+            FechaInicio = entity.FechaInicio,
+            FechaFin = entity.FechaFin,
+            Estado = entity.Estado
+        };
     }
 }

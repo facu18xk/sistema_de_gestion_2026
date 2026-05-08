@@ -46,7 +46,16 @@ public abstract class CrudControllerBase<TEntity, TReadDto, TUpsertDto, TId> : C
     [HttpPost]
     public virtual async Task<ActionResult<TReadDto>> Create(TUpsertDto dto)
     {
-        var createdEntity = await CrudService.CreateAsync(ToEntity(dto));
+        TEntity createdEntity;
+        try
+        {
+            createdEntity = await CrudService.CreateAsync(ToEntity(dto));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
         var responseEntity = await RefreshCreatedEntityAsync(createdEntity);
 
         return CreatedAtAction(nameof(GetById), new { id = GetId(responseEntity) }, ToReadDto(responseEntity));
@@ -66,6 +75,10 @@ public abstract class CrudControllerBase<TEntity, TReadDto, TUpsertDto, TId> : C
         {
             return NotFound();
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id:int}")]
@@ -77,7 +90,15 @@ public abstract class CrudControllerBase<TEntity, TReadDto, TUpsertDto, TId> : C
             return NotFound();
         }
 
-        await CrudService.DeleteAsync(id);
+        try
+        {
+            await CrudService.DeleteAsync(id);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
         return NoContent();
     }
 

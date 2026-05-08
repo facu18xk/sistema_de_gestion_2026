@@ -1,4 +1,5 @@
 using api.Dtos.Asientos;
+using api.Dtos.Contabilidad;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,58 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class AsientosController : CrudControllerBase<Asiento, AsientoDto, AsientoUpsertDto, int>
 {
-    public AsientosController(ICrudService<Asiento, int> service) : base(service)
+    private readonly IAsientoContableService _asientoContableService;
+
+    public AsientosController(
+        ICrudService<Asiento, int> service,
+        IAsientoContableService asientoContableService) : base(service)
     {
+        _asientoContableService = asientoContableService;
+    }
+
+    [HttpPost("completo")]
+    public async Task<ActionResult<AsientoCompletoDto>> CreateCompleto(AsientoCompletoUpsertDto dto)
+    {
+        try
+        {
+            var created = await _asientoContableService.CreateManualAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Asiento.IdAsiento }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("completo/{id:int}")]
+    public async Task<ActionResult<AsientoCompletoDto>> UpdateCompleto(int id, AsientoCompletoUpsertDto dto)
+    {
+        try
+        {
+            return Ok(await _asientoContableService.UpdateManualAsync(id, dto));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("generar-desde-modelo")]
+    public async Task<ActionResult<AsientoCompletoDto>> GenerateFromModelo(GenerarAsientoDesdeModeloDto dto)
+    {
+        try
+        {
+            var created = await _asientoContableService.GenerateFromModeloAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Asiento.IdAsiento }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     protected override AsientoDto ToReadDto(Asiento entity)

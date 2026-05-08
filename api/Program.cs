@@ -34,6 +34,9 @@ var jwtSettings = builder.Configuration
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAsientoContableService, AsientoContableService>();
+builder.Services.AddScoped<IContabilidadReportesService, ContabilidadReportesService>();
+builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGeneratorService>();
 builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
