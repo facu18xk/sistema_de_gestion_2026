@@ -54,6 +54,7 @@ public static class SwaggerModules
             ["AsientosDetalles"] = "contabilidad",
             ["Balances"] = "contabilidad",
             ["BalancesDetalles"] = "contabilidad",
+            ["ContabilidadReportes"] = "contabilidad",
             ["CuentasContables"] = "contabilidad",
             ["ModelosAsientos"] = "contabilidad",
             ["ModelosAsientosDetalles"] = "contabilidad",

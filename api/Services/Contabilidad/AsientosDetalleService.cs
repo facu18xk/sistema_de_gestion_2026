@@ -30,6 +30,24 @@ public class AsientosDetalleService : CrudServiceBase<AsientosDetalle, int>
         return entity => entity.IdAsientoDetalle == id;
     }
 
+    public override async Task<AsientosDetalle> CreateAsync(AsientosDetalle entity)
+    {
+        await Task.CompletedTask;
+        throw new InvalidOperationException("Registre detalles desde el endpoint /api/Asientos/completo para garantizar la partida doble.");
+    }
+
+    public override async Task<AsientosDetalle> UpdateAsync(int id, AsientosDetalle entity)
+    {
+        await Task.CompletedTask;
+        throw new InvalidOperationException("Modifique detalles desde el endpoint /api/Asientos/completo/{id} para garantizar la partida doble.");
+    }
+
+    public override async Task DeleteAsync(int id)
+    {
+        await Task.CompletedTask;
+        throw new InvalidOperationException("Modifique detalles desde el endpoint /api/Asientos/completo/{id} para garantizar la partida doble.");
+    }
+
     protected override void UpdateEntity(AsientosDetalle existingEntity, AsientosDetalle incomingEntity)
     {
         existingEntity.IdAsiento = incomingEntity.IdAsiento;
@@ -46,4 +64,5 @@ public class AsientosDetalleService : CrudServiceBase<AsientosDetalle, int>
             .Include(detalle => detalle.IdAsientoNavigation)
             .Include(detalle => detalle.IdCuentaContableNavigation);
     }
+
 }
