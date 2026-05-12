@@ -35,6 +35,7 @@ public class PedidosCotizacionesService : CrudServiceBase<PedidosCotizaciones, i
     {
         existingEntity.IdPedidoCompra = incomingEntity.IdPedidoCompra;
         existingEntity.IdEstado = incomingEntity.IdEstado;
+        existingEntity.IdProveedor = incomingEntity.IdProveedor;
         existingEntity.NumeroPedido = incomingEntity.NumeroPedido;
         existingEntity.Fecha = incomingEntity.Fecha;
     }
@@ -43,6 +44,7 @@ public class PedidosCotizacionesService : CrudServiceBase<PedidosCotizaciones, i
     {
         return _context.PedidosCotizaciones
             .Include(pedido => pedido.IdPedidoCompraNavigation)
-            .Include(pedido => pedido.IdEstadoNavigation);
+            .Include(pedido => pedido.IdEstadoNavigation)
+            .Include(pedido => pedido.IdProveedorNavigation);
     }
 }

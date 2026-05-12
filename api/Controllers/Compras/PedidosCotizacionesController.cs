@@ -2,6 +2,7 @@ using api.Dtos.PedidosCotizaciones;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace api.Controllers;
 
@@ -16,6 +17,8 @@ public class PedidosCotizacionesController : CrudControllerBase<PedidosCotizacio
 
     protected override PedidosCotizacionesDto ToReadDto(PedidosCotizaciones entity)
     {
+        var proveedor = entity.IdProveedorNavigation;
+
         return new PedidosCotizacionesDto
         {
             IdPedidoCotizacion = entity.IdPedidoCotizacion,
@@ -23,6 +26,15 @@ public class PedidosCotizacionesController : CrudControllerBase<PedidosCotizacio
             NumeroPedidoCompra = entity.IdPedidoCompraNavigation?.NumeroPedido ?? 0,
             IdEstado = entity.IdEstado,
             Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
+            IdProveedor = entity.IdProveedor, 
+            Proveedor = proveedor is null 
+                ? null 
+                : new ProveedorPedidoCotizacionDto 
+                {
+                    IdProveedor = proveedor.IdProveedor,
+                    Ruc = proveedor.Ruc,
+                    RazonSocial = proveedor.RazonSocial
+                },
             NumeroPedido = entity.NumeroPedido,
             Fecha = entity.Fecha
         };
@@ -34,6 +46,7 @@ public class PedidosCotizacionesController : CrudControllerBase<PedidosCotizacio
         {
             IdPedidoCompra = dto.IdPedidoCompra,
             IdEstado = dto.IdEstado,
+            IdProveedor = dto.IdProveedor, 
             NumeroPedido = dto.NumeroPedido,
             Fecha = dto.Fecha
         };

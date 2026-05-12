@@ -11,6 +11,8 @@ public partial class PedidosCotizaciones
 
     public int IdEstado { get; set; }
 
+    public int IdProveedor { get; set; }
+
     public int NumeroPedido { get; set; }
 
     public DateTime Fecha { get; set; }
@@ -18,6 +20,8 @@ public partial class PedidosCotizaciones
     public virtual Estado IdEstadoNavigation { get; set; } = null!;
 
     public virtual PedidosCompra IdPedidoCompraNavigation { get; set; } = null!;
+    
+    public virtual Proveedor IdProveedorNavigation { get; set; } = null!;
 
     public virtual ICollection<CotizacionesCompra> CotizacionesCompras { get; set; } = new List<CotizacionesCompra>();
 
