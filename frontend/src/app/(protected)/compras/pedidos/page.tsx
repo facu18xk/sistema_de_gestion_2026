@@ -149,27 +149,27 @@ export default function PedidosPage() {
               <TableCell>{p.estado}</TableCell>
 
               <TableCell className="text-right space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditar(p)}
-                      className="cursor-pointer"
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
-                    {p.estado === "Pendiente" && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setPedidoAEliminar(p)
-                        setIsAlertOpen(true)
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <Trash2 className="size-3.5 text-destructive" />
-                    </Button>
-                    )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEditar(p)}
+                  className="cursor-pointer"
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+                {p.estado === "Pendiente" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setPedidoAEliminar(p)
+                      setIsAlertOpen(true)
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5 text-destructive" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

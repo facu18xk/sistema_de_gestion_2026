@@ -7,7 +7,7 @@ import { FormContainer } from "@/components/FormContainer";
 import { FieldWrapper } from "@/components/FieldWrapper";
 import { PedidoItemsTable } from "@/components/compras/pedido-item-table";
 import {
-  AgregarProductosView,
+  AgregarProductosModal,
   ProductoSeleccionable,
   ProductoSeleccionadoParaPedido,
 } from "@/components/compras/agregar-producto-view";
@@ -18,6 +18,7 @@ import { ProductoForm } from "@/components/stock/producto-form";
 export interface PedidoItem {
   id: number | string;
   idProducto: number;
+  idCategoria: number;
   cantidad: number;
   descripcion: string;
   categoria: string;
@@ -36,18 +37,16 @@ interface Props {
   pedidoEditado?: Pedido | null;
   onSubmit: (data: Pedido) => void;
   onCancel: () => void;
-  onVistaChange?: (vista: "pedido" | "agregar-productos") => void;
 }
 
 export function PedidoForm({
   pedidoEditado,
   onSubmit,
   onCancel,
-  onVistaChange,
 }: Props) {
   const [formData, setFormData] = useState<Pedido>({
     nroPedido: "",
-    fecha: "",
+    fecha: new Date().toISOString().split("T")[0],
     estado: "Pendiente",
     items: [],
   });
@@ -56,13 +55,12 @@ export function PedidoForm({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [vista, setVista] = useState<"pedido" | "agregar-productos">("pedido");
+
+  const [isModalProductosOpen, setIsModalProductosOpen] = useState(false);
   const [sheetProductoOpen, setSheetProductoOpen] = useState(false);
-  const cambiarVista = (nuevaVista: "pedido" | "agregar-productos") => {
-    setVista(nuevaVista);
-    onVistaChange?.(nuevaVista);
-  };
+
   const esEditable = formData.estado === "Pendiente";
+
   useEffect(() => {
     if (pedidoEditado) {
       setFormData(pedidoEditado);
@@ -75,6 +73,7 @@ export function PedidoForm({
 
       const mapeados: ProductoSeleccionable[] = res.items.map((p) => ({
         id: p.idProducto,
+        idCategoria: p.idCategoria,
         descripcion: p.descripcion,
         marca: p.marca,
         categoria: p.categoria,
@@ -103,7 +102,7 @@ export function PedidoForm({
     value: string | number,
   ) => {
     const items = [...formData.items];
-    items[index] = { ...items[index], [field]: value };
+    items[index] = { ...items[index], [field]: value } as PedidoItem;
     setFormData((prev) => ({ ...prev, items }));
   };
 
@@ -118,14 +117,13 @@ export function PedidoForm({
     productosSeleccionados: ProductoSeleccionadoParaPedido[],
   ) => {
     setFormData((prev) => {
-      // Creamos un nuevo array de items basado en lo seleccionado en el modal
       const nuevosItems: PedidoItem[] = productosSeleccionados.map((nuevo) => {
-        // Intentamos mantener el ID original si ya existía en el pedido
         const itemAnterior = prev.items.find(i => i.idProducto === nuevo.id);
 
         return {
           id: itemAnterior ? itemAnterior.id : (Date.now() + nuevo.id),
           idProducto: nuevo.id,
+          idCategoria: nuevo.idCategoria,
           cantidad: nuevo.cantidad,
           descripcion: nuevo.descripcion,
           categoria: nuevo.categoria,
@@ -133,50 +131,11 @@ export function PedidoForm({
         };
       });
 
-      return {
-        ...prev,
-        items: nuevosItems,
-      };
+      return { ...prev, items: nuevosItems };
     });
 
-    cambiarVista("pedido");
+    setIsModalProductosOpen(false);
   };
-
-  if (vista === "agregar-productos") {
-    return (
-      <>
-        <AgregarProductosView
-          productos={productos}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsExistentes={formData.items}
-          onPageChange={setCurrentPage}
-          onCancel={() => cambiarVista("pedido")}
-          onNuevoProducto={() => setSheetProductoOpen(true)}
-          onCargarProductos={handleAgregarProductos}
-        />
-        <FormSheet
-          open={sheetProductoOpen}
-          onOpenChange={setSheetProductoOpen}
-          title="Nuevo Producto"
-          description="Registra un nuevo producto."
-          contentClassName="sm:max-w-[540px] px-6"
-        >
-          <ProductoForm
-            onRefreshData={cargarProductos}
-            productoEditado={null}
-            categorias={[]}
-            marcas={[]}
-            onSubmit={() => {
-              setSheetProductoOpen(false);
-              cargarProductos();
-            }}
-            onCancel={() => setSheetProductoOpen(false)}
-          />
-        </FormSheet>
-      </>
-    );
-  }
 
   return (
     <FormContainer
@@ -225,23 +184,65 @@ export function PedidoForm({
           </select>
         </FieldWrapper>
       </div>
+
       {esEditable && (
         <div className="flex justify-end">
           <Button
             type="button"
-            onClick={() => cambiarVista("agregar-productos")}
-            className="w-auto px-4 bg-zinc-500 text-white hover:bg-zinc-600"
+            onClick={() => setIsModalProductosOpen(true)}
+            className="w-auto px-4 bg-zinc-400 text-white hover:bg-zinc-500"
           >
             Agregar productos
           </Button>
         </div>
       )}
+
       <PedidoItemsTable
         items={formData.items}
         onUpdateItem={updateItem}
         onDeleteItem={handleDeleteItem}
         readOnly={!esEditable}
       />
+
+      {/* Si AgregarProductosModal está por fuera o por dentro de un Sheet del componente superior, 
+        se renderizará de acuerdo a los cambios del w-[95vw] y md:max-w-5xl aplicados previamente.
+      */}
+      <AgregarProductosModal
+        isOpen={isModalProductosOpen}
+        onClose={() => setIsModalProductosOpen(false)}
+        productos={productos}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsExistentes={formData.items}
+        onPageChange={setCurrentPage}
+        onNuevoProducto={() => setSheetProductoOpen(true)}
+        onCargarProductos={handleAgregarProductos}
+      />
+
+      {/* MODIFICACIÓN AQUÍ: Le pasamos propiedades dinámicas a FormSheet para que 
+        cuando se registre un "Nuevo Producto" de raíz, use todo el ancho lateral 
+        cómodo disponible (incrementado de sm:max-w-[540px] a sm:max-w-[800px] o w-[50vw]).
+      */}
+      <FormSheet
+        open={sheetProductoOpen}
+        onOpenChange={setSheetProductoOpen}
+        title="Nuevo Producto"
+        description="Registra un nuevo producto."
+        contentClassName="w-full sm:max-w-[700px] md:max-w-[850px] px-6 overflow-y-auto"
+        side="right"
+      >
+        <ProductoForm
+          onRefreshData={cargarProductos}
+          productoEditado={null}
+          categorias={[]}
+          marcas={[]}
+          onSubmit={() => {
+            setSheetProductoOpen(false);
+            cargarProductos();
+          }}
+          onCancel={() => setSheetProductoOpen(false)}
+        />
+      </FormSheet>
     </FormContainer>
   );
 }

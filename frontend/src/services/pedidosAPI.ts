@@ -29,4 +29,13 @@ export const pedidosAPI = {
     const response = await api.delete(`${API_CONFIG.ENDPOINTS.PEDIDOS}/${id}`)
     return response.data
   },
+  updateEstado: async (idPedido: number, data: { idEstado: number }) => {
+    // Si tu backend maneja el endpoint de estado separado usa esta línea:
+    // const response = await api.put(`/api/PedidosCompra/${idPedido}/estado`, data)
+
+    // Si el backend NO tiene endpoint separado y usa el PUT general, cámbialo por:
+    const response = await api.put(`${API_CONFIG.ENDPOINTS.PEDIDOS}/${idPedido}`, data)
+
+    return response.data
+  },
 }
