@@ -250,8 +250,7 @@ Example intent:
   "descripcion": "Contabilidad 2026",
   "cantNiveles": 5,
   "cantDigitosNivel": 2,
-  "moneda": "PYG",
-  "estado": "Habilitado"
+  "moneda": "PYG"
 }
 ```
 

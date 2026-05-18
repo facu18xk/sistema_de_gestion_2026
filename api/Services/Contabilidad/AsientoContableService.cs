@@ -124,7 +124,7 @@ public class AsientoContableService : IAsientoContableService
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion ?? modelo.Descripcion,
             Automatico = true,
-            Estado = "Registrado",
+            Estado = ContabilidadEstados.Registrado,
             ReferenciaOrigen = dto.ReferenciaOrigen,
             IdOrigen = dto.IdOrigen,
             Detalles = detalles
@@ -164,7 +164,7 @@ public class AsientoContableService : IAsientoContableService
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             Automatico = dto.Automatico,
-            Estado = string.IsNullOrWhiteSpace(dto.Estado) ? "Registrado" : dto.Estado,
+            Estado = string.IsNullOrWhiteSpace(dto.Estado) ? ContabilidadEstados.Registrado : dto.Estado,
             ReferenciaOrigen = dto.ReferenciaOrigen,
             IdOrigen = dto.IdOrigen,
             CreatedAt = dto.CreatedAt ?? DateTime.Now,

@@ -47,7 +47,7 @@ public class VentasCompletasService
                 IdProducto = item.IdProducto,
                 Cantidad = item.Cantidad,
                 PrecioUnitario = precioUnitario,
-                Iva = totalIva,
+                Iva = producto.PorcentajeIva,
                 Subtotal = totalBruto + totalIva
             });
         }
@@ -56,6 +56,84 @@ public class VentasCompletasService
         await transaction.CommitAsync();
 
         return await GetPresupuestoAsync(presupuesto.IdPresupuesto) ?? presupuesto;
+    }
+
+    public async Task<PresupuestoCompletoDto> UpdatePresupuestoAsync(int id, PresupuestoCompletoCreateDto dto)
+    {
+        var presupuesto = await _context.Presupuestos
+            .Include(entity => entity.PresupuestosDetalles)
+            .FirstOrDefaultAsync(entity => entity.IdPresupuesto == id);
+
+        if (presupuesto is null)
+        {
+            throw new KeyNotFoundException($"No existe el presupuesto {id}.");
+        }
+
+        var products = await ValidateItemsAsync(dto.Items);
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        presupuesto.IdCliente = dto.IdCliente;
+        presupuesto.IdEstado = dto.IdEstado;
+        presupuesto.Fecha = dto.Fecha;
+        presupuesto.Descripcion = dto.Descripcion;
+        presupuesto.FechaVencimiento = dto.FechaVencimiento;
+
+        _context.PresupuestosDetalles.RemoveRange(presupuesto.PresupuestosDetalles);
+
+        foreach (var item in dto.Items)
+        {
+            var producto = products[item.IdProducto];
+            var precioUnitario = await _salesPriceResolver.GetActivePrecioVentaAsync(item.IdProducto);
+            var totalBruto = CalcularTotalBruto(item.Cantidad, precioUnitario);
+            var totalIva = CalcularTotalIva(totalBruto, producto.PorcentajeIva);
+
+            _context.PresupuestosDetalles.Add(new PresupuestosDetalle
+            {
+                IdPresupuesto = presupuesto.IdPresupuesto,
+                IdProducto = item.IdProducto,
+                Cantidad = item.Cantidad,
+                PrecioUnitario = precioUnitario,
+                Iva = producto.PorcentajeIva,
+                Subtotal = totalBruto + totalIva
+            });
+        }
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        var updatedPresupuesto = await GetPresupuestoAsync(id);
+        return updatedPresupuesto is null
+            ? throw new KeyNotFoundException($"No existe el presupuesto {id}.")
+            : ToPresupuestoCompletoDto(updatedPresupuesto);
+    }
+
+    public async Task DeletePresupuestoCompletoAsync(int id)
+    {
+        var presupuesto = await _context.Presupuestos
+            .Include(entity => entity.PresupuestosDetalles)
+            .FirstOrDefaultAsync(entity => entity.IdPresupuesto == id);
+
+        if (presupuesto is null)
+        {
+            throw new KeyNotFoundException($"No existe el presupuesto {id}.");
+        }
+
+        var hasOrdenVenta = await _context.OrdenesVentas
+            .AnyAsync(ordenVenta => ordenVenta.IdPresupuesto == id);
+
+        if (hasOrdenVenta)
+        {
+            throw new InvalidOperationException("No se puede eliminar el presupuesto porque está asociado a una orden de venta.");
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        _context.PresupuestosDetalles.RemoveRange(presupuesto.PresupuestosDetalles);
+        _context.Presupuestos.Remove(presupuesto);
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
     public async Task<PagedResultDto<PresupuestoCompletoDto>> GetPresupuestosCompletosAsync(PaginationQueryDto pagination)
@@ -273,7 +351,7 @@ public class VentasCompletasService
 
     private static decimal CalcularTotalIva(decimal totalBruto, decimal porcentajeIva)
     {
-        return Math.Round(totalBruto * porcentajeIva / 100, 2, MidpointRounding.AwayFromZero);
+        return Math.Round(totalBruto * porcentajeIva, 2, MidpointRounding.AwayFromZero);
     }
 
     private static PresupuestoCompletoDto ToPresupuestoCompletoDto(Presupuesto presupuesto)

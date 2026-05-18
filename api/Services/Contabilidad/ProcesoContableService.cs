@@ -20,6 +20,13 @@ public class ProcesoContableService : CrudServiceBase<ProcesoContable, int>
         return _context.ProcesosContables.AsNoTracking();
     }
 
+    public override Task<ProcesoContable> CreateAsync(ProcesoContable entity)
+    {
+        entity.CreatedAt = DateTime.Now;
+        entity.Estado = ContabilidadEstados.Habilitado;
+        return base.CreateAsync(entity);
+    }
+
     protected override Expression<Func<ProcesoContable, bool>> BuildKeyPredicate(int id)
     {
         return entity => entity.IdProcesoContable == id;
@@ -32,7 +39,5 @@ public class ProcesoContableService : CrudServiceBase<ProcesoContable, int>
         existingEntity.CantNiveles = incomingEntity.CantNiveles;
         existingEntity.CantDigitosNivel = incomingEntity.CantDigitosNivel;
         existingEntity.Moneda = incomingEntity.Moneda;
-        existingEntity.Estado = incomingEntity.Estado;
-        existingEntity.CreatedAt = incomingEntity.CreatedAt;
     }
 }
