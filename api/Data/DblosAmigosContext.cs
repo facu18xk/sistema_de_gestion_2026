@@ -638,7 +638,6 @@ public partial class DblosAmigosContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.IdCotizacionCompra).HasColumnName("Id_Cotizacion_Compra");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
@@ -653,9 +652,6 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ordenes_Compras_Pedidos_Cotizaciones");
 
-            entity.HasOne(d => d.IdCotizacionCompraNavigation).WithMany(p => p.OrdenesCompras)
-                .HasForeignKey(d => d.IdCotizacionCompra)
-                .HasConstraintName("FK_Ordenes_Compras_Cotizaciones_Compras");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdProveedor)

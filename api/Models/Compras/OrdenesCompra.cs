@@ -9,8 +9,6 @@ public partial class OrdenesCompra
 
     public int IdPedidoCotizacion { get; set; }
 
-    public int? IdCotizacionCompra { get; set; }
-
     public int IdProveedor { get; set; }
 
     public int IdEstado { get; set; }
@@ -24,8 +22,6 @@ public partial class OrdenesCompra
     public virtual Estado IdEstadoNavigation { get; set; } = null!;
 
     public virtual PedidosCotizaciones IdPedidoCotizacionNavigation { get; set; } = null!;
-
-    public virtual CotizacionesCompra? IdCotizacionCompraNavigation { get; set; }
 
     public virtual Proveedor IdProveedorNavigation { get; set; } = null!;
 

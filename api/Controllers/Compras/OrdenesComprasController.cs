@@ -2,6 +2,7 @@ using api.Dtos.OrdenesCompras;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace api.Controllers;
 
@@ -21,7 +22,6 @@ public class OrdenesComprasController : CrudControllerBase<OrdenesCompra, Ordene
             IdOrdenCompra = entity.IdOrdenCompra,
             IdPedidoCotizacion = entity.IdPedidoCotizacion,
             NumeroPedidoCotizacion = entity.IdPedidoCotizacionNavigation?.NumeroPedido ?? 0,
-            IdCotizacionCompra = entity.IdCotizacionCompra,
             IdProveedor = entity.IdProveedor,
             Proveedor = entity.IdProveedorNavigation?.RazonSocial ?? string.Empty,
             IdEstado = entity.IdEstado,
@@ -36,7 +36,6 @@ public class OrdenesComprasController : CrudControllerBase<OrdenesCompra, Ordene
         return new OrdenesCompra
         {
             IdPedidoCotizacion = dto.IdPedidoCotizacion,
-            IdCotizacionCompra = dto.IdCotizacionCompra,
             IdProveedor = dto.IdProveedor,
             IdEstado = dto.IdEstado,
             Fecha = dto.Fecha,

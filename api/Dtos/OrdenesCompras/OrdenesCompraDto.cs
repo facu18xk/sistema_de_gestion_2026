@@ -1,3 +1,5 @@
+using System;
+
 namespace api.Dtos.OrdenesCompras;
 
 public class OrdenesCompraDto
@@ -7,8 +9,6 @@ public class OrdenesCompraDto
     public int IdPedidoCotizacion { get; set; }
 
     public int NumeroPedidoCotizacion { get; set; }
-
-    public int? IdCotizacionCompra { get; set; }
 
     public int IdProveedor { get; set; }
 
@@ -26,8 +26,6 @@ public class OrdenesCompraDto
 public class OrdenesCompraUpsertDto
 {
     public int IdPedidoCotizacion { get; set; }
-
-    public int? IdCotizacionCompra { get; set; }
 
     public int IdProveedor { get; set; }
 
