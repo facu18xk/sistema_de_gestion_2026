@@ -242,52 +242,132 @@ export interface ProveedorSaveDTO {
 }
 
 export interface PedidoItem {
-  idPedidoCompraDetalle?: number
-  idPedidoCompra?: number
-  idProducto: number
-  producto?: string
-  categoria: string
-  descripcion: string
-  cantidad: number
-  ultimoPrecio: number
+    idPedidoCompraDetalle?: number
+    idPedidoCompra?: number
+    idProducto: number
+    producto?: string
+    categoria: string
+    descripcion: string
+    cantidad: number
+    ultimoPrecio: number
 }
 
 export interface Pedido {
-  id?: string
-  nroPedido: string
-  fecha: string
-  estado: string
-  items: PedidoItem[]
+    id?: string
+    nroPedido: string
+    fecha: string
+    estado: string
+    items: PedidoItem[]
 }
 
 export interface PedidoDTO {
-  idPedidoCompra: number
-  idEstado: number
-  estado: string
-  numeroPedido: number
-  fecha: string
-}
-
-export interface PedidoSaveDTO {
-  idEstado: number
-  fecha: string
+    idPedidoCompra: number
+    idEstado: number
+    estado: string
+    numeroPedido: number
+    fecha: string
 }
 
 export interface PedidoDetalleDTO {
-  idPedidoCompraDetalle: number
-  idPedidoCompra: number
-  numeroPedidoCompra: number
-  idProducto: number
-  producto: string
-  categoria: string
-  descripcion: string
-  cantidad: number
+    idPedidoCompraDetalle: number;
+    idPedidoCompra: number;
+    numeroPedidoCompra: number;
+    idProducto: number;
+    producto: string;
+    categoria: string;
+    descripcion: string;
+    cantidad: number;
+
+}
+export interface PedidoSaveDTO {
+    idEstado: number;
+    numeroPedido: number;
+    fecha: string;
 }
 
 export interface PedidoDetalleSaveDTO {
-  idPedidoCompra: number
-  idProducto: number
-  categoria: string
-  descripcion: string
-  cantidad: number
+    idPedidoCompra: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+}
+
+export interface PedidoDetalleResponseDTO extends PedidoDetalleSaveDTO {
+    idPedidoCompraDetalle: number;
+    numeroPedidoCompra: number;
+    producto: string;
+    categoria: string;
+}/**
+ * ESTRUCTURA REAL SEGÚN SWAGGER DE PEDIDOS COTIZACIONES
+ */
+
+// Respuesta del GET /api/PedidosCotizaciones (Verificado en image_1ad382.png)
+export interface CotizacionDTO {
+    idPedidoCotizacion: number;
+    idPedidoCompra: number;
+    numeroPedidoCompra: number;
+    idEstado: number;
+    estado: string;
+    idProveedor: number;
+    proveedor: {
+        idProveedor: number;
+        ruc: string;
+        razonSocial: string;
+    };
+    numeroPedido: number;
+    fecha: string;
+    validaHasta?: string;
+}
+
+// Cuerpo para el POST / PUT /api/PedidosCotizaciones (Verificado en image_1ad3dc.png)
+export interface CotizacionSaveDTO {
+    idPedidoCompra: number;
+    idEstado: number;
+    idProveedor: number;
+    numeroPedido: number;
+    fecha: string;
+}
+
+export interface CotizacionDetalleDTO {
+    idPedidoCotizacionDetalle: number;
+    idPedidoCotizacion: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+    precioProducto: number;
+}
+
+// El cuerpo exacto para el POST /api/PedidosCotizacionesDetalles
+export interface CotizacionDetalleSaveDTO {
+    idPedidoCotizacion: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+    precioProducto: number;
+    descuento: number;
+}
+
+/**
+ * ESTADO PARA EL FORMULARIO (Mantiene la UI del Frontend intacta)
+ */
+export interface CotizacionFormState {
+    solicitudCotizacionId: string; // Referencia a idPedidoCompra
+    proveedorId: string;
+    fecha: string;
+    validaHasta: string;
+    idEstado: number;
+    numeroPedido: number;
+    items: CotizacionItemForm[];
+}
+
+export interface CotizacionItemForm {
+    idDetalle?: number;
+    productoId: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    descuento: number;
 }

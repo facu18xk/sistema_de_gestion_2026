@@ -73,9 +73,9 @@ export default function Navbar() {
           <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
               <NavigationMenuItem>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
-                    <Link href="/dashboard">Inicio</Link>
-                  </NavigationMenuLink>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
+                  <Link href="/dashboard">Inicio</Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
 
               {modulos.map((modulo) => (
@@ -92,6 +92,7 @@ export default function Navbar() {
                                   item === "Presupuestos" ? "/ventas/presupuestos" :
                                   item === "Proveedores" ? "/compras/proveedores" :
                                   item === "Pedidos" ? "/compras/pedidos" :
+                                  item === "Cotizaciones" ? "/compras/cotizaciones" :
                                   item === "Productos" ? "/stock/productos" :
                                   item === "Empleados" ? "/personas/empleados" :  
                                   "#"

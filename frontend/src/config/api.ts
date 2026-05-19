@@ -16,6 +16,8 @@ export const API_CONFIG = {
     CLIENTS: "/api/Clientes",
     PRESUPUESTOS: "/api/Presupuestos",
     PRESUPUESTOS_DETALLES: "/api/PresupuestosDetalles",
-    PRECIOS_VENTAS: "/api/PreciosVentas"
+    PRECIOS_VENTAS: "/api/PreciosVentas",
+    COTIZACIONES: "/api/PedidosCotizaciones",
+    COTIZACIONES_DETALLES: "/api/PedidosCotizacionesDetalles",
   },
 } as const;
