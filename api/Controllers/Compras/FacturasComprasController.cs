@@ -1,7 +1,11 @@
 using api.Dtos.FacturasCompras;
+using api.Dtos.FacturasComprasDetalles; // NUEVO: Para el DTO del detalle
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq; // NUEVO: Necesario para usar .Select()
+using System.Threading.Tasks;
+using System;
 
 namespace api.Controllers;
 
@@ -26,7 +30,28 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
             NroComprobante = entity.NroComprobante,
             Timbrado = entity.Timbrado,
             Fecha = entity.Fecha,
-            Descripcion = entity.Descripcion
+            Descripcion = entity.Descripcion,
+
+            Detalles = entity.FacturasComprasDetalles?
+                .Select(d => new FacturasComprasDetalleDto
+                {
+                    IdFacturaCompraDetalle = d.IdFacturaCompraDetalle,
+                    IdFacturaCompra = d.IdFacturaCompra,
+                    IdProducto = d.IdProducto,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    TotalBruto = d.TotalBruto,
+                    TotalIva = d.TotalIva,
+                    TotalNeto = d.TotalNeto,
+                    Producto = d.IdProductoNavigation is null 
+                        ? null 
+                        : new ProductoFacturaDetalleDto 
+                        {
+                            IdProducto = d.IdProductoNavigation.IdProducto,
+                            Descripcion = d.IdProductoNavigation.Descripcion
+                        }
+                })
+                .ToArray() ?? Array.Empty<FacturasComprasDetalleDto>()
         };
     }
 
