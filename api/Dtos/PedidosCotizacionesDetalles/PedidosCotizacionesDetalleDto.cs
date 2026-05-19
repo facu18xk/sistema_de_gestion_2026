@@ -21,6 +21,9 @@ public class PedidosCotizacionesDetalleDto
     public int Cantidad { get; set; }
 
     public decimal PrecioProducto { get; set; }
+
+
+    public decimal Descuento { get; set; }
 }
 
 public class PedidosCotizacionesDetalleUpsertDto
@@ -36,4 +39,6 @@ public class PedidosCotizacionesDetalleUpsertDto
     public int Cantidad { get; set; }
 
     public decimal PrecioProducto { get; set; }
+
+    public decimal Descuento { get; set; }
 }
