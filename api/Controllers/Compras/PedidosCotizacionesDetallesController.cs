@@ -2,6 +2,7 @@ using api.Dtos.PedidosCotizacionesDetalles;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace api.Controllers;
 
@@ -27,7 +28,8 @@ public class PedidosCotizacionesDetallesController : CrudControllerBase<PedidosC
             Categoria = entity.IdCategoriaNavigation?.Nombre ?? string.Empty,
             Descripcion = entity.Descripcion,
             Cantidad = entity.Cantidad,
-            PrecioProducto = entity.PrecioProducto
+            PrecioProducto = entity.PrecioProducto,
+            Descuento = entity.Descuento 
         };
     }
 
@@ -40,7 +42,8 @@ public class PedidosCotizacionesDetallesController : CrudControllerBase<PedidosC
             IdCategoria = dto.IdCategoria,
             Descripcion = dto.Descripcion,
             Cantidad = dto.Cantidad,
-            PrecioProducto = dto.PrecioProducto
+            PrecioProducto = dto.PrecioProducto,
+            Descuento = dto.Descuento 
         };
     }
 
