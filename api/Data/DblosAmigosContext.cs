@@ -1194,17 +1194,15 @@ public partial class DblosAmigosContext : DbContext
 
         modelBuilder.Entity<StocksDeposito>(entity =>
         {
-            entity.HasKey(e => e.IdDeposito);
+            entity.HasKey(e => new { e.IdDeposito, e.IdProducto });
 
             entity.ToTable("Stocks_Depositos");
 
-            entity.Property(e => e.IdDeposito)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("Id_Deposito");
+            entity.Property(e => e.IdDeposito).HasColumnName("Id_Deposito");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
 
-            entity.HasOne(d => d.IdDepositoNavigation).WithOne(p => p.StocksDeposito)
-                .HasForeignKey<StocksDeposito>(d => d.IdDeposito)
+            entity.HasOne(d => d.IdDepositoNavigation).WithMany(p => p.StocksDepositos)
+                .HasForeignKey(d => d.IdDeposito)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Stocks_Depositos_Depositos");
 

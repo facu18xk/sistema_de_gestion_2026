@@ -51,6 +51,41 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
         return Ok(presupuesto);
     }
 
+    [HttpPut("{id:int}/completo")]
+    public async Task<ActionResult<PresupuestoCompletoDto>> UpdateCompleto(int id, PresupuestoCompletoCreateDto dto)
+    {
+        try
+        {
+            return Ok(await _ventasCompletasService.UpdatePresupuestoAsync(id, dto));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}/completo")]
+    public async Task<IActionResult> DeleteCompleto(int id)
+    {
+        try
+        {
+            await _ventasCompletasService.DeletePresupuestoCompletoAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     protected override PresupuestoDto ToReadDto(Presupuesto entity)
     {
         return new PresupuestoDto

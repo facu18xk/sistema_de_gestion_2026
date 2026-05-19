@@ -19,6 +19,4 @@ public class ProcesoContableUpsertDto
     public int? CantNiveles { get; set; }
     public int? CantDigitosNivel { get; set; }
     public string? Moneda { get; set; }
-    public string? Estado { get; set; }
-    public DateTime? CreatedAt { get; set; }
 }
