@@ -1,8 +1,14 @@
 {
   "version": 2,
+<<<<<<< HEAD
+  "dgSpecHash": "z4Z7HkooqNA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\BAMG\\Downloads\\sistema_de_gestion_2026\\api\\api.csproj",
+=======
   "dgSpecHash": "DOG3LVHu5cM=",
   "success": true,
   "projectFilePath": "D:\\Users\\Asus\\Documents\\Uni\\SextoSemestre\\Sistemas de gestion\\proyecto\\sistema_de_gestion_2026\\api\\api.csproj",
+>>>>>>> front
   "expectedPackageFiles": [
     "C:\\Users\\Asus\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Asus\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.0\\microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",

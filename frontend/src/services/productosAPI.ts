@@ -21,7 +21,6 @@ export const productosAPI = {
         const response = await api.put(`${API_CONFIG.ENDPOINTS.PRODUCTS}/${productoId}`, productoData);
         return response.data;
     },
-
     delete: async (productoId: number): Promise<ProductoDTO> => {
         const response = await api.delete(`${API_CONFIG.ENDPOINTS.PRODUCTS}/${productoId}`);
         return response.data;

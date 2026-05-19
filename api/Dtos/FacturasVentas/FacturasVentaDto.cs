@@ -1,0 +1,47 @@
+namespace api.Dtos.FacturasVentas;
+
+public class FacturasVentaDto
+{
+    public int IdFacturaVenta { get; set; }
+
+    public int IdOrdenVenta { get; set; }
+
+    public string OrdenVentaDescripcion { get; set; } = string.Empty;
+
+    public int IdCliente { get; set; }
+
+    public string Cliente { get; set; } = string.Empty;
+
+    public string NroComprobante { get; set; } = string.Empty;
+
+    public int IdTimbrado { get; set; }
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int IdMedioPagoCompra { get; set; }
+
+    public string MedioPagoCompra { get; set; } = string.Empty;
+
+    public DateTime FechaPago { get; set; }
+}
+
+public class FacturasVentaUpsertDto
+{
+    public int IdOrdenVenta { get; set; }
+
+    public int IdCliente { get; set; }
+
+    public string NroComprobante { get; set; } = string.Empty;
+
+    public int IdTimbrado { get; set; }
+
+    public DateTime Fecha { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int IdMedioPagoCompra { get; set; }
+
+    public DateTime FechaPago { get; set; }
+}
