@@ -372,6 +372,7 @@ public class VentasCompletasService
                 Producto = detalle.IdProductoNavigation?.Descripcion ?? string.Empty,
                 Cantidad = detalle.Cantidad,
                 PrecioUnitario = detalle.PrecioUnitario,
+                PrecioVenta = detalle.PrecioUnitario,
                 Iva = detalle.Iva,
                 Subtotal = detalle.Subtotal
             }).ToArray()
