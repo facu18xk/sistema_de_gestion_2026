@@ -201,3 +201,118 @@ export interface PedidoDetalleSaveDTO {
   cantidad: number
   
 }
+
+export interface ProcesoContableDTO {
+  idProcesoContable: number
+  periodoAnho: number
+  descripcion: string
+  cantNiveles: number
+  cantDigitosNivel: number
+  moneda: string
+  estado: string
+  
+  tienePeriodos?: boolean;
+}
+
+export interface ProcesoContableSaveDTO {
+  periodoAnho: number
+  descripcion: string
+  cantNiveles: number
+  cantDigitosNivel: number
+  moneda: string
+}
+
+export interface PeriodoContableDTO {
+  idPeriodoContable: number
+  idProcesoContable: number
+  procesoContable: string
+  anho: number
+  mes: number
+  fechaInicio: string
+  fechaFin: string
+  estado: string
+}
+
+export interface PeriodoContableSaveDTO {
+  idProcesoContable: number
+  anho: number
+  mes: number
+  fechaInicio: string
+  fechaFin: string
+  estado: string
+}
+
+export interface Empleado {
+  idEmpleado: number
+  ci: string
+  ruc: string
+  fechaIngreso: string
+  idDireccion: number
+  direccion: Direccion
+  nombres: string
+  apellidos: string
+  correo: string
+  telefono: string
+}
+
+export interface EmpleadoSaveDTO {
+  ci: string
+  ruc: string
+  fechaIngreso: string
+  direccion: {
+    calle1: string
+    calle2: string | null
+    descripcion: string | null
+    idPais: number
+    idCiudad: number
+  }
+  nombres: string
+  apellidos: string
+  correo: string
+  telefono: string
+}
+
+export interface EmpleadoFormState {
+  ci: string
+  ruc: string
+  fechaIngreso: string
+  nombres: string
+  apellidos: string
+  correo: string
+  telefono: string
+
+  idPais: string
+  idCiudad: string
+
+  calle1: string
+  calle2: string
+  descripcionDireccion: string
+}
+
+export interface Pariente {
+  idPariente: number
+  idEmpleado: number
+  tipoRelacion: string
+  edad: number
+  fechaNacimiento: string
+
+  empleado: {
+    idEmpleado: number
+    nombres: string
+    apellidos: string
+  }
+}
+
+export interface ParienteSaveDTO {
+  idEmpleado: number
+  tipoRelacion: string
+  edad: number
+  fechaNacimiento: string
+}
+
+export interface ParienteFormState {
+  idEmpleado: string
+  tipoRelacion: string
+  edad: string
+  fechaNacimiento: string
+}

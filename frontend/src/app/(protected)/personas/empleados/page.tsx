@@ -1,86 +1,251 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import Navbar from "@/components/navbar"
-import { Pencil, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { EmpleadoForm, Empleado } from "@/components/personas/empleados-form"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { TableRow, TableCell, TableHead } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import { Pencil, Trash2, Loader2 } from "lucide-react";
 
-import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { PageHeader } from "@/components/shared/page-header"
-import { DataTable } from "@/components/shared/data-table"
+import { Button } from "@/components/ui/button";
+import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-const empleadosIniciales: Empleado[] = [
-  { id: "E001", nombre: "Roberto", apellido: "Gimenez", ciRuc: "3333333-3", fechaIngreso: "2026-01-10", salario: "3000000", cargo: "Vendedor" },
-  { id: "E002", nombre: "Ana", apellido: "Gonzalez", ciRuc: "4444444-4", fechaIngreso: "2026-01-10", salario: "3000000", cargo: "Vendedor" },
-]
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
+import { PageHeader } from "@/components/shared/page-header";
+import { DataTable } from "@/components/shared/data-table";
+import { FormSheet } from "@/components/shared/form-sheet";
+
+import { EmpleadoForm } from "@/components/personas/empleados-form";
+import { empleadosAPI } from "@/services/empleadosAPI";
+import { ubicacionesAPI } from "@/services/ubicacionesAPI";
+import { Empleado, EmpleadoSaveDTO, Pais } from "@/types/types";
+import { notify } from "@/lib/notifications";
 
 export default function EmpleadosPage() {
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [empleadoAEditar, setEmpleadoAEditar] = useState<Empleado | null>(null)
-  const [listaCargos, setListaCargos] = useState<string[]>(["Vendedor", "Administrador", "Cajero", "Mecánico"])
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const handleCrearNuevo = () => { setEmpleadoAEditar(null); setIsSheetOpen(true); }
-  const handleEditar = (e: Empleado) => { setEmpleadoAEditar(e); setIsSheetOpen(true); }
+  const [empleados, setEmpleados] = useState<Empleado[]>([]);
+  const [paises, setPaises] = useState<Pais[]>([]);
+
+  const [empleadoAEditar, setEmpleadoAEditar] = useState<Empleado | null>(null);
+  const [empleadoAEliminar, setEmpleadoAEliminar] = useState<Empleado | null>(
+    null,
+  );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10);
+
+  const cargarPagina = async () => {
+    setIsLoading(true);
+
+    try {
+      const resPaginada = await empleadosAPI.getAll(currentPage, itemsPerPage);
+      setEmpleados(resPaginada.items);
+      setTotalPages(resPaginada.totalPages);
+    } catch (error) {
+      console.error("Error al cargar empleados:", error);
+      notify.error(
+        "Error de conexión",
+        "No se pudo obtener la lista de empleados.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cargarPaises = async () => {
+    try {
+      const res = await ubicacionesAPI.getPaises();
+      setPaises(res.items);
+    } catch (error) {
+      console.error("Error al cargar países:", error);
+      notify.error(
+        "Error de conexión",
+        "No se pudo obtener la lista de países.",
+      );
+    }
+  };
+
+  useEffect(() => {
+    cargarPagina();
+  }, [currentPage]);
+
+  useEffect(() => {
+    cargarPaises();
+  }, []);
+
+  const handleCrearNuevo = () => {
+    setEmpleadoAEditar(null);
+    setIsSheetOpen(true);
+  };
+
+  const handleEditar = (empleado: Empleado) => {
+    setEmpleadoAEditar(empleado);
+    setIsSheetOpen(true);
+  };
+
+  const confirmarEliminacion = async () => {
+    if (!empleadoAEliminar) return;
+
+    try {
+      await empleadosAPI.delete(empleadoAEliminar.idEmpleado);
+      notify.success("Eliminado", "El empleado fue eliminado correctamente.");
+      await cargarPagina();
+    } catch (error) {
+      console.error("Error al eliminar empleado:", error);
+      notify.error("Error", "No se pudo eliminar el empleado.");
+    } finally {
+      setIsAlertOpen(false);
+      setEmpleadoAEliminar(null);
+    }
+  };
+
+  const handleFormSubmit = async (data: EmpleadoSaveDTO) => {
+    try {
+      if (empleadoAEditar) {
+        await empleadosAPI.update(empleadoAEditar.idEmpleado, data);
+        notify.success("Actualizado", "Empleado actualizado correctamente.");
+      } else {
+        await empleadosAPI.create(data);
+        notify.success("Registrado", "Nuevo empleado guardado.");
+      }
+
+      setIsSheetOpen(false);
+      await cargarPagina();
+    } catch (error) {
+      console.error("Error al guardar empleado:", error);
+      notify.error("Error", "No se pudo procesar la solicitud.");
+    }
+  };
 
   return (
-    <div>
-      <Navbar />
-      <div className="container mx-auto p-6 space-y-6">
-        <PageBreadcrumb steps={[{ label: "RRHH", href: "#" }, { label: "Empleados" }]} />
-        <PageHeader title="Listado de Empleados" buttonLabel="Nuevo Empleado" onButtonClick={handleCrearNuevo} />
+    <>
+      <PageBreadcrumb
+        steps={[{ label: "Personas", href: "#" }, { label: "Empleados" }]}
+      />
 
+      <PageHeader
+        title="Listado de Empleados"
+        buttonLabel="Nuevo Empleado"
+        onButtonClick={handleCrearNuevo}
+      />
+
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Eliminarás permanentemente a{" "}
+              <span className="font-bold text-foreground">
+                "{empleadoAEliminar?.nombres} {empleadoAEliminar?.apellidos}"
+              </span>
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarEliminacion}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar Empleado
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {isLoading ? (
+        <div className="flex justify-center p-10">
+          <Loader2 className="animate-spin text-primary" />
+        </div>
+      ) : (
         <DataTable
           caption="Lista actualizada de empleados."
           headerRow={
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
               <TableHead>Nombre Completo</TableHead>
-              <TableHead>CI/RUC</TableHead>
+              <TableHead>CI</TableHead>
+              <TableHead>RUC</TableHead>
               <TableHead>Fecha Ingreso</TableHead>
-              <TableHead>Salario</TableHead>
-              <TableHead>Cargo</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           }
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
         >
-          {empleadosIniciales.map((e) => (
-            <TableRow key={e.id}>
-              <TableCell className="font-medium">{e.id}</TableCell>
-              <TableCell className="font-semibold">{e.nombre} {e.apellido}</TableCell>
-              <TableCell>{e.ciRuc}</TableCell>
-              <TableCell>{e.fechaIngreso}</TableCell>
-              <TableCell>Gs. {parseInt(e.salario).toLocaleString()}</TableCell>
-              <TableCell>{e.cargo}</TableCell>
-              <TableCell className="text-right space-x-1">
-                <Button variant="ghost" size="icon" onClick={() => handleEditar(e)} className="cursor-pointer">
-                  <Pencil className="size-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="cursor-pointer">
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
+          {empleados.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={5}
+                className="h-24 text-center text-muted-foreground"
+              >
+                No hay empleados registrados.
               </TableCell>
             </TableRow>
-          ))}
-        </DataTable>
+          ) : (
+            empleados.map((e) => (
+              <TableRow key={e.idEmpleado}>
+                <TableCell>
+                  {e.nombres} {e.apellidos}
+                </TableCell>
+                <TableCell>{e.ci || "Sin CI"}</TableCell>
+                <TableCell>{e.ruc || "Sin RUC"}</TableCell>
+                <TableCell>{e.fechaIngreso}</TableCell>
 
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent className="px-6 sm:max-w-[540px]">
-            <SheetHeader>
-              <SheetTitle>{empleadoAEditar ? "Editar Empleado" : "Nuevo Empleado"}</SheetTitle>
-              <SheetDescription>Completa la información del personal.</SheetDescription>
-            </SheetHeader>
-            <EmpleadoForm
-              key={empleadoAEditar?.id || "nuevo"}
-              empleadoEditado={empleadoAEditar} cargos={listaCargos}
-              onSubmit={() => setIsSheetOpen(false)}
-              onCancel={() => setIsSheetOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
-    </div>
-  )
+                <TableCell className="text-right space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEditar(e)}
+                    className="cursor-pointer"
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setEmpleadoAEliminar(e);
+                      setIsAlertOpen(true);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5 text-destructive" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </DataTable>
+      )}
+
+      <FormSheet
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        title={empleadoAEditar ? "Editar Empleado" : "Nuevo Empleado"}
+        description="Información personal y laboral del empleado."
+      >
+        <EmpleadoForm
+          key={empleadoAEditar?.idEmpleado ?? "nuevo"}
+          empleadoEditado={empleadoAEditar}
+          paises={paises}
+          onRefreshPaises={cargarPaises}
+          onSubmit={handleFormSubmit}
+          onCancel={() => setIsSheetOpen(false)}
+        />
+      </FormSheet>
+    </>
+  );
 }
