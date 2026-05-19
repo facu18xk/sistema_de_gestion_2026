@@ -1,9 +1,9 @@
 using api.Dtos.FacturasCompras;
-using api.Dtos.FacturasComprasDetalles; // NUEVO: Para el DTO del detalle
+using api.Dtos.FacturasComprasDetalles; 
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq; // NUEVO: Necesario para usar .Select()
+using System.Linq; 
 using System.Threading.Tasks;
 using System;
 

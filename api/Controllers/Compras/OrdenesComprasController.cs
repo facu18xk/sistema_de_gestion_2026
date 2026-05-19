@@ -2,7 +2,9 @@ using api.Dtos.OrdenesCompras;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq; 
 using System.Threading.Tasks;
+using System;
 
 namespace api.Controllers;
 
@@ -27,7 +29,24 @@ public class OrdenesComprasController : CrudControllerBase<OrdenesCompra, Ordene
             IdEstado = entity.IdEstado,
             Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             Fecha = entity.Fecha,
-            Descripcion = entity.Descripcion
+            Descripcion = entity.Descripcion,
+
+            Detalles = entity.OrdenesComprasDetalles?
+                .Select(d => new OrdenesComprasDetalleDto
+                {
+                    IdOrdenCompraDetalle = d.IdOrdenCompraDetalle,
+                    IdOrdenCompra = d.IdOrdenCompra,
+                    IdProducto = d.IdProducto,
+                    Cantidad = d.Cantidad,
+                    Producto = d.IdProductoNavigation is null 
+                        ? null 
+                        : new ProductoOrdenCompraDetalleDto 
+                        {
+                            IdProducto = d.IdProductoNavigation.IdProducto,
+                            Descripcion = d.IdProductoNavigation.Descripcion
+                        }
+                })
+                .ToArray() ?? Array.Empty<OrdenesComprasDetalleDto>()
         };
     }
 
