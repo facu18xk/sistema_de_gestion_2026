@@ -50,9 +50,7 @@ export default function NuevoPedidoPage() {
   };
 
   return (
-    <div>
-      <Navbar />
-
+    <>
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -69,6 +67,6 @@ export default function NuevoPedidoPage() {
         onCancel={() => router.push("/compras/pedidos")}
         onVistaChange={setVistaForm}
       />
-    </div>
+    </>
   );
 }

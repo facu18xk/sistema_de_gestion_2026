@@ -24,6 +24,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { proveedoresAPI } from "@/services/proveedoresAPI"
 import { ubicacionesAPI } from "@/services/ubicacionesAPI"
 import { notify } from "@/lib/notifications"
+import { formatPhone } from "@/utils/phone-format"
 
 export default function ProveedoresPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -42,6 +43,7 @@ export default function ProveedoresPage() {
     try {
       const resPaginada = await proveedoresAPI.getAll(currentPage, itemsPerPage);
       setProveedores(resPaginada.items);
+      console.log(resPaginada);
       setTotalPages(resPaginada.totalPages);
     } catch (error) {
       console.error("Error al cargar datos de proveedores:", error);
@@ -129,13 +131,11 @@ export default function ProveedoresPage() {
   return (
     <>
       <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Proveedores" }]} />
-
       <PageHeader
         title="Listado de Proveedores"
         buttonLabel="Nuevo Proveedor"
         onButtonClick={handleCrearNuevo}
       />
-
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -158,7 +158,6 @@ export default function ProveedoresPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {isLoading ? (
         <div className="flex justify-center p-10"><Loader2 className="animate-spin text-primary" /></div>
       ) : (
@@ -194,7 +193,7 @@ export default function ProveedoresPage() {
 
               {/* 3. Mostramos solo el número de teléfono directamente */}
               <TableCell className="text-sm">
-                {p.telefono || "Sin teléfono"}
+                {formatPhone(p.telefono) || "Sin teléfono"}
               </TableCell>
 
               <TableCell className="text-right space-x-1">
@@ -214,7 +213,6 @@ export default function ProveedoresPage() {
           ))}
         </DataTable>
       )}
-
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
           <SheetHeader className=" border-b pt-4">

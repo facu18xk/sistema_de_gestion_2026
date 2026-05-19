@@ -17,18 +17,6 @@ export interface LoginCredentials {
     password: string;
 }
 
-//Interfaz para Productos
-/*export interface Product {
-    idProducto: number;
-    descripcion: string | null;
-    precioUnitario: number | null;
-    esServicio: boolean;
-    porcentajeIva: number;
-    idMarca: number;
-    marca: string | null;
-    idCategoria: number;
-    categoria: string | null;
-}*/
 
 // Lo que RECIBES del Backend (Lectura)
 export interface ProductoDTO {
@@ -86,7 +74,6 @@ export interface ProductoFormState {
     porcentajeIva: string;
 }
 
-
 export interface Pais {
     idPais: number;
     nombre: string;
@@ -107,14 +94,120 @@ export interface Direccion {
     idPais: number; //para chequeo en edicion y creacion de proveedor
 }
 
-// --- Dentro de types/types.ts ---
+export interface Cliente {
+    idCliente: number;
+    ci: string;
+    ruc: string;
+    fechaNacimiento: string;
+    idDireccion: number;
+    direccion: Direccion;
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
+}
 
-// Lo que viene dentro de la lista de categorías del proveedor en el GET
+export interface ClienteSaveDTO {
+    ci: string;
+    ruc: string;
+    fechaNacimiento: string;
+    direccion: {
+        calle1: string;
+        calle2: string | null;
+        descripcion: string | null;
+        idCiudad: number;
+    };
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
+}
+
+export interface Estado {
+    idEstado: number;
+    nombre: string;
+}
+
+//Ventas/Presupuestos
+export interface PresupuestoItem {
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    iva: number;
+    subtotal: number;
+}
+
+export interface PresupuestoItemSave {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface PresupuestoCabecera {
+    idPresupuesto: number;
+    idCliente: number;
+    cliente: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+}
+
+export interface PresupuestoCabeceraSave {
+    idCliente: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+}
+
+export interface PresupuestoCompleto {
+    idPresupuesto: number;
+    idCliente: number;
+    cliente: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+    items: PresupuestoItem[];
+}
+
+export interface PresupuestoCompletoSave {
+    idCliente: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+    items: PresupuestoItemSave[];
+}
+
+export interface PresupuestoDetalle {
+    idPresupuestoDetalle: number;
+    idPresupuesto: number;
+    idProducto: number;
+    cantidad: number;
+    iva: number;
+    subtotal: number;
+}
+
+export interface PreciosVentas {
+    idPrecioVenta: number;
+    idProducto: number;
+    producto: string;
+    precioCompraBase: number;
+    porcentajeGanancia: number;
+    precioVenta: number;
+    activo: boolean;
+    fechaDesde: string;
+    fechaHasta: string;
+}
+
 export interface ProveedorCategoriaDTO {
     idCategoria: number;
     categoria: string;
 }
-
 
 export interface Proveedor {
     idProveedor: number;
@@ -147,7 +240,6 @@ export interface ProveedorSaveDTO {
     telefono: string | null;
     categoriaIds: number[];
 }
-
 
 export interface PedidoItem {
   idPedidoCompraDetalle?: number
@@ -190,7 +282,6 @@ export interface PedidoDetalleDTO {
   categoria: string
   descripcion: string
   cantidad: number
-  
 }
 
 export interface PedidoDetalleSaveDTO {
@@ -199,5 +290,4 @@ export interface PedidoDetalleSaveDTO {
   categoria: string
   descripcion: string
   cantidad: number
-  
 }

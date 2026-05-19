@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/stock') ||
     pathname.startsWith('/compras') ||
     pathname.startsWith('/ventas') ||
-    pathname.startsWith('personas')
+    pathname.startsWith('/personas')
 
   // CASO 1: El usuario no tiene token e intenta entrar a una ruta protegida
   if (!token && isProtectedPage) {

@@ -109,8 +109,7 @@ export default function EditarPedidoPage() {
   }
 
   return (
-    <div>
-      <Navbar />
+    <>
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -126,6 +125,6 @@ export default function EditarPedidoPage() {
         onSubmit={handleSubmit}
         onCancel={() => router.push("/compras/pedidos")}
       />
-    </div>
+    </>
   );
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace DatabaseHastaCompraVenta.Models;
+namespace api.Models;
 
 public partial class DblosAmigosContext : DbContext
 {
@@ -17,6 +17,8 @@ public partial class DblosAmigosContext : DbContext
 
     public virtual DbSet<Categoria> Categorias { get; set; }
 
+    public virtual DbSet<CategoriaProveedor> CategoriasProveedores { get; set; }
+
     public virtual DbSet<Ciudad> Ciudades { get; set; }
 
     public virtual DbSet<Cliente> Clientes { get; set; }
@@ -29,6 +31,16 @@ public partial class DblosAmigosContext : DbContext
 
     public virtual DbSet<Estado> Estados { get; set; }
 
+    public virtual DbSet<Asiento> Asientos { get; set; }
+
+    public virtual DbSet<AsientosDetalle> AsientosDetalles { get; set; }
+
+    public virtual DbSet<Balance> Balances { get; set; }
+
+    public virtual DbSet<BalancesDetalle> BalancesDetalles { get; set; }
+
+    public virtual DbSet<CuentaContable> CuentasContables { get; set; }
+
     public virtual DbSet<FacturasCompra> FacturasCompras { get; set; }
 
     public virtual DbSet<FacturasComprasDetalle> FacturasComprasDetalles { get; set; }
@@ -40,6 +52,12 @@ public partial class DblosAmigosContext : DbContext
     public virtual DbSet<Marca> Marcas { get; set; }
 
     public virtual DbSet<MediosPagosCompra> MediosPagosCompras { get; set; }
+
+    public virtual DbSet<ModeloAsiento> ModelosAsientos { get; set; }
+
+    public virtual DbSet<ModelosAsientosDetalle> ModelosAsientosDetalles { get; set; }
+
+    public virtual DbSet<Modulo> Modulos { get; set; }
 
     public virtual DbSet<NotasCreditosCompra> NotasCreditosCompras { get; set; }
 
@@ -83,7 +101,17 @@ public partial class DblosAmigosContext : DbContext
 
     public virtual DbSet<PedidosCotizacionesDetalle> PedidosCotizacionesDetalles { get; set; }
 
+    public virtual DbSet<PeriodoContable> PeriodosContables { get; set; }
+
+    public virtual DbSet<PrecioVenta> PreciosVentas { get; set; }
+
+    public virtual DbSet<ProductoProveedor> ProductosProveedores { get; set; }
+
     public virtual DbSet<Persona> Personas { get; set; }
+
+    public virtual DbSet<CotizacionesCompra> CotizacionesCompras { get; set; }
+
+    public virtual DbSet<CotizacionesComprasDetalle> CotizacionesComprasDetalles { get; set; }
 
     public virtual DbSet<Presupuesto> Presupuestos { get; set; }
 
@@ -92,6 +120,8 @@ public partial class DblosAmigosContext : DbContext
     public virtual DbSet<Producto> Productos { get; set; }
 
     public virtual DbSet<Proveedor> Proveedores { get; set; }
+
+    public virtual DbSet<ProcesoContable> ProcesosContables { get; set; }
 
     public virtual DbSet<StocksDeposito> StocksDepositos { get; set; }
 
@@ -106,6 +136,26 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<CategoriaProveedor>(entity =>
+        {
+            entity.HasKey(e => new { e.ProveedorId, e.CategoriaId });
+
+            entity.ToTable("Categorias_Proveedores");
+
+            entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.CategoriaId).HasColumnName("Id_Categoria");
+
+            entity.HasOne(d => d.Categoria).WithMany(p => p.CategoriasProveedores)
+                .HasForeignKey(d => d.CategoriaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Categorias_Proveedores_Categorias");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.CategoriasProveedores)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Categorias_Proveedores_Proveedores");
         });
 
         modelBuilder.Entity<Ciudad>(entity =>
@@ -588,6 +638,7 @@ public partial class DblosAmigosContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.IdCotizacionCompra).HasColumnName("Id_Cotizacion_Compra");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
@@ -601,6 +652,10 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdPedidoCotizacion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ordenes_Compras_Pedidos_Cotizaciones");
+
+            entity.HasOne(d => d.IdCotizacionCompraNavigation).WithMany(p => p.OrdenesCompras)
+                .HasForeignKey(d => d.IdCotizacionCompra)
+                .HasConstraintName("FK_Ordenes_Compras_Cotizaciones_Compras");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdProveedor)
@@ -738,6 +793,9 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.IdOrdenVentaDetalle).HasColumnName("Id_Orden_venta_Detalle");
             entity.Property(e => e.IdOrdenVenta).HasColumnName("Id_Orden_Venta");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
+            entity.Property(e => e.PrecioUnitario)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Unitario");
 
             entity.HasOne(d => d.IdOrdenVentaNavigation).WithMany(p => p.OrdenesVentasDetalles)
                 .HasForeignKey(d => d.IdOrdenVenta)
@@ -803,14 +861,17 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Pedidos_Compras_Detalles");
 
             entity.Property(e => e.IdPedidoCompraDetalle).HasColumnName("Id_Pedido_Compra_Detalle");
-            entity.Property(e => e.Categoria)
-                .HasMaxLength(100)
-                .IsUnicode(false);
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.IdCategoria).HasColumnName("Id_Categoria");
             entity.Property(e => e.IdPedidoCompra).HasColumnName("Id_Pedido_Compra");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany()
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pedidos_Compras_Detalles_Categorias");
 
             entity.HasOne(d => d.IdPedidoCompraNavigation).WithMany(p => p.PedidosComprasDetalles)
                 .HasForeignKey(d => d.IdPedidoCompra)
@@ -853,17 +914,20 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Pedidos_Cotizaciones_Detalles");
 
             entity.Property(e => e.IdPedidoCotizacionDetalle).HasColumnName("Id_Pedido_Cotizacion_Detalle");
-            entity.Property(e => e.Categoria)
-                .HasMaxLength(100)
-                .IsUnicode(false);
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.IdCategoria).HasColumnName("Id_Categoria");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
             entity.Property(e => e.PrecioProducto)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("Precio_Producto");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany()
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pedidos_Cotizaciones_Detalles_Categorias");
 
             entity.HasOne(d => d.IdPedidoCotizacionNavigation).WithMany(p => p.PedidosCotizacionesDetalles)
                 .HasForeignKey(d => d.IdPedidoCotizacion)
@@ -874,6 +938,36 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdProducto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Pedidos_Cotizaciones_Detalles_Productos");
+        });
+
+        modelBuilder.Entity<ProductoProveedor>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductoId, e.ProveedorId });
+
+            entity.ToTable("Productos_Proveedores");
+
+            entity.Property(e => e.ProductoId).HasColumnName("Id_Producto");
+            entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.CategoriaId).HasColumnName("Id_Categoria");
+            entity.Property(e => e.CodigoProveedor)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Codigo_Proveedor");
+
+            entity.HasOne(d => d.Categoria).WithMany()
+                .HasForeignKey(d => d.CategoriaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_Proveedores_Categorias");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.ProductosProveedores)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_Proveedores_Productos");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.ProductosProveedores)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_Proveedores_Proveedores");
         });
 
         modelBuilder.Entity<Persona>(entity =>
@@ -899,6 +993,62 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdDireccion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Personas_Direcciones1");
+        });
+
+        modelBuilder.Entity<CotizacionesCompra>(entity =>
+        {
+            entity.HasKey(e => e.IdCotizacionCompra);
+
+            entity.ToTable("Cotizaciones_Compras");
+
+            entity.Property(e => e.IdCotizacionCompra).HasColumnName("Id_Cotizacion_Compra");
+            entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
+            entity.Property(e => e.ProveedorId).HasColumnName("Id_Proveedor");
+            entity.Property(e => e.SolicitudCotizacionId).HasColumnName("Id_Solicitud_Cotizacion");
+            entity.Property(e => e.ValidaHasta)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("Valida_Hasta");
+
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany(p => p.CotizacionesCompras)
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Estados");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.CotizacionesCompras)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Proveedores");
+
+            entity.HasOne(d => d.SolicitudCotizacion).WithMany(p => p.CotizacionesCompras)
+                .HasForeignKey(d => d.SolicitudCotizacionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Pedidos_Cotizaciones");
+        });
+
+        modelBuilder.Entity<CotizacionesComprasDetalle>(entity =>
+        {
+            entity.HasKey(e => e.IdCotizacionCompraDetalle);
+
+            entity.ToTable("Cotizaciones_Compras_Detalles");
+
+            entity.Property(e => e.IdCotizacionCompraDetalle).HasColumnName("Id_Cotizacion_Compra_Detalle");
+            entity.Property(e => e.CotizacionCompraId).HasColumnName("Id_Cotizacion_Compra");
+            entity.Property(e => e.Descuento).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PrecioUnitario)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Unitario");
+            entity.Property(e => e.ProductoId).HasColumnName("Id_Producto");
+
+            entity.HasOne(d => d.CotizacionCompra).WithMany(p => p.CotizacionesComprasDetalles)
+                .HasForeignKey(d => d.CotizacionCompraId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Detalles_Cotizaciones_Compras");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.CotizacionesComprasDetalles)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cotizaciones_Compras_Detalles_Productos");
         });
 
         modelBuilder.Entity<Presupuesto>(entity =>
@@ -927,6 +1077,42 @@ public partial class DblosAmigosContext : DbContext
                 .HasConstraintName("FK_Presupuestos_Estados");
         });
 
+        modelBuilder.Entity<PrecioVenta>(entity =>
+        {
+            entity.HasKey(e => e.IdPrecioVenta);
+
+            entity.ToTable("Precios_Ventas");
+
+            entity.HasIndex(e => e.IdProducto)
+                .IsUnique()
+                .HasFilter("\"Activo\" = TRUE")
+                .HasDatabaseName("IX_Precios_Ventas_Id_Producto_Activo");
+
+            entity.Property(e => e.IdPrecioVenta).HasColumnName("Id_Precio_Venta");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.FechaDesde)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("Fecha_Desde");
+            entity.Property(e => e.FechaHasta)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("Fecha_Hasta");
+            entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
+            entity.Property(e => e.PorcentajeGanancia)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("Porcentaje_Ganancia");
+            entity.Property(e => e.PrecioCompraBase)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Compra_Base");
+            entity.Property(e => e.PrecioVentaValor)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Venta");
+
+            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.PreciosVentas)
+                .HasForeignKey(d => d.IdProducto)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Precios_Ventas_Productos");
+        });
+
         modelBuilder.Entity<PresupuestosDetalle>(entity =>
         {
             entity.HasKey(e => e.IdPresupuestoDetalle);
@@ -939,6 +1125,9 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.Iva)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("IVA");
+            entity.Property(e => e.PrecioUnitario)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("Precio_Unitario");
             entity.Property(e => e.Subtotal).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.IdPresupuestoNavigation).WithMany(p => p.PresupuestosDetalles)
@@ -1040,6 +1229,291 @@ public partial class DblosAmigosContext : DbContext
                 .HasMaxLength(12)
                 .IsUnicode(false)
                 .HasColumnName("RUC");
+        });
+
+        modelBuilder.Entity<ProcesoContable>(entity =>
+        {
+            entity.HasKey(e => e.IdProcesoContable);
+
+            entity.ToTable("procesos_contables");
+
+            entity.Property(e => e.IdProcesoContable).HasColumnName("id");
+            entity.Property(e => e.CantDigitosNivel).HasColumnName("cant_digitos_nivel");
+            entity.Property(e => e.CantNiveles).HasColumnName("cant_niveles");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("descripcion");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("estado");
+            entity.Property(e => e.Moneda)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("moneda");
+            entity.Property(e => e.PeriodoAnho).HasColumnName("periodo_anho");
+        });
+
+        modelBuilder.Entity<Modulo>(entity =>
+        {
+            entity.HasKey(e => e.IdModulo);
+
+            entity.ToTable("modulos");
+
+            entity.Property(e => e.IdModulo).HasColumnName("id");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("nombre");
+        });
+
+        modelBuilder.Entity<PeriodoContable>(entity =>
+        {
+            entity.HasKey(e => e.IdPeriodoContable);
+
+            entity.ToTable("periodos_contables");
+
+            entity.Property(e => e.IdPeriodoContable).HasColumnName("id");
+            entity.Property(e => e.Anho).HasColumnName("anho");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("estado");
+            entity.Property(e => e.FechaFin).HasColumnName("fecha_fin");
+            entity.Property(e => e.FechaInicio).HasColumnName("fecha_inicio");
+            entity.Property(e => e.IdProcesoContable).HasColumnName("proceso_contable_id");
+            entity.Property(e => e.Mes).HasColumnName("mes");
+
+            entity.HasOne(d => d.IdProcesoContableNavigation).WithMany(p => p.PeriodosContables)
+                .HasForeignKey(d => d.IdProcesoContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_periodos_contables_procesos_contables");
+        });
+
+        modelBuilder.Entity<CuentaContable>(entity =>
+        {
+            entity.HasKey(e => e.IdCuentaContable);
+
+            entity.ToTable("cuentas_contables");
+
+            entity.Property(e => e.IdCuentaContable).HasColumnName("id");
+            entity.Property(e => e.Activa).HasColumnName("activa");
+            entity.Property(e => e.EsAsentable).HasColumnName("es_asentable");
+            entity.Property(e => e.IdCuentaPadre).HasColumnName("cuenta_padre_id");
+            entity.Property(e => e.IdProcesoContable).HasColumnName("proceso_contable_id");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("nombre");
+            entity.Property(e => e.NumeroCuenta)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("numero_cuenta");
+            entity.Property(e => e.TipoCuenta)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("tipo_cuenta");
+
+            entity.HasOne(d => d.IdCuentaPadreNavigation).WithMany(p => p.InverseIdCuentaPadreNavigation)
+                .HasForeignKey(d => d.IdCuentaPadre)
+                .HasConstraintName("FK_cuentas_contables_cuenta_padre");
+
+            entity.HasOne(d => d.IdProcesoContableNavigation).WithMany(p => p.CuentasContables)
+                .HasForeignKey(d => d.IdProcesoContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_cuentas_contables_procesos_contables");
+        });
+
+        modelBuilder.Entity<Asiento>(entity =>
+        {
+            entity.HasKey(e => e.IdAsiento);
+
+            entity.ToTable("asientos");
+
+            entity.Property(e => e.IdAsiento).HasColumnName("id");
+            entity.Property(e => e.Automatico).HasColumnName("automatico");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("descripcion");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("estado");
+            entity.Property(e => e.Fecha).HasColumnName("fecha");
+            entity.Property(e => e.FechaMayorizacion)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("fecha_mayorizacion");
+            entity.Property(e => e.IdModulo).HasColumnName("modulo_id");
+            entity.Property(e => e.IdOrigen).HasColumnName("id_origen");
+            entity.Property(e => e.IdPeriodoContable).HasColumnName("periodo_contable_id");
+            entity.Property(e => e.NumeroAsiento).HasColumnName("numero_asiento");
+            entity.Property(e => e.ReferenciaOrigen)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("referencia_origen");
+
+            entity.HasOne(d => d.IdModuloNavigation).WithMany(p => p.Asientos)
+                .HasForeignKey(d => d.IdModulo)
+                .HasConstraintName("FK_asientos_modulos");
+
+            entity.HasOne(d => d.IdPeriodoContableNavigation).WithMany(p => p.Asientos)
+                .HasForeignKey(d => d.IdPeriodoContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_asientos_periodos_contables");
+        });
+
+        modelBuilder.Entity<AsientosDetalle>(entity =>
+        {
+            entity.HasKey(e => e.IdAsientoDetalle);
+
+            entity.ToTable("asientos_detalles");
+
+            entity.Property(e => e.IdAsientoDetalle).HasColumnName("id");
+            entity.Property(e => e.DescripcionItem)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("descripcion_item");
+            entity.Property(e => e.IdAsiento).HasColumnName("asiento_id");
+            entity.Property(e => e.IdCuentaContable).HasColumnName("cuenta_contable_id");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.Monto)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("monto");
+            entity.Property(e => e.TipoMovimiento)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("tipo_movimiento");
+
+            entity.HasOne(d => d.IdAsientoNavigation).WithMany(p => p.AsientosDetalles)
+                .HasForeignKey(d => d.IdAsiento)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_asientos_detalles_asientos");
+
+            entity.HasOne(d => d.IdCuentaContableNavigation).WithMany(p => p.AsientosDetalles)
+                .HasForeignKey(d => d.IdCuentaContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_asientos_detalles_cuentas_contables");
+        });
+
+        modelBuilder.Entity<ModeloAsiento>(entity =>
+        {
+            entity.HasKey(e => e.IdModeloAsiento);
+
+            entity.ToTable("modelos_asientos");
+
+            entity.Property(e => e.IdModeloAsiento).HasColumnName("id");
+            entity.Property(e => e.Activo).HasColumnName("activo");
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("descripcion");
+            entity.Property(e => e.DetalleResumen)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("detalle_resumen");
+            entity.Property(e => e.IdModulo).HasColumnName("modulo_id");
+            entity.Property(e => e.TipoAsiento)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("tipo_asiento");
+
+            entity.HasOne(d => d.IdModuloNavigation).WithMany(p => p.ModelosAsientos)
+                .HasForeignKey(d => d.IdModulo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_modelos_asientos_modulos");
+        });
+
+        modelBuilder.Entity<ModelosAsientosDetalle>(entity =>
+        {
+            entity.HasKey(e => e.IdModeloAsientoDetalle);
+
+            entity.ToTable("modelos_asientos_detalles");
+
+            entity.Property(e => e.IdModeloAsientoDetalle).HasColumnName("id");
+            entity.Property(e => e.DescripcionItem)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("descripcion_item");
+            entity.Property(e => e.IdCuentaContable).HasColumnName("cuenta_contable_id");
+            entity.Property(e => e.IdModeloAsiento).HasColumnName("modelo_asiento_id");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.TipoMovimiento)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("tipo_movimiento");
+
+            entity.HasOne(d => d.IdCuentaContableNavigation).WithMany(p => p.ModelosAsientosDetalles)
+                .HasForeignKey(d => d.IdCuentaContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_modelos_asientos_detalles_cuentas_contables");
+
+            entity.HasOne(d => d.IdModeloAsientoNavigation).WithMany(p => p.ModelosAsientosDetalles)
+                .HasForeignKey(d => d.IdModeloAsiento)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_modelos_asientos_detalles_modelos_asientos");
+        });
+
+        modelBuilder.Entity<Balance>(entity =>
+        {
+            entity.HasKey(e => e.IdBalance);
+
+            entity.ToTable("balances");
+
+            entity.Property(e => e.IdBalance).HasColumnName("id");
+            entity.Property(e => e.FechaGeneracion)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("fecha_generacion");
+            entity.Property(e => e.IdPeriodoContable).HasColumnName("periodo_contable_id");
+            entity.Property(e => e.TipoBalance)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("tipo_balance");
+
+            entity.HasOne(d => d.IdPeriodoContableNavigation).WithMany(p => p.Balances)
+                .HasForeignKey(d => d.IdPeriodoContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_balances_periodos_contables");
+        });
+
+        modelBuilder.Entity<BalancesDetalle>(entity =>
+        {
+            entity.HasKey(e => e.IdBalanceDetalle);
+
+            entity.ToTable("balances_detalles");
+
+            entity.Property(e => e.IdBalanceDetalle).HasColumnName("id");
+            entity.Property(e => e.IdBalance).HasColumnName("balance_id");
+            entity.Property(e => e.IdCuentaContable).HasColumnName("cuenta_contable_id");
+            entity.Property(e => e.SaldoAcreedor)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("saldo_acreedor");
+            entity.Property(e => e.SaldoDeudor)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("saldo_deudor");
+            entity.Property(e => e.TotalDebe)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("total_debe");
+            entity.Property(e => e.TotalHaber)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("total_haber");
+
+            entity.HasOne(d => d.IdBalanceNavigation).WithMany(p => p.BalancesDetalles)
+                .HasForeignKey(d => d.IdBalance)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_balances_detalles_balances");
+
+            entity.HasOne(d => d.IdCuentaContableNavigation).WithMany(p => p.BalancesDetalles)
+                .HasForeignKey(d => d.IdCuentaContable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_balances_detalles_cuentas_contables");
         });
 
         OnModelCreatingPartial(modelBuilder);

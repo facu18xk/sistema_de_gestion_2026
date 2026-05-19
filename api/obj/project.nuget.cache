@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "JpPK8suEi08=",
+  "dgSpecHash": "z4Z7HkooqNA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\BAMG\\Documents\\sistema_de_gestion_2026\\api\\api.csproj",
+  "projectFilePath": "C:\\Users\\BAMG\\Downloads\\sistema_de_gestion_2026\\api\\api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\BAMG\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\BAMG\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.0\\microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",

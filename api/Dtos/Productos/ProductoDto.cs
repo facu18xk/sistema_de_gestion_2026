@@ -8,9 +8,17 @@ public class ProductoDto
 
     public decimal PrecioUnitario { get; set; }
 
+    public decimal? PrecioVentaActual { get; set; }
+
+    public decimal? PorcentajeGananciaActual { get; set; }
+
+    public decimal? PrecioCompraBaseActual { get; set; }
+
     public bool EsServicio { get; set; }
 
     public decimal PorcentajeIva { get; set; }
+
+    public int CantidadTotal { get; set; }
 
     public int IdMarca { get; set; }
 

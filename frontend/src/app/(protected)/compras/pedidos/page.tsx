@@ -46,6 +46,7 @@ export default function PedidosPage() {
       const resPaginada = await pedidosAPI.getAll(currentPage, itemsPerPage)
 
       setPedidos(resPaginada.items)
+      console.log(resPaginada.items)
       setTotalPages(resPaginada.totalPages)
     } catch (error) {
       console.error("Error al cargar pedidos:", error)

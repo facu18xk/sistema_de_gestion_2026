@@ -87,12 +87,14 @@ export default function Navbar() {
                         <li key={item}>
                           <NavigationMenuLink asChild>
                             <Link
-                              href={item === "Productos" ? "/stock/productos" :
-                                item == "Proveedores" ? "/compras/proveedores" :
+                              href={
                                   item === "Clientes" ? "/ventas/clientes" :
-                                    item === "Empleados" ? "/personas/empleados" :
-                                      item === "Pedidos" ? "/compras/pedidos" :
-                                        "#"
+                                  item === "Presupuestos" ? "/ventas/presupuestos" :
+                                  item === "Proveedores" ? "/compras/proveedores" :
+                                  item === "Pedidos" ? "/compras/pedidos" :
+                                  item === "Productos" ? "/stock/productos" :
+                                  item === "Empleados" ? "/personas/empleados" :  
+                                  "#"
                               }
                               className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
@@ -132,7 +134,7 @@ export default function Navbar() {
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-destructive focus:bg-destructive"
+                className="text-destructive focus:bg-destructive focus:text-white"
                 onClick={handleLogout}
               >
                 Cerrar Sesión

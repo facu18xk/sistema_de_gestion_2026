@@ -2,7 +2,7 @@ using System.Text;
 using api.Data;
 using api.Services;
 using api.Settings;
-using DatabaseHastaCompraVenta.Models;
+using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -34,9 +34,13 @@ var jwtSettings = builder.Configuration
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<ICrudService<Producto, int>, ProductoService>();
-builder.Services.AddScoped<ICrudService<Marca, int>, MarcaService>();
-builder.Services.AddScoped<ICrudService<Categoria, int>, CategoriaService>();
+builder.Services.AddScoped<IAsientoContableService, AsientoContableService>();
+builder.Services.AddScoped<IContabilidadReportesService, ContabilidadReportesService>();
+builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGeneratorService>();
+builder.Services.AddScoped<PreciosVentasService>();
+builder.Services.AddScoped<SalesPriceResolver>();
+builder.Services.AddScoped<VentasCompletasService>();
+builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -60,11 +64,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+
+    foreach (var swaggerDocument in SwaggerModules.Documents)
     {
-        Title = "api",
-        Version = "v1"
-    });
+        options.SwaggerDoc(swaggerDocument.Key, swaggerDocument.Value);
+    }
+
+    options.DocInclusionPredicate(SwaggerModules.IncludesApi);
+    options.TagActionsBy(SwaggerModules.GetTags);
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -95,7 +103,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("http://localhost:3000")
+        policy => policy.WithOrigins("http://localhost:3000", "https://facu18xk.github.io",
+                "https://facu18xk.github.io/sistema_de_gestion_2026")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
 });
@@ -114,7 +123,15 @@ using (var scope = app.Services.CreateScope())
 app.UseForwardedHeaders();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    foreach (var swaggerDocument in SwaggerModules.Documents)
+    {
+        options.SwaggerEndpoint(
+            $"/swagger/{swaggerDocument.Key}/swagger.json",
+            swaggerDocument.Value.Title);
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
