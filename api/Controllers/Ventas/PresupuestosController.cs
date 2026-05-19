@@ -36,7 +36,18 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
     [HttpGet("completo")]
     public async Task<ActionResult<PagedResultDto<PresupuestoCompletoDto>>> GetAllCompleto([FromQuery] PaginationQueryDto pagination)
     {
-        return Ok(await _ventasCompletasService.GetPresupuestosCompletosAsync(pagination));
+        var result = await _ventasCompletasService.GetPresupuestosCompletosAsync(pagination);
+
+        return Ok(new PagedResultDto<PresupuestoCompletoDto>
+        {
+            Items = result.Items.Select(ApplyEstadoByDates).ToArray(),
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalCount = result.TotalCount,
+            TotalPages = result.TotalPages,
+            HasPreviousPage = result.HasPreviousPage,
+            HasNextPage = result.HasNextPage
+        });
     }
 
     [HttpGet("{id:int}/completo")]
@@ -48,7 +59,7 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
             return NotFound();
         }
 
-        return Ok(presupuesto);
+        return Ok(ApplyEstadoByDates(presupuesto));
     }
 
     [HttpPut("{id:int}/completo")]
@@ -56,7 +67,8 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
     {
         try
         {
-            return Ok(await _ventasCompletasService.UpdatePresupuestoAsync(id, dto));
+            var presupuesto = await _ventasCompletasService.UpdatePresupuestoAsync(id, dto);
+            return Ok(ApplyEstadoByDates(presupuesto));
         }
         catch (KeyNotFoundException)
         {
@@ -88,7 +100,7 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
 
     protected override PresupuestoDto ToReadDto(Presupuesto entity)
     {
-        return new PresupuestoDto
+        return ApplyEstadoByDates(new PresupuestoDto
         {
             IdPresupuesto = entity.IdPresupuesto,
             IdCliente = entity.IdCliente,
@@ -98,7 +110,7 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
             Fecha = entity.Fecha,
             Descripcion = entity.Descripcion,
             FechaVencimiento = entity.FechaVencimiento
-        };
+        });
     }
 
     protected override Presupuesto ToEntity(PresupuestoUpsertDto dto)
@@ -127,5 +139,29 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
     {
         var persona = cliente?.IdPersonaNavigation;
         return persona is null ? string.Empty : $"{persona.Nombres} {persona.Apellidos}".Trim();
+    }
+
+    private static PresupuestoDto ApplyEstadoByDates(PresupuestoDto presupuesto)
+    {
+        presupuesto.Estado = CalculateEstadoByDates(presupuesto.Fecha, presupuesto.FechaVencimiento);
+        return presupuesto;
+    }
+
+    private static PresupuestoCompletoDto ApplyEstadoByDates(PresupuestoCompletoDto presupuesto)
+    {
+        presupuesto.Estado = CalculateEstadoByDates(presupuesto.Fecha, presupuesto.FechaVencimiento);
+        return presupuesto;
+    }
+
+    private static string CalculateEstadoByDates(DateTime fecha, DateTime fechaVencimiento)
+    {
+        var today = DateTime.Today;
+
+        if (today < fecha.Date)
+        {
+            return "Pendiente";
+        }
+
+        return today > fechaVencimiento.Date ? "Vencido" : "Vigente";
     }
 }

@@ -46,7 +46,11 @@ public class AsientoContableService : IAsientoContableService
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        existing.NumeroAsiento = dto.NumeroAsiento <= 0 ? existing.NumeroAsiento : dto.NumeroAsiento;
+        if (existing.IdPeriodoContable != periodo.IdPeriodoContable)
+        {
+            existing.NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable);
+        }
+
         existing.IdPeriodoContable = periodo.IdPeriodoContable;
         existing.IdModulo = dto.IdModulo;
         existing.Fecha = dto.Fecha;
@@ -119,7 +123,6 @@ public class AsientoContableService : IAsientoContableService
 
         return await CreateAsync(new AsientoCompletoUpsertDto
         {
-            NumeroAsiento = dto.NumeroAsiento,
             IdModulo = modelo.IdModulo,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion ?? modelo.Descripcion,
@@ -146,19 +149,9 @@ public class AsientoContableService : IAsientoContableService
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        var numeroAsiento = dto.NumeroAsiento;
-        if (numeroAsiento <= 0)
-        {
-            var ultimoNumero = await _context.Asientos
-                .Where(item => item.IdPeriodoContable == periodo.IdPeriodoContable)
-                .Select(item => (int?)item.NumeroAsiento)
-                .MaxAsync() ?? 0;
-            numeroAsiento = ultimoNumero + 1;
-        }
-
         var asiento = new Asiento
         {
-            NumeroAsiento = numeroAsiento,
+            NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable),
             IdPeriodoContable = periodo.IdPeriodoContable,
             IdModulo = dto.IdModulo,
             Fecha = dto.Fecha,
@@ -199,6 +192,16 @@ public class AsientoContableService : IAsientoContableService
             .FirstAsync(item => item.IdAsiento == asiento.IdAsiento);
 
         return ToDto(created);
+    }
+
+    private async Task<int> GetNextNumeroAsientoAsync(int idPeriodoContable)
+    {
+        var ultimoNumero = await _context.Asientos
+            .Where(item => item.IdPeriodoContable == idPeriodoContable)
+            .Select(item => (int?)item.NumeroAsiento)
+            .MaxAsync() ?? 0;
+
+        return ultimoNumero + 1;
     }
 
     private static string NormalizeMovimiento(string tipoMovimiento)
