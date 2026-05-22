@@ -82,7 +82,7 @@ export function EmpleadoSelector({
             <CommandEmpty>No se encontraron empleados.</CommandEmpty>
 
             <CommandGroup>
-              {empleadosFiltrados.map((empleado) => (
+              {empleadosFiltrados.slice(0, 5).map((empleado) => (
                 <CommandItem
                   key={empleado.idEmpleado}
                   onSelect={() => {
