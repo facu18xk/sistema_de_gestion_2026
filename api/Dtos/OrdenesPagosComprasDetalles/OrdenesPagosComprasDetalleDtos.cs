@@ -15,7 +15,7 @@ public class OrdenesPagosComprasDetalleDto
 public class FacturaCompraResumenDto
 {
     public int IdFacturaCompra { get; set; }
-    public string NumeroFactura { get; set; } = string.Empty;
+    public string Nro_Comprobante { get; set; } = string.Empty;
 }
 
 public class OrdenesPagosComprasDetalleUpsertDto
