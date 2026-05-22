@@ -3065,42 +3065,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Asus\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
-    "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\": {}
+    "/home/facu/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-<<<<<<< HEAD
-      "projectUniqueName": "C:\\Users\\BAMG\\Downloads\\sistema_de_gestion_2026\\api\\api.csproj",
+      "projectUniqueName": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/api.csproj",
       "projectName": "api",
-      "projectPath": "C:\\Users\\BAMG\\Downloads\\sistema_de_gestion_2026\\api\\api.csproj",
-      "packagesPath": "C:\\Users\\BAMG\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\BAMG\\Downloads\\sistema_de_gestion_2026\\api\\obj\\",
-=======
-      "projectUniqueName": "D:\\Users\\Asus\\Documents\\Uni\\SextoSemestre\\Sistemas de gestion\\proyecto\\sistema_de_gestion_2026\\api\\api.csproj",
-      "projectName": "api",
-      "projectPath": "D:\\Users\\Asus\\Documents\\Uni\\SextoSemestre\\Sistemas de gestion\\proyecto\\sistema_de_gestion_2026\\api\\api.csproj",
-      "packagesPath": "C:\\Users\\Asus\\.nuget\\packages\\",
-      "outputPath": "D:\\Users\\Asus\\Documents\\Uni\\SextoSemestre\\Sistemas de gestion\\proyecto\\sistema_de_gestion_2026\\api\\obj\\",
->>>>>>> front
+      "projectPath": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/api.csproj",
+      "packagesPath": "/home/facu/.nuget/packages/",
+      "outputPath": "/home/facu/college/sexto/erp/sistema_de_gestion_2026/api/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-        "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        "/home/facu/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3113,13 +3095,7 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.300"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -3159,6 +3135,12 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.25, 8.0.25]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -3167,8 +3149,16 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.311/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.125/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file /home/facu/college/sexto/erp/sistema_de_gestion_2026/api/obj/project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
+    }
+  ]
 }

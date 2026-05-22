@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -21,18 +21,25 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import Cookies from 'js-cookie'
-import { notify } from "@/lib/notifications"
+} from "@/components/ui/navigation-menu";
+import Cookies from "js-cookie";
+import { notify } from "@/lib/notifications";
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
-  { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
-  { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"] },
+  {
+    title: "Ventas",
+    items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
+  },
+  {
+    title: "Compras",
+    items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
+  },
   { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
   { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
-  { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
-]
+  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
+  { title: "Contabilidad", items: ["Proceso Contable", "Periodo Contable"] },
+];
 
 export default function Navbar() {
   const [userName, setUserName] = useState("Usuario");
@@ -48,24 +55,26 @@ export default function Navbar() {
 
   const handleLogout = () => {
     //1. Eliminar la cookie del token
-    Cookies.remove("token", { path: '/' }) //Obs: mismo path que al momento de crear la cookie
+    Cookies.remove("token", { path: "/" }); //Obs: mismo path que al momento de crear la cookie
     //2. Limpiar datos del usuario en el navegador
-    localStorage.removeItem("user")
+    localStorage.removeItem("user");
     //localStorage.clear() -> si se quiere borrar todo
     //3. Redirigir al login
-    router.push("/login")
+    router.push("/login");
     //4. Opcional: Forzar un refresco para limpiar estados de React
-    router.refresh()
+    router.refresh();
     notify.warning("¡Sesión cerrada!");
-  }
+  };
 
   return (
     <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-
         {/* IZQUIERDA: Logo y Selects */}
         <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="font-bold text-xl text-primary shrink-0">
+          <Link
+            href="/dashboard"
+            className="font-bold text-xl text-primary shrink-0"
+          >
             McQueen Tires
           </Link>
 
@@ -73,14 +82,23 @@ export default function Navbar() {
           <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
               <NavigationMenuItem>
+<<<<<<< HEAD
                 <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
+=======
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle()}
+                  asChild
+                >
+>>>>>>> feature/proceso-contable
                   <Link href="/dashboard">Inicio</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
               {modulos.map((modulo) => (
                 <NavigationMenuItem key={modulo.title}>
-                  <NavigationMenuTrigger className="cursor-pointer">{modulo.title}</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="cursor-pointer">
+                    {modulo.title}
+                  </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="cursor-pointer grid w-[200px] gap-2 p-4">
                       {modulo.items.map((item) => (
@@ -88,6 +106,7 @@ export default function Navbar() {
                           <NavigationMenuLink asChild>
                             <Link
                               href={
+<<<<<<< HEAD
                                   item === "Clientes" ? "/ventas/clientes" :
                                   item === "Presupuestos" ? "/ventas/presupuestos" :
                                   item === "Proveedores" ? "/compras/proveedores" :
@@ -96,10 +115,31 @@ export default function Navbar() {
                                   item === "Productos" ? "/stock/productos" :
                                   item === "Empleados" ? "/personas/empleados" :  
                                   "#"
+=======
+                                item === "Productos"
+                                  ? "/stock/productos"
+                                  : item == "Proveedores"
+                                    ? "/compras/proveedores"
+                                    : item === "Clientes"
+                                      ? "/ventas/clientes"
+                                      : item === "Empleados"
+                                        ? "/personas/empleados"
+                                        : item === "Parientes"
+                                          ? "/personas/parientes"
+                                          : item === "Pedidos"
+                                            ? "/compras/pedidos"
+                                            : item === "Proceso Contable"
+                                              ? "/contabilidad/proceso-contable"
+                                              : item === "Periodo Contable"
+                                                ? "/contabilidad/periodo-contable"
+                                                : "#"
+>>>>>>> feature/proceso-contable
                               }
                               className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
-                              <div className="text-sm font-medium leading-none">{item}</div>
+                              <div className="text-sm font-medium leading-none">
+                                {item}
+                              </div>
                             </Link>
                           </NavigationMenuLink>
                         </li>
@@ -108,7 +148,6 @@ export default function Navbar() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ))}
-
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -121,9 +160,15 @@ export default function Navbar() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="mr-6 relative h-10 w-10 rounded-full cursor-pointer">
+              <Button
+                variant="ghost"
+                className="mr-6 relative h-10 w-10 rounded-full cursor-pointer"
+              >
                 <Avatar className="h-10 w-10 border">
-                  <AvatarImage src="https://github.com/shadcn.png" alt="Usuario" />
+                  <AvatarImage
+                    src="https://github.com/shadcn.png"
+                    alt="Usuario"
+                  />
                   <AvatarFallback>JP</AvatarFallback>
                 </Avatar>
               </Button>
@@ -143,7 +188,6 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
       </div>
     </nav>
   );

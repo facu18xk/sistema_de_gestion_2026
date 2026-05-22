@@ -15,7 +15,12 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/stock') ||
     pathname.startsWith('/compras') ||
     pathname.startsWith('/ventas') ||
+<<<<<<< HEAD
     pathname.startsWith('/personas')
+=======
+    pathname.startsWith('personas') ||
+    pathname.startsWith('contabilidad')
+>>>>>>> feature/proceso-contable
 
   // CASO 1: El usuario no tiene token e intenta entrar a una ruta protegida
   if (!token && isProtectedPage) {
@@ -38,6 +43,7 @@ export const config = {
     '/ventas/:path*',
     '/compras/:path*',
     '/personas/:path',
+    '/contabilidad/:path',
     '/login'
   ],
 }
