@@ -346,12 +346,11 @@ export interface PedidoSaveDTO {
 }
 
 export interface PedidoDetalleSaveDTO {
-  idPedidoCompra: number
-  idProducto: number
-  categoria: string
-  descripcion: string
-  cantidad: number
-  
+    idPedidoCompra: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
 }
 
 export interface ProcesoContableDTO {
@@ -455,16 +454,11 @@ export interface Pariente {
   }
 }
 
-export interface ParienteSaveDTO {
-  idEmpleado: number
-  tipoRelacion: string
-  edad: number
-  fechaNacimiento: string
-}
-
-export interface ParienteFormState {
-  idEmpleado: string
-  tipoRelacion: string
-  edad: string
-  fechaNacimiento: string
+export interface CotizacionItemForm {
+    idDetalle?: number;
+    productoId: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    descuento: number;
 }
