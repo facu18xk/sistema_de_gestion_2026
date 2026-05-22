@@ -258,6 +258,39 @@ public class VentasCompletasService
         return await GetFacturaVentaAsync(facturaVenta.IdFacturaVenta) ?? facturaVenta;
     }
 
+    public async Task<PagedResultDto<FacturaVentaCompletaDto>> GetFacturasVentasCompletasAsync(PaginationQueryDto pagination)
+    {
+        var page = pagination.GetNormalizedPage();
+        var pageSize = pagination.GetNormalizedPageSize();
+        var query = BuildFacturasVentasCompletasQuery();
+        var totalCount = await query.CountAsync();
+        var facturasVentas = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedResultDto<FacturaVentaCompletaDto>
+        {
+            Items = facturasVentas.Select(ToFacturaVentaCompletaDto).ToArray(),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = page > 1 && totalPages > 0,
+            HasNextPage = page < totalPages
+        };
+    }
+
+    public async Task<FacturaVentaCompletaDto?> GetFacturaVentaCompletaAsync(int idFacturaVenta)
+    {
+        var facturaVenta = await BuildFacturasVentasCompletasQuery()
+            .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == idFacturaVenta);
+
+        return facturaVenta is null ? null : ToFacturaVentaCompletaDto(facturaVenta);
+    }
+
     private async Task<Dictionary<int, Producto>> ValidateItemsAsync(IReadOnlyCollection<VentaItemCreateDto> items)
     {
         if (items.Count == 0)
@@ -351,7 +384,13 @@ public class VentasCompletasService
 
     private async Task<FacturasVenta?> GetFacturaVentaAsync(int id)
     {
-        return await _context.FacturasVentas
+        return await BuildFacturasVentasCompletasQuery()
+            .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == id);
+    }
+
+    private IQueryable<FacturasVenta> BuildFacturasVentasCompletasQuery()
+    {
+        return _context.FacturasVentas
             .AsNoTracking()
             .Include(entity => entity.IdPresupuestoNavigation)
             .Include(entity => entity.IdClienteNavigation)
@@ -359,8 +398,7 @@ public class VentasCompletasService
             .Include(entity => entity.IdMedioPagoCompraNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.FacturasVentasDetalles)
-                .ThenInclude(detalle => detalle.IdProductoNavigation)
-            .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == id);
+                .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 
     private static decimal CalcularTotalBruto(int cantidad, decimal precioUnitario)
@@ -394,6 +432,36 @@ public class VentasCompletasService
                 PrecioVenta = detalle.PrecioUnitario,
                 Iva = detalle.Iva,
                 Subtotal = detalle.Subtotal
+            }).ToArray()
+        };
+    }
+
+    private static FacturaVentaCompletaDto ToFacturaVentaCompletaDto(FacturasVenta facturaVenta)
+    {
+        return new FacturaVentaCompletaDto
+        {
+            IdFacturaVenta = facturaVenta.IdFacturaVenta,
+            IdPresupuesto = facturaVenta.IdPresupuesto,
+            PresupuestoDescripcion = facturaVenta.IdPresupuestoNavigation?.Descripcion ?? string.Empty,
+            IdCliente = facturaVenta.IdCliente,
+            Cliente = FormatCliente(facturaVenta.IdClienteNavigation),
+            NroComprobante = facturaVenta.NroComprobante,
+            IdTimbrado = facturaVenta.IdTimbrado,
+            Timbrado = facturaVenta.IdTimbradoNavigation?.Ruc ?? string.Empty,
+            Fecha = facturaVenta.Fecha,
+            Descripcion = facturaVenta.Descripcion,
+            IdMedioPagoCompra = facturaVenta.IdMedioPagoCompra,
+            MedioPagoCompra = facturaVenta.IdMedioPagoCompraNavigation?.Nombre ?? string.Empty,
+            FechaPago = facturaVenta.FechaPago,
+            Items = facturaVenta.FacturasVentasDetalles.Select(detalle => new FacturaVentaItemDto
+            {
+                IdProducto = detalle.IdProducto,
+                Producto = detalle.IdProductoNavigation?.Descripcion ?? string.Empty,
+                Cantidad = detalle.Cantidad,
+                PrecioUnitario = detalle.PrecioUnitario,
+                TotalBruto = detalle.TotalBruto,
+                TotalIva = detalle.TotalIva,
+                TotalNeto = detalle.TotalNeto
             }).ToArray()
         };
     }

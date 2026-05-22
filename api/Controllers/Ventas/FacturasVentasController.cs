@@ -1,4 +1,5 @@
 using api.Dtos.FacturasVentas;
+using api.Dtos.Common;
 using api.Dtos.Ventas;
 using api.Models;
 using api.Services;
@@ -30,6 +31,26 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpGet("completo")]
+    public async Task<ActionResult<PagedResultDto<FacturaVentaCompletaDto>>> GetAllCompleto([FromQuery] PaginationQueryDto pagination)
+    {
+        var result = await _ventasCompletasService.GetFacturasVentasCompletasAsync(pagination);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}/completo")]
+    public async Task<ActionResult<FacturaVentaCompletaDto>> GetByIdCompleto(int id)
+    {
+        var facturaVenta = await _ventasCompletasService.GetFacturaVentaCompletaAsync(id);
+        if (facturaVenta is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(facturaVenta);
     }
 
     protected override FacturasVentaDto ToReadDto(FacturasVenta entity)
