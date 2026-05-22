@@ -121,8 +121,9 @@ public class PresupuestoService : CrudServiceBase<Presupuesto, int>
 
     private static bool UpdateEstadoByDates(Presupuesto presupuesto, IReadOnlyDictionary<string, Estado> estadosByName)
     {
-        var estadoName = CalculateEstadoByDates(presupuesto.Fecha, presupuesto.FechaVencimiento);
-        if (!estadosByName.TryGetValue(estadoName, out var estado) || presupuesto.IdEstado == estado.IdEstado)
+        if (!IsExpired(presupuesto.FechaVencimiento)
+            || !estadosByName.TryGetValue("Expirado", out var estado)
+            || presupuesto.IdEstado == estado.IdEstado)
         {
             return false;
         }
@@ -132,15 +133,8 @@ public class PresupuestoService : CrudServiceBase<Presupuesto, int>
         return true;
     }
 
-    private static string CalculateEstadoByDates(DateTime fecha, DateTime fechaVencimiento)
+    private static bool IsExpired(DateTime fechaVencimiento)
     {
-        var today = DateTime.Today;
-
-        if (today < fecha.Date)
-        {
-            return "Pendiente";
-        }
-
-        return today > fechaVencimiento.Date ? "Vencido" : "Vigente";
+        return DateTime.Today > fechaVencimiento.Date;
     }
 }
