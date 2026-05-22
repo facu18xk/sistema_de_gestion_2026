@@ -33,7 +33,7 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
 
     protected override void UpdateEntity(FacturasVenta existingEntity, FacturasVenta incomingEntity)
     {
-        existingEntity.IdOrdenVenta = incomingEntity.IdOrdenVenta;
+        existingEntity.IdPresupuesto = incomingEntity.IdPresupuesto;
         existingEntity.IdCliente = incomingEntity.IdCliente;
         existingEntity.NroComprobante = incomingEntity.NroComprobante;
         existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
@@ -46,7 +46,7 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
     private IQueryable<FacturasVenta> BuildQuery()
     {
         return _context.FacturasVentas
-            .Include(entity => entity.IdOrdenVentaNavigation)
+            .Include(entity => entity.IdPresupuestoNavigation)
             .Include(entity => entity.IdClienteNavigation)
                 .ThenInclude(cliente => cliente.IdPersonaNavigation)
             .Include(entity => entity.IdMedioPagoCompraNavigation)

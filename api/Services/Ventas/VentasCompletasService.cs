@@ -220,7 +220,7 @@ public class VentasCompletasService
 
         var facturaVenta = new FacturasVenta
         {
-            IdOrdenVenta = dto.IdOrdenVenta,
+            IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
             NroComprobante = dto.NroComprobante,
             IdTimbrado = dto.IdTimbrado,
@@ -353,7 +353,7 @@ public class VentasCompletasService
     {
         return await _context.FacturasVentas
             .AsNoTracking()
-            .Include(entity => entity.IdOrdenVentaNavigation)
+            .Include(entity => entity.IdPresupuestoNavigation)
             .Include(entity => entity.IdClienteNavigation)
                 .ThenInclude(cliente => cliente.IdPersonaNavigation)
             .Include(entity => entity.IdMedioPagoCompraNavigation)

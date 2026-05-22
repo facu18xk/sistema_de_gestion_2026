@@ -343,7 +343,7 @@ public partial class DblosAmigosContext : DbContext
                 .HasColumnName("Fecha_Pago");
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdMedioPagoCompra).HasColumnName("Id_Medio_Pago_Compra");
-            entity.Property(e => e.IdOrdenVenta).HasColumnName("Id_Orden_Venta");
+            entity.Property(e => e.IdPresupuesto).HasColumnName("Id_Presupuesto");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
             entity.Property(e => e.NroComprobante)
                 .HasMaxLength(100)
@@ -360,10 +360,10 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Facturas_Ventas_Medios_Pagos_Compras");
 
-            entity.HasOne(d => d.IdOrdenVentaNavigation).WithMany(p => p.FacturasVenta)
-                .HasForeignKey(d => d.IdOrdenVenta)
+            entity.HasOne(d => d.IdPresupuestoNavigation).WithMany(p => p.FacturasVenta)
+                .HasForeignKey(d => d.IdPresupuesto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Facturas_Ventas_Ordenes_Ventas");
+                .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
 
             entity.HasOne(d => d.IdTimbradoNavigation).WithMany(p => p.FacturasVenta)
                 .HasForeignKey(d => d.IdTimbrado)

@@ -4,9 +4,9 @@ public class FacturasVentaDto
 {
     public int IdFacturaVenta { get; set; }
 
-    public int IdOrdenVenta { get; set; }
+    public int IdPresupuesto { get; set; }
 
-    public string OrdenVentaDescripcion { get; set; } = string.Empty;
+    public string PresupuestoDescripcion { get; set; } = string.Empty;
 
     public int IdCliente { get; set; }
 
@@ -29,7 +29,7 @@ public class FacturasVentaDto
 
 public class FacturasVentaUpsertDto
 {
-    public int IdOrdenVenta { get; set; }
+    public int IdPresupuesto { get; set; }
 
     public int IdCliente { get; set; }
 

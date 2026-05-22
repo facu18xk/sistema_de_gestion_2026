@@ -77,7 +77,7 @@ public class OrdenVentaCompletaCreateDto
 
 public class FacturaVentaCompletaCreateDto
 {
-    public int IdOrdenVenta { get; set; }
+    public int IdPresupuesto { get; set; }
 
     public int IdCliente { get; set; }
 

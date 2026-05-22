@@ -37,8 +37,8 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         return new FacturasVentaDto
         {
             IdFacturaVenta = entity.IdFacturaVenta,
-            IdOrdenVenta = entity.IdOrdenVenta,
-            OrdenVentaDescripcion = entity.IdOrdenVentaNavigation?.Descripcion ?? string.Empty,
+            IdPresupuesto = entity.IdPresupuesto,
+            PresupuestoDescripcion = entity.IdPresupuestoNavigation?.Descripcion ?? string.Empty,
             IdCliente = entity.IdCliente,
             Cliente = FormatCliente(entity.IdClienteNavigation),
             NroComprobante = entity.NroComprobante,
@@ -55,7 +55,7 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
     {
         return new FacturasVenta
         {
-            IdOrdenVenta = dto.IdOrdenVenta,
+            IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
             NroComprobante = dto.NroComprobante,
             IdTimbrado = dto.IdTimbrado,
