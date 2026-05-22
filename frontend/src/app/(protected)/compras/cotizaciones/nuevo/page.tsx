@@ -65,14 +65,12 @@ export default function NuevaCotizacionPage() {
 
       const nuevaCotizacion = await cotizacionesAPI.create(cabeceraPayload);
 
-      // Evaluamos el ID que devuelva tu backend
       const idCotizacionGenerado = nuevaCotizacion.idPedidoCotizacion || nuevaCotizacion.idPedidoCotizacion;
 
       if (!idCotizacionGenerado) {
         throw new Error("No se pudo obtener el ID de la cotización generada.");
       }
 
-      // 2. Guardar Detalles adaptados al tipo estricto 'CotizacionDetalleSaveDTO'
       for (const item of data.items) {
         const idProductoFinal = Number(item.productoId);
 
@@ -81,7 +79,6 @@ export default function NuevaCotizacionPage() {
           continue;
         }
 
-        // Buscamos el detalle original en los pedidos para heredar su idCategoria
         const original = detallesPedidosOriginales.find(
           (d: any) =>
             String(d.idPedidoCompra) === String(data.solicitudCotizacionId) &&
@@ -102,7 +99,6 @@ export default function NuevaCotizacionPage() {
         await cotizacionesDetallesAPI.create(detallePayload);
       }
 
-      // 3. Cambiar el estado del pedido de origen
       try {
         await pedidosAPI.updateEstado(Number(data.solicitudCotizacionId), {
           idEstado: 4
@@ -128,7 +124,7 @@ export default function NuevaCotizacionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -136,8 +132,8 @@ export default function NuevaCotizacionPage() {
           { label: "Nueva Cotización" },
         ]}
       />
-      <main className="container mx-auto p-4 max-w-5xl">
-        <h2 className="text-2xl font-bold tracking-tight mb-6">Nueva Cotización</h2>
+      <main className="container p-2">
+        <h2 className="text-2xl font-bold tracking-tight mb-2">Nueva Cotización</h2>
 
         <CotizacionForm
           cotizacionEditada={null}
@@ -146,6 +142,6 @@ export default function NuevaCotizacionPage() {
           onCancel={() => router.push("/compras/cotizaciones")}
         />
       </main>
-    </div>
+    </>
   );
 }

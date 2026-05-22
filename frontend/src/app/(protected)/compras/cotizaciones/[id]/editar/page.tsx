@@ -80,7 +80,7 @@ export default function EditarCotizacionPage() {
     try {
       const idCotizacion = Number(params.id);
 
-      // 1. Cabecera
+      //cabecera
       const cabeceraPayload: CotizacionSaveDTO = {
         idPedidoCompra: Number(data.solicitudCotizacionId),
         idEstado: data.idEstado,
@@ -91,7 +91,7 @@ export default function EditarCotizacionPage() {
 
       await cotizacionesAPI.update(idCotizacion, cabeceraPayload);
 
-      // 2. Limpieza de detalles anteriores
+      //detalles -> reemplazar por funcion agregada al backend
       const resDetallesActuales = await cotizacionesDetallesAPI.getAll(1, 500);
       const listaDetallesActuales = resDetallesActuales.items || resDetallesActuales || [];
       const detallesAELiminar = listaDetallesActuales.filter(
@@ -105,7 +105,6 @@ export default function EditarCotizacionPage() {
         }
       }
 
-      // 3. Iterar y guardar los nuevos detalles corrigiendo los campos según Swagger
       for (const item of data.items) {
         const idProductoFinal = Number(item.productoId);
 
@@ -114,18 +113,16 @@ export default function EditarCotizacionPage() {
           continue;
         }
 
-        // Buscamos el detalle original en los pedidos para heredar su idCategoria
         const original = detallesPedidosOriginales.find(
           (d: any) =>
             String(d.idPedidoCompra) === String(data.solicitudCotizacionId) &&
             Number(d.idProducto || d.productoId) === idProductoFinal
         );
 
-        // Construcción del DTO estricto alineado al Backend
         const detallePayload: CotizacionDetalleSaveDTO = {
           idPedidoCotizacion: idCotizacion,
           idProducto: idProductoFinal,
-          idCategoria: original?.idCategoria ? Number(original.idCategoria) : 1, // Por si no encuentra, manda 1 por defecto
+          idCategoria: original?.idCategoria ? Number(original.idCategoria) : 1,
           descripcion: item.descripcion || "Producto",
           cantidad: Number(item.cantidad) || 1,
           precioProducto: Number(item.precioUnitario) || 0,
@@ -135,7 +132,6 @@ export default function EditarCotizacionPage() {
         await cotizacionesDetallesAPI.create(detallePayload);
       }
 
-      // 4. Estado del Pedido Origen
       try {
         await pedidosAPI.updateEstado(Number(data.solicitudCotizacionId), {
           idEstado: 4
@@ -161,7 +157,7 @@ export default function EditarCotizacionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -169,8 +165,8 @@ export default function EditarCotizacionPage() {
           { label: "Editar Cotización" },
         ]}
       />
-      <main className="container mx-auto p-4 max-w-5xl">
-        <h2 className="text-2xl font-bold tracking-tight mb-6">Editar Cotización #{params.id}</h2>
+      <main className="container p-2">
+        <h2 className="text-2xl font-bold tracking-tight mb-2">Editar Cotización #{params.id}</h2>
 
         <CotizacionForm
           cotizacionEditada={cotizacion}

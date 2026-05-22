@@ -279,3 +279,130 @@ export interface CotizacionItemForm {
     precioUnitario: number;
     descuento: number;
 }
+
+export interface OrdenCompraSaveDTO {
+    idPedidoCotizacion: number
+    idProveedor: number
+    idEstado: number
+    fecha: string
+    descripcion: string
+}
+
+export interface OrdenCompraDTO {
+    idOrdenCompra: number
+    idPedidoCotizacion: number
+    idProveedor: number
+    proveedor: string
+    idEstado: number
+    estado: string
+    fecha: string
+    descripcion: string
+}
+
+export interface OrdenCompraDetalleSaveDTO {
+    idOrdenCompraDetalle: number
+    idOrdenCompra: number
+    idProducto: number
+    cantidad: number
+}
+
+export interface OrdenCompraDetalleDTO {
+    idOrdenCompraDetalle: number
+    idOrdenCompra: number
+    idProducto: number
+    cantidad: number
+    producto: {
+        idProducto: number
+        nombre: string
+    }
+}
+
+export interface FacturaCompra {
+    idFacturaCompra: number
+    idOrdenCompra: number
+    ordenCompraDescripcion: string
+    idProveedor: number
+    proveedor: string
+    nroComprobante: string
+    timbrado: string
+    fecha: string
+    descripcion: string
+    detalles: FacturaCompraDetalle[]
+}
+
+export interface FacturaCompraSaveDTO {
+    idOrdenCompra: number
+    idProveedor: number
+    nroComprobante: string
+    timbrado: string
+    fecha: string
+    descripcion: string
+}
+
+export interface ProductoEmbed {
+    idProducto: number
+    descripcion: string
+}
+
+export interface FacturaCompraDetalle {
+    idFacturaCompraDetalle: number
+    idFacturaCompra: number
+    idProducto: number
+    cantidad: number
+    precioUnitario: number
+    totalBruto: number
+    totalIva: number
+    totalNeto: number
+    producto: ProductoEmbed
+}
+
+export interface FacturaCompraDetalleSaveDTO {
+    idFacturaCompra: number
+    idProducto: number
+    cantidad: number
+    precioUnitario: number
+    totalBruto: number
+    totalIva: number
+    totalNeto: number
+}
+
+export interface OrdenPagoCompra {
+    idOrdenPagoCompra: number;
+    idProveedor: number;
+    proveedor: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+    detalles?: OrdenPagoCompraDetalle[];
+}
+
+export interface OrdenPagoCompraDetalle {
+    idOrdenPagoCompraDetalle: number;
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+    facturaCompra?: {
+        idFacturaCompra: number;
+        numeroFactura: string;
+    };
+}
+
+export interface OrdenPagoCompraSaveDTO {
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface OrdenPagoCompraDetalleSaveDTO {
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+}
+
+export interface MedioPagoLinea {
+    tipo: "Efectivo" | "Cheque" | "Transferencia" | "Nota de Crédito";
+    referencia: string;
+    monto: number;
+}

@@ -126,7 +126,7 @@ export default function EditarPedidoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Navbar />
       <PageBreadcrumb
         steps={[
@@ -136,7 +136,7 @@ export default function EditarPedidoPage() {
         ]}
       />
       <div className="container mx-auto py-6">
-        <h2 className="text-2xl font-bold tracking-tight mb-6">Editar Pedido</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-2">Editar Pedido</h2>
 
         <PedidoForm
           pedidoEditado={pedido}

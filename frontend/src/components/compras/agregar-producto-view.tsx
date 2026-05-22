@@ -156,31 +156,36 @@ export function AgregarProductosModal({
     return coincideNombre && coincideCategoria && coincideMarca;
   };
 
-  // NUEVA LÓGICA DE CONSTRUCCIÓN DE LA TABLA
+  // NUEVA LÓGICA DE CONSTRUCCIÓN DE LA TABLA (CON ORDENAMIENTO POR STOCK)
   const obtenerProductosRenderizados = () => {
     const todosLosSeleccionados = Array.from(memoriaSeleccionados.values());
 
+    let resultado: ProductoConSeleccion[] = [];
+
     if (soloSeleccionados) {
-      return todosLosSeleccionados.filter(cumpleFiltros);
+      resultado = todosLosSeleccionados.filter(cumpleFiltros);
+    } else {
+      // 1. Siempre incluir TODOS los seleccionados que cumplan el filtro (independiente de la página)
+      const seleccionadosVisibles = todosLosSeleccionados.filter(cumpleFiltros);
+
+      // 2. Filtrar los productos de la página actual que cumplan con el filtro
+      const paginaActualFiltrada = productosEstado.filter(cumpleFiltros);
+
+      // 3. Unificar listas evitando duplicados (priorizando el estado de selección)
+      const mapaUnificados = new Map<number, ProductoConSeleccion>();
+
+      seleccionadosVisibles.forEach(p => mapaUnificados.set(p.id, p));
+      paginaActualFiltrada.forEach(p => {
+        if (!mapaUnificados.has(p.id)) {
+          mapaUnificados.set(p.id, p);
+        }
+      });
+
+      resultado = Array.from(mapaUnificados.values());
     }
 
-    // 1. Siempre incluir TODOS los seleccionados que cumplan el filtro (independiente de la página)
-    const seleccionadosVisibles = todosLosSeleccionados.filter(cumpleFiltros);
-
-    // 2. Filtrar los productos de la página actual que cumplan con el filtro
-    const paginaActualFiltrada = productosEstado.filter(cumpleFiltros);
-
-    // 3. Unificar listas evitando duplicados (priorizando el estado de selección)
-    const mapaUnificados = new Map<number, ProductoConSeleccion>();
-
-    seleccionadosVisibles.forEach(p => mapaUnificados.set(p.id, p));
-    paginaActualFiltrada.forEach(p => {
-      if (!mapaUnificados.has(p.id)) {
-        mapaUnificados.set(p.id, p);
-      }
-    });
-
-    return Array.from(mapaUnificados.values());
+    // Ordenar por cantidad en stock (disponible) de menor a mayor
+    return resultado.sort((a, b) => a.disponible - b.disponible);
   };
 
   const productosVisibles = obtenerProductosRenderizados();
@@ -287,55 +292,70 @@ export function AgregarProductosModal({
                       </TableCell>
                     </TableRow>
                   ) : (
-                    productosVisibles.map((p) => (
-                      <TableRow key={p.id} className={`h-9 ${p.marcado ? "bg-primary/10 hover:bg-primary/15 transition-colors font-medium" : "hover:bg-muted/50"}`}>
-                        <TableCell className="font-mono text-[11px] text-muted-foreground py-0.5">#{p.id}</TableCell>
+                    productosVisibles.map((p) => {
+                      const bajoStock = p.disponible < 20;
 
-                        <TableCell className="font-medium text-xs py-0.5 max-w-[240px] truncate" title={p.descripcion}>
-                          {p.descripcion}
-                        </TableCell>
+                      // Determinamos las clases de fondo dinámicamente
+                      let rowClass = "hover:bg-muted/50";
+                      if (p.marcado) {
+                        rowClass = "bg-primary/10 hover:bg-primary/15 font-medium";
+                      } else if (bajoStock) {
+                        rowClass = "bg-amber-50/80 dark:bg-amber-950/20 hover:bg-amber-100/70 dark:hover:bg-amber-950/30 transition-colors";
+                      }
 
-                        <TableCell className="text-xs text-muted-foreground py-0.5">{p.marca || "—"}</TableCell>
-                        <TableCell className="text-xs py-0.5">{p.categoria}</TableCell>
-                        <TableCell className="font-semibold text-xs py-0.5">${p.precio}</TableCell>
-                        <TableCell className="text-center py-0.5">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-6 rounded-md"
-                            onClick={() => {
-                              setProductoDetalle(p);
-                              setSheetDetalleOpen(true);
-                            }}
-                          >
-                            <Menu className="size-3" />
-                          </Button>
-                        </TableCell>
-                        <TableCell className="text-center font-medium text-xs py-0.5">{p.disponible}</TableCell>
-                        <TableCell className="py-0.5">
-                          <Input
-                            className="w-20 h-6 text-center font-medium text-xs px-1"
-                            type="number"
-                            min={0}
-                            placeholder="0"
-                            value={p.cantidadSeleccionada === 0 ? "" : p.cantidadSeleccionada}
-                            onChange={(e) => {
-                              const val = e.target.value === "" ? 0 : Number(e.target.value);
-                              actualizarProducto(p.id, { cantidadSeleccionada: val });
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell className="text-center py-0.5">
-                          <input
-                            type="checkbox"
-                            className="size-3.5 accent-primary cursor-pointer"
-                            checked={p.marcado}
-                            onChange={(e) => actualizarProducto(p.id, { marcado: e.target.checked })}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
+                      return (
+                        <TableRow key={p.id} className={`h-9 transition-colors ${rowClass}`}>
+                          <TableCell className="font-mono text-[11px] text-muted-foreground py-0.5">#{p.id}</TableCell>
+
+                          <TableCell className="font-medium text-xs py-0.5 max-w-[240px] truncate" title={p.descripcion}>
+                            {p.descripcion}
+                          </TableCell>
+
+                          <TableCell className="text-xs text-muted-foreground py-0.5">{p.marca || "—"}</TableCell>
+                          <TableCell className="text-xs py-0.5">{p.categoria}</TableCell>
+                          <TableCell className="font-semibold text-xs py-0.5">${p.precio}</TableCell>
+                          <TableCell className="text-center py-0.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-6 rounded-md"
+                              onClick={() => {
+                                setProductoDetalle(p);
+                                setSheetDetalleOpen(true);
+                              }}
+                            >
+                              <Menu className="size-3" />
+                            </Button>
+                          </TableCell>
+                          {/* Resaltamos también levemente el número de stock si está bajo */}
+                          <TableCell className={`text-center font-medium text-xs py-0.5 ${bajoStock && !p.marcado ? "text-amber-700 dark:text-amber-400 font-bold" : ""}`}>
+                            {p.disponible}
+                          </TableCell>
+                          <TableCell className="py-0.5">
+                            <Input
+                              className="w-20 h-6 text-center font-medium text-xs px-1"
+                              type="number"
+                              min={0}
+                              placeholder="0"
+                              value={p.cantidadSeleccionada === 0 ? "" : p.cantidadSeleccionada}
+                              onChange={(e) => {
+                                const val = e.target.value === "" ? 0 : Number(e.target.value);
+                                actualizarProducto(p.id, { cantidadSeleccionada: val });
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center py-0.5">
+                            <input
+                              type="checkbox"
+                              className="size-3.5 accent-primary cursor-pointer"
+                              checked={p.marcado}
+                              onChange={(e) => actualizarProducto(p.id, { marcado: e.target.checked })}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>

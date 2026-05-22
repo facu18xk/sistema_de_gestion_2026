@@ -22,7 +22,6 @@ export default function CotizacionesPage() {
   const [cotizaciones, setCotizaciones] = useState<CotizacionDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estados para paginación basándonos en tu UI compacta de las imágenes
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
 
@@ -30,19 +29,17 @@ export default function CotizacionesPage() {
     setIsLoading(true);
     try {
       const res = await cotizacionesAPI.getAll(numPagina, 10);
+      console.log(res);
 
-      // Control preventivo: Si la API devuelve los ítems dentro de 'items' o directamente en el array
       const itemsCargados = res.items || res || [];
       setCotizaciones(itemsCargados);
 
-      // Control de paginación opcional según tu backend
       setTotalPaginas(res.totalPages || 1);
     } catch (error) {
       console.error("Error al cargar cotizaciones:", error);
       notify.error("Error de carga", "No se pudo recuperar el listado del servidor.");
-      setCotizaciones([]); // Fallback seguro para evitar fallos de renderizado
+      setCotizaciones([]);
     } finally {
-      // ⚡ CRUCIAL: Esto garantiza que el loader se apague pase lo que pase
       setIsLoading(false);
     }
   };
@@ -52,14 +49,14 @@ export default function CotizacionesPage() {
   }, [pagina]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
 
       <PageBreadcrumb
         steps={[{ label: "Compras" }, { label: "Cotizaciones" }]}
       />
 
-      <main className="container mx-auto p-4 max-w-5xl">
-        <div className="flex justify-between items-center mb-6">
+      <main className="container p-4">
+        <div className="flex justify-between items-center mb-2">
           <h2 className="text-2xl font-bold tracking-tight">Listado de Cotizaciones</h2>
           <Link href="/compras/cotizaciones/nuevo">
             <Button size="sm" className="flex items-center gap-2">
@@ -104,7 +101,6 @@ export default function CotizacionesPage() {
                         #{c.idPedidoCotizacion}
                       </TableCell>
                       <TableCell className="text-xs font-medium">
-                        {/* Acceso seguro al objeto del proveedor */}
                         {c.proveedor?.razonSocial || "Proveedor no asignado"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
@@ -128,7 +124,6 @@ export default function CotizacionesPage() {
               </TableBody>
             </Table>
 
-            {/* Paginador Sincronizado con tus Capturas */}
             <div className="flex items-center justify-between p-3 bg-muted/20 border-t text-xs">
               <span className="text-muted-foreground">
                 Página <b>{pagina}</b> de {totalPaginas}

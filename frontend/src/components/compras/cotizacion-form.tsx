@@ -120,7 +120,7 @@ export function CotizacionForm({
                 descripcion: d.producto || d.descripcion || "Producto",
                 cantidad: Number(d.cantidad),
                 precioUnitario: 0,
-                descuento: 0,
+                descuento: d.descuento ? Number(d.descuento) : 0,
             }));
 
             setFormData(prev => ({ ...prev, items: itemsCargados }));
@@ -212,7 +212,7 @@ export function CotizacionForm({
                     update: "Actualizar Cotización"
                 }}
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
                     <FieldWrapper label="Pedido de Compra Origen" id="solicitudCotizacionId">
                         <div className="relative">
                             <select

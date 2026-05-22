@@ -14,5 +14,11 @@ export const API_CONFIG = {
     PEDIDOS_DETALLES: "/api/PedidosComprasDetalles",
     COTIZACIONES: "/api/PedidosCotizaciones",
     COTIZACIONES_DETALLES: "/api/PedidosCotizacionesDetalles",
+    ORDENES_COMPRA: "/api/OrdenesCompras",
+    ORDENES_COMPRA_DETALLES: "/api/OrdenesComprasDetalles",
+    FACTURAS_COMPRA: "/api/FacturasCompras",
+    FACTURAS_COMPRA_DETALLES: "/api/FacturasComprasDetalles",
+    ORDENES_PAGO_COMPRA: "/api/OrdenesPagosCompras",
+    ORDENES_PAGO_COMPRA_DETALLES: "/api/OrdenesPagosComprasDetalles",
   },
 } as const;

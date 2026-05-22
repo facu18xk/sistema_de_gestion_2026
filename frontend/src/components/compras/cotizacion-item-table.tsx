@@ -23,7 +23,7 @@ export function CotizacionItemsTable({ items, onUpdateItem, onDeleteItem }: Prop
 
   // Cálculo del total general para mostrarlo al pie de la tabla
   const totalGeneral = items.reduce((acc, item) => {
-    return acc + (Number(item.cantidad) * Number(item.precioUnitario || 0));
+    return acc + (Number(item.cantidad) * (Number(item.precioUnitario || 0) - Number(item.descuento || 0)));
   }, 0);
 
   return (
@@ -35,7 +35,8 @@ export function CotizacionItemsTable({ items, onUpdateItem, onDeleteItem }: Prop
             <TableHead>Descripción del Producto</TableHead>
             <TableHead className="w-[120px] text-center">Cantidad</TableHead>
             <TableHead className="w-[150px] text-center">Precio Unit. (Gs.)</TableHead>
-            <TableHead className="w-[150px] text-right">Subtotal</TableHead>
+            <TableHead className="w-[150px] text-center">Descuento (Gs.)</TableHead>
+            <TableHead className="w-[150px] text-right">Subtotal (Gs.)</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -48,7 +49,7 @@ export function CotizacionItemsTable({ items, onUpdateItem, onDeleteItem }: Prop
             </TableRow>
           ) : (
             items.map((item, index) => {
-              const subtotal = Number(item.cantidad) * Number(item.precioUnitario || 0);
+              const subtotal = Number(item.cantidad) * (Number(item.precioUnitario || 0) - Number(item.descuento || 0));
 
               return (
                 <TableRow key={`${item.productoId}-${index}`} className="hover:bg-slate-50/50">
@@ -70,10 +71,20 @@ export function CotizacionItemsTable({ items, onUpdateItem, onDeleteItem }: Prop
                   <TableCell>
                     <Input
                       type="number"
-                      min={0}
+                      min={10000}
                       placeholder="0"
                       value={item.precioUnitario || ""}
                       onChange={(e) => onUpdateItem(index, "precioUnitario", Number(e.target.value))}
+                      className="w-32 mx-auto h-8 text-right font-medium text-green-700"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      value={item.descuento || ""}
+                      onChange={(e) => onUpdateItem(index, "descuento", Number(e.target.value))}
                       className="w-32 mx-auto h-8 text-right font-medium text-green-700"
                     />
                   </TableCell>
