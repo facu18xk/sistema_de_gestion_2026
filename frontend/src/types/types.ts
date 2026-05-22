@@ -346,88 +346,125 @@ export interface PedidoSaveDTO {
 }
 
 export interface PedidoDetalleSaveDTO {
-    idPedidoCompra: number;
-    idProducto: number;
-    idCategoria: number;
-    descripcion: string;
-    cantidad: number;
+  idPedidoCompra: number
+  idProducto: number
+  categoria: string
+  descripcion: string
+  cantidad: number
+  
 }
 
-export interface PedidoDetalleResponseDTO extends PedidoDetalleSaveDTO {
-    idPedidoCompraDetalle: number;
-    numeroPedidoCompra: number;
-    producto: string;
-    categoria: string;
-}/**
- * ESTRUCTURA REAL SEGÚN SWAGGER DE PEDIDOS COTIZACIONES
- */
-
-// Respuesta del GET /api/PedidosCotizaciones (Verificado en image_1ad382.png)
-export interface CotizacionDTO {
-    idPedidoCotizacion: number;
-    idPedidoCompra: number;
-    numeroPedidoCompra: number;
-    idEstado: number;
-    estado: string;
-    idProveedor: number;
-    proveedor: {
-        idProveedor: number;
-        ruc: string;
-        razonSocial: string;
-    };
-    numeroPedido: number;
-    fecha: string;
-    validaHasta?: string;
+export interface ProcesoContableDTO {
+  idProcesoContable: number
+  periodoAnho: number
+  descripcion: string
+  cantNiveles: number
+  cantDigitosNivel: number
+  moneda: string
+  estado: string
+  
+  tienePeriodos?: boolean;
 }
 
-// Cuerpo para el POST / PUT /api/PedidosCotizaciones (Verificado en image_1ad3dc.png)
-export interface CotizacionSaveDTO {
-    idPedidoCompra: number;
-    idEstado: number;
-    idProveedor: number;
-    numeroPedido: number;
-    fecha: string;
+export interface ProcesoContableSaveDTO {
+  periodoAnho: number
+  descripcion: string
+  cantNiveles: number
+  cantDigitosNivel: number
+  moneda: string
 }
 
-export interface CotizacionDetalleDTO {
-    idPedidoCotizacionDetalle: number;
-    idPedidoCotizacion: number;
-    idProducto: number;
-    idCategoria: number;
-    descripcion: string;
-    cantidad: number;
-    precioProducto: number;
+export interface PeriodoContableDTO {
+  idPeriodoContable: number
+  idProcesoContable: number
+  procesoContable: string
+  anho: number
+  mes: number
+  fechaInicio: string
+  fechaFin: string
+  estado: string
 }
 
-// El cuerpo exacto para el POST /api/PedidosCotizacionesDetalles
-export interface CotizacionDetalleSaveDTO {
-    idPedidoCotizacion: number;
-    idProducto: number;
-    idCategoria: number;
-    descripcion: string;
-    cantidad: number;
-    precioProducto: number;
-    descuento: number;
+export interface PeriodoContableSaveDTO {
+  idProcesoContable: number
+  anho: number
+  mes: number
+  fechaInicio: string
+  fechaFin: string
+  estado: string
 }
 
-/**
- * ESTADO PARA EL FORMULARIO (Mantiene la UI del Frontend intacta)
- */
-export interface CotizacionFormState {
-    solicitudCotizacionId: string; // Referencia a idPedidoCompra
-    proveedorId: string;
-    fecha: string;
-    validaHasta: string;
-    idEstado: number;
-    numeroPedido: number;
-    items: CotizacionItemForm[];
+export interface Empleado {
+  idEmpleado: number
+  ci: string
+  ruc: string
+  fechaIngreso: string
+  idDireccion: number
+  direccion: Direccion
+  nombres: string
+  apellidos: string
+  correo: string
+  telefono: string
 }
 
-export interface CotizacionItemForm {
-    idDetalle?: number;
-    productoId: number;
-    descripcion: string;
-    cantidad: number;
-    precioUnitario: number;
-    descuento: number;
+export interface EmpleadoSaveDTO {
+  ci: string
+  ruc: string
+  fechaIngreso: string
+  direccion: {
+    calle1: string
+    calle2: string | null
+    descripcion: string | null
+    idPais: number
+    idCiudad: number
+  }
+  nombres: string
+  apellidos: string
+  correo: string
+  telefono: string
+}
+
+export interface EmpleadoFormState {
+  ci: string
+  ruc: string
+  fechaIngreso: string
+  nombres: string
+  apellidos: string
+  correo: string
+  telefono: string
+
+  idPais: string
+  idCiudad: string
+
+  calle1: string
+  calle2: string
+  descripcionDireccion: string
+}
+
+export interface Pariente {
+  idPariente: number
+  idEmpleado: number
+  tipoRelacion: string
+  edad: number
+  fechaNacimiento: string
+
+  empleado: {
+    idEmpleado: number
+    nombres: string
+    apellidos: string
+  }
+}
+
+export interface ParienteSaveDTO {
+  idEmpleado: number
+  tipoRelacion: string
+  edad: number
+  fechaNacimiento: string
+}
+
+export interface ParienteFormState {
+  idEmpleado: string
+  tipoRelacion: string
+  edad: string
+  fechaNacimiento: string
 }
