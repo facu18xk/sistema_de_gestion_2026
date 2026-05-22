@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using api.Models;
@@ -11,9 +12,11 @@ using api.Models;
 namespace api.Migrations.DblosAmigos
 {
     [DbContext(typeof(DblosAmigosContext))]
-    partial class DblosAmigosContextModelSnapshot : ModelSnapshot
+    [Migration("20260522205952_AddTesoreriaBancos")]
+    partial class AddTesoreriaBancos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1599,11 +1602,8 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnName("Descripcion");
 
                     b.Property<DateTime>("Fecha")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("IdCotizacionCompra")
-                        .HasColumnType("integer")
-                        .HasColumnName("Id_Cotizacion_Compra");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("Fecha");
 
                     b.Property<int>("IdEstado")
                         .HasColumnType("integer")
@@ -1618,8 +1618,6 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnName("Id_Proveedor");
 
                     b.HasKey("IdOrdenCompra");
-
-                    b.HasIndex("IdCotizacionCompra");
 
                     b.HasIndex("IdEstado");
 
@@ -1970,6 +1968,10 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Pedido_Compra");
 
+                    b.Property<int>("IdProveedor")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Proveedor");
+
                     b.Property<int>("NumeroPedido")
                         .HasColumnType("integer")
                         .HasColumnName("Numero_Pedido");
@@ -1979,6 +1981,8 @@ namespace api.Migrations.DblosAmigos
                     b.HasIndex("IdEstado");
 
                     b.HasIndex("IdPedidoCompra");
+
+                    b.HasIndex("IdProveedor");
 
                     b.ToTable("Pedidos_Cotizaciones", (string)null);
                 });
@@ -2000,6 +2004,10 @@ namespace api.Migrations.DblosAmigos
                         .HasMaxLength(100)
                         .IsUnicode(false)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Descuento")
+                        .HasColumnType("numeric")
+                        .HasColumnName("Descuento");
 
                     b.Property<int>("IdCategoria")
                         .HasColumnType("integer")
@@ -3177,11 +3185,6 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.OrdenesCompra", b =>
                 {
-                    b.HasOne("api.Models.CotizacionesCompra", "IdCotizacionCompraNavigation")
-                        .WithMany("OrdenesCompras")
-                        .HasForeignKey("IdCotizacionCompra")
-                        .HasConstraintName("FK_Ordenes_Compras_Cotizaciones_Compras");
-
                     b.HasOne("api.Models.Estado", "IdEstadoNavigation")
                         .WithMany("OrdenesCompras")
                         .HasForeignKey("IdEstado")
@@ -3199,8 +3202,6 @@ namespace api.Migrations.DblosAmigos
                         .HasForeignKey("IdProveedor")
                         .IsRequired()
                         .HasConstraintName("FK_Ordenes_Compras_Proveedores");
-
-                    b.Navigation("IdCotizacionCompraNavigation");
 
                     b.Navigation("IdEstadoNavigation");
 
@@ -3394,9 +3395,17 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasConstraintName("FK_Pedidos_Cotizaciones_Pedidos_Compras");
 
+                    b.HasOne("api.Models.Proveedor", "IdProveedorNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdProveedor")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("IdEstadoNavigation");
 
                     b.Navigation("IdPedidoCompraNavigation");
+
+                    b.Navigation("IdProveedorNavigation");
                 });
 
             modelBuilder.Entity("api.Models.PedidosCotizacionesDetalle", b =>
@@ -3612,8 +3621,6 @@ namespace api.Migrations.DblosAmigos
             modelBuilder.Entity("api.Models.CotizacionesCompra", b =>
                 {
                     b.Navigation("CotizacionesComprasDetalles");
-
-                    b.Navigation("OrdenesCompras");
                 });
 
             modelBuilder.Entity("api.Models.CuentaBancaria", b =>

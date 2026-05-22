@@ -15,7 +15,8 @@ public static class SwaggerModules
             ["catalogos"] = new() { Title = "api - Catalogos", Version = "v1" },
             ["compras"] = new() { Title = "api - Compras", Version = "v1" },
             ["ventas"] = new() { Title = "api - Ventas", Version = "v1" },
-            ["contabilidad"] = new() { Title = "api - Contabilidad", Version = "v1" }
+            ["contabilidad"] = new() { Title = "api - Contabilidad", Version = "v1" },
+            ["tesoreria"] = new() { Title = "api - Tesoreria", Version = "v1" }
         };
 
     private static readonly IReadOnlyDictionary<string, string> ControllerModules =
@@ -69,6 +70,18 @@ public static class SwaggerModules
             ["ModelosAsientosDetalles"] = "contabilidad",
             ["PeriodosContables"] = "contabilidad",
             ["ProcesosContables"] = "contabilidad"
+            ,
+            ["Bancos"] = "tesoreria",
+            ["CuentasBancarias"] = "tesoreria",
+            ["TiposCuentasBancarias"] = "tesoreria",
+            ["MovimientosBancarios"] = "tesoreria",
+            ["TiposMovimientosBancarios"] = "tesoreria",
+            ["ChequesEmitidos"] = "tesoreria",
+            ["DepositosBancarios"] = "tesoreria",
+            ["TiposDepositosBancarios"] = "tesoreria",
+            ["DetallesDepositosBancarios"] = "tesoreria",
+            ["ChequesMismoBanco"] = "tesoreria",
+            ["ChequesTerceros"] = "tesoreria"
         };
 
     public static bool IncludesApi(string documentName, ApiDescription apiDescription)

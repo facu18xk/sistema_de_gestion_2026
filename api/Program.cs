@@ -40,6 +40,9 @@ builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGene
 builder.Services.AddScoped<PreciosVentasService>();
 builder.Services.AddScoped<SalesPriceResolver>();
 builder.Services.AddScoped<VentasCompletasService>();
+builder.Services.AddScoped<MovimientoBancarioService>();
+builder.Services.AddScoped<ChequeEmitidoService>();
+builder.Services.AddScoped<DepositoBancarioService>();
 builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
