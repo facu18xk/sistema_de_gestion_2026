@@ -29,7 +29,8 @@ public class OrdenesPagosComprasDetallesController : CrudControllerBase<OrdenesP
                 ? null 
                 : new FacturaCompraResumenDto 
                 {
-                    IdFacturaCompra = factura.IdFacturaCompra
+                    IdFacturaCompra = factura.IdFacturaCompra,
+                    Nro_Comprobante = factura.NroComprobante
                 }
         };
     }
