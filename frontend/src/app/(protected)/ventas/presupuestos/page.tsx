@@ -261,7 +261,7 @@ export default function PedidosPage() {
         </div>
       ) : (
         <DataTable
-          caption="Lista de pedidos de compra."
+          caption="Lista de presupuestos."
           headerRow={
             <TableRow>
               <TableHead>Presupuesto</TableHead>
@@ -276,7 +276,7 @@ export default function PedidosPage() {
           onPageChange={(page) => setCurrentPage(page)}
         >
           {presupuestos.map((p) => {
-          const vigente = esPresupuestoVigente(p.fechaVencimiento);
+          //const vigente = esPresupuestoVigente(p.fechaVencimiento);
           const estadoActual = estados.find((e) => e.idEstado == p.idEstado)?.nombre;
           const estadoExpirado = estados.find((e) => e.idEstado === 5)?.nombre;
           const nombreCliente = presupuestos.find((c) => c.idCliente == p.idCliente)?.cliente;
@@ -286,9 +286,9 @@ export default function PedidosPage() {
               <TableCell className="font-medium">{nombreCliente}</TableCell>
               <TableCell>{new Date(p.fechaVencimiento).toLocaleDateString()}</TableCell>
               <TableCell>{
-                vigente ? estadoActual === 'Aprobado' ? <Badge variant="aprobado">{estadoActual}</Badge>
+                estadoActual === 'Aprobado' ? <Badge variant="aprobado">{estadoActual}</Badge>
                 : estadoActual === 'Pendiente' ? <Badge variant="pendiente">{estadoActual}</Badge>
-                : <Badge variant="desaprobado">{estadoActual}</Badge>
+                : estadoActual === 'Rechazado' ? <Badge variant="rechazado">{estadoActual}</Badge>
                 : <Badge variant="destructive">{estadoExpirado}</Badge>
                 
                 }</TableCell>
@@ -296,8 +296,9 @@ export default function PedidosPage() {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  disabled={!vigente || estadoActual === 'Pendiente' || estadoActual === 'Desaprobado'}
+                  disabled={estadoActual !== 'Aprobado'}
                   title="Generar Factura"
+                  onClick={() => router.push(`/ventas/facturacion/nuevo?presupuestoId=${p.idPresupuesto}`)}
                 >
                   <ReceiptText className="size-4 text-green-600" />
                 </Button>
@@ -312,7 +313,7 @@ export default function PedidosPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  disabled={estadoActual !== 'Pendiente' || !vigente}
+                  disabled={estadoActual !== 'Pendiente'}
                   title="Eliminar Factura"
                   onClick={() => {
                     setPresupuestoAEliminar(p)

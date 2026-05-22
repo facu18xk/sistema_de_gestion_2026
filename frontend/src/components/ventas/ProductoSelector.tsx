@@ -50,7 +50,7 @@ export const ProductoSelector = ({ isOpen, onClose, onSelect, productos, precios
           className="mb-4"
         />
 
-        <div className="max-h-[400px] overflow-y-auto border rounded-md">
+        <div className="h-[400px] overflow-y-auto border rounded-md">
           <table className="w-full text-sm">
             <thead className="bg-muted sticky top-0">
               <tr>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Printer, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Printer, Save, Plus, Trash2, ReceiptText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -30,6 +30,7 @@ import { productosAPI } from "@/services/productosAPI";
 import { preciosVentasAPI } from "@/services/preciosVentasAPI";
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
 import { ProductoSelector } from "@/components/ventas/ProductoSelector";
+import { formatCI, formatRUC } from "@/utils/cedula-format";
 
 export default function VerPresupuestoPage() {
   const params = useParams();
@@ -49,6 +50,7 @@ export default function VerPresupuestoPage() {
   const [itemsCarrito, setItemsCarrito] = useState<PresupuestoItem[]>([]);
   const [isProductoModalOpen, setIsProductoModalOpen] = useState(false);
   const [esEditable, setEsEditable] = useState(false);
+  const [esAprobado, setEsAprobado] = useState(false);
 
   const columnWidths = {
     producto: "w-[35%]",
@@ -75,6 +77,8 @@ export default function VerPresupuestoPage() {
           //Verificamos la vigencia del presupuesto
           const permiteEditar = resPresupuesto.idEstado === 1 && esPresupuestoVigente(resPresupuesto.fechaVencimiento);
           setEsEditable(permiteEditar);
+          const permiteFacturar = resPresupuesto.idEstado === 2 ? true : false;
+          setEsAprobado(permiteFacturar);
           //Cargamos los datos del cliente
           if (resPresupuesto.idCliente) {
             const resCliente = await clientesAPI.getById(resPresupuesto.idCliente);
@@ -83,7 +87,7 @@ export default function VerPresupuestoPage() {
         }
         //Cargamos los estados
         const resEstados = await estadosAPI.getAll();
-        const toRemove = ['Enviado', 'Respondido', 'Expirado'];
+        const toRemove = ['Enviado', 'Respondido', 'Expirado', 'Pagado', 'Anulado'];
         const estadosFiltrados = resEstados.items.filter(item => !toRemove.includes(item.nombre));
         setListaEstados(estadosFiltrados);
         //Cargamos los productos disponibles
@@ -211,7 +215,7 @@ export default function VerPresupuestoPage() {
         </AlertDialogContent>
       </AlertDialog>
       {/* ACCIONES DE CABECERA */}
-      <div className="flex justify-between items-center my-4">
+      <div className="flex justify-between items-center my-2">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Presupuesto {formatearNumeroPresupuesto(idPresupuesto)}</h1>
           <p className="text-xs text-muted-foreground">{presupuesto.descripcion}</p>
@@ -228,68 +232,89 @@ export default function VerPresupuestoPage() {
               <Save className="h-4 w-4"/> {isUpdating ? "Actualizando..." : "Actualizar"}
             </Button>
           )}
+          {esAprobado && (<Button
+            size="sm"
+            variant="default"
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => router.push(`/ventas/facturacion/nuevo?presupuestoId=${presupuesto.idPresupuesto}`)}
+          >
+              <ReceiptText className="h-4 w-4"/> {"Generar Factura"}
+          </Button>)}
         </div>
       </div>
-      {/* INFORMACIÓN GENERAL (SOLO LECTURA) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-2">
-        {/* DATOS CLIENTE */}
-        <div className="md:col-span-2 p-4 border rounded-lg bg-slate-50/40 text-sm">
-          <h2 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Datos del Cliente</h2>
-          <div className="grid grid-cols-2 gap-y-8">
-            <div>
-              <p className="text-muted-foreground">Razón Social</p>
-              <p className="font-medium">{cliente ? `${cliente.nombres} ${cliente.apellidos}` : "Cargando cliente..."}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Documento (CI/RUC)</p>
-              <p className="font-medium">{cliente ? (cliente.ruc ? `RUC: ${cliente.ruc}` : `CI: ${cliente.ci}`) : "---"}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Email</p>
-              <p className="font-medium">{cliente?.correo || "No registrado"}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Fecha de Nacimiento</p>
-              <p className="font-medium">{cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}</p>
+      {/* CABECERA DE DATOS */}
+      <div className="p-3 border rounded-lg bg-slate-50/40 text-xs shadow-sm my-2">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+          {/* DATOS DEL CLIENTE */}
+          <div className="md:col-span-2 border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+              Datos del Cliente
+            </p>
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+              <div>
+                <p className="text-muted-foreground text-[13px]">Razón Social</p>
+                <p className="font-semibold text-slate-900 truncate text-[13px]">
+                  {cliente ? `${cliente.nombres} ${cliente.apellidos}` : "Cargando cliente..."}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-[13px]">Documento (CI/RUC)</p>
+                <p className="font-medium text-slate-800 text-[13px]">
+                  {cliente ? (cliente.ruc ? `RUC: ${formatRUC(cliente.ruc)}` : `CI: ${formatCI(cliente.ci)}`) : "---"}
+                </p>
+              </div>
+              <div className="truncate">
+                <p className="text-muted-foreground text-[13px]">Email</p>
+                <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
+                <p className="font-medium text-slate-700 text-[13px]">
+                  {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        {/* DATOS PRESUPUESTO */}
-        <div className="p-4 border rounded-lg bg-slate-50/40 text-sm">
-          <h2 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Detalles del Presupuesto</h2>
-          <div className="grid gap-3">
-            <div className="flex justify-between border-b pb-1">
-              <p className="text-muted-foreground">Fecha Emisión</p>
-              <p className="font-medium">{formatearFecha(presupuesto.fecha)}</p>
-            </div>
-            <div className="flex justify-between border-b pb-1">
-              <p className="text-muted-foreground">Válido Hasta</p>
-              <p className="font-medium text-amber-700">{formatearFecha(presupuesto.fechaVencimiento)}</p>
-            </div>
-            {/* SELECTOR DE ESTADO */}
-            <div className="grid gap-1.5 mt-1">
-              <label className="text-xs font-medium text-muted-foreground">Estado del Presupuesto</label>
-              <Select
-                value={String(idEstadoSeleccionado)}
-                onValueChange={(val) => setIdEstadoSeleccionado(Number(val))}
-                disabled={!esEditable || isUpdating}
-              >
-                <SelectTrigger className="w-full h-9 bg-white shadow-sm">
-                  <SelectValue placeholder="Seleccione un estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {listaEstados.map((est) => (
-                    <SelectItem key={est.idEstado} value={String(est.idEstado)}>
-                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                        est.idEstado === 1 ? "bg-yellow-400" : 
-                        est.idEstado === 2 ? "bg-green-500" : 
-                        est.idEstado === 6 ? "bg-red-500" : "bg-slate-400"
-                      }`} />
-                      {est.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* DATOS PRESUPUESTO */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Estado del Presupuesto
+            </label>
+            <Select
+              value={String(idEstadoSeleccionado)}
+              onValueChange={(val) => setIdEstadoSeleccionado(Number(val))}
+              disabled={!esEditable || isUpdating}
+            >
+              <SelectTrigger className="w-full h-8 bg-white shadow-sm text-sm mt-0.5">
+                <SelectValue placeholder="Seleccione un estado" />
+              </SelectTrigger>
+              <SelectContent>
+                {listaEstados.map((est) => (
+                  <SelectItem key={est.idEstado} value={String(est.idEstado)} className="text-sm">
+                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                      est.idEstado === 1 ? "bg-yellow-400" : 
+                      est.idEstado === 2 ? "bg-green-500" : 
+                      est.idEstado === 6 ? "bg-red-500" : "bg-slate-400"
+                    }`} />
+                    {est.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1 md:pl-2">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">
+              Vigencia
+            </p>
+            <div className="space-y-1 bg-white border rounded px-2 py-1 text-[11px] shadow-sm">
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-muted-foreground text-[13px]">Emisión:</span>
+                <span className="font-semibold text-slate-700 text-[13px]">{formatearFecha(presupuesto.fecha)}</span>
+              </div>
+              <div className="flex justify-between items-center gap-2 border-t pt-1">
+                <span className="text-muted-foreground text-[13px]">Vencimiento:</span>
+                <span className="font-bold text-amber-700 text-[13px]">{formatearFecha(presupuesto.fechaVencimiento)}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -326,7 +351,7 @@ export default function VerPresupuestoPage() {
           </Table>
         </div>
         {/* CUERPO TABLA (CON SCROLL) */}
-        <div className="max-h-[350px] overflow-y-auto">
+        <div className="max-h-[215px] overflow-y-auto">
           <Table className="table-fixed">
             <TableBody>
               {itemsCarrito.map((item, index) => {

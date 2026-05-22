@@ -19,5 +19,7 @@ export const API_CONFIG = {
     PRECIOS_VENTAS: "/api/PreciosVentas",
     COTIZACIONES: "/api/PedidosCotizaciones",
     COTIZACIONES_DETALLES: "/api/PedidosCotizacionesDetalles",
+    INVOICES: "/api/FacturasVentas",
+    TIMBRADO: "/api/OrdenesVentas",
   },
 } as const;

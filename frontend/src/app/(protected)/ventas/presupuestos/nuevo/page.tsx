@@ -27,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { formatCI, formatRUC } from "@/utils/cedula-format";
 
 /*const resPaginada = {
   "items": [
@@ -301,54 +302,56 @@ export default function NuevoPresupuestoPage() {
         </div>
       </div>
       {/* CABECERA DE DATOS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-2">
-        {/* DATOS CLIENTE */}
-        <div className="md:col-span-2 p-4 border rounded-lg bg-slate-50/50">
-          <h2 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Datos del Cliente</h2>
-          {clienteSel ? (
-            <div className="grid grid-cols-2 gap-y-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Nombre y Apellido</p>
-                <p className="font-medium">{clienteSel.nombres} {clienteSel.apellidos}</p>
+      <div className="p-3 border rounded-lg bg-slate-50/40 text-xs shadow-sm my-2">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          {/* DATOS CLIENTE */}
+          <div className="md:col-span-3">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+              Información del Cliente
+            </p>
+            {clienteSel ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border-r pr-2 border-slate-200">
+                <div>
+                  <p className="text-muted-foreground text-[13px]">Razón Social</p>
+                  <p className="font-semibold text-slate-900 text-[13px]">{clienteSel.nombres} {clienteSel.apellidos}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-[13px]">CI / RUC</p>
+                  <p className="font-medium text-slate-800 text-[13px]">
+                    {clienteSel.ruc ? `RUC: ${formatRUC(clienteSel.ruc)}` : `CI: ${formatCI(clienteSel.ci)}`}
+                  </p>
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-muted-foreground text-[13px]">Email</p>
+                  <p className="font-medium text-slate-700 text-[13px]">{clienteSel.correo || "No registrado"}</p>
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-muted-foreground text-[13px]">Fecha de Nacimiento</p>
+                  <p className="font-medium text-slate-700 text-[13px]">{new Date(clienteSel.fechaNacimiento).toLocaleDateString()}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-muted-foreground">Documento (CI/RUC)</p>
-                <p className="font-medium">{clienteSel.ruc ? `RUC: ${clienteSel.ruc}` : `CI: ${clienteSel.ci}`}</p>
+            ) : (
+              <div className="h-8 flex items-center pl-3 border border-dashed rounded bg-white text-muted-foreground italic text-[11px]">
+                Ningún cliente seleccionado actualmente
               </div>
-              <div>
-                <p className="text-muted-foreground">Email</p>
-                <p className="font-medium">{clienteSel.correo || "No registrado"}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Fecha de Nacimiento</p>
-                <p className="font-medium">{clienteSel.fechaNacimiento}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="h-20 flex items-center justify-center border-2 border-dashed rounded-md text-muted-foreground italic text-sm">
-              Seleccione un cliente para ver sus datos
-            </div>
-          )}
-        </div>
-        {/* DATOS PRESUPUESTO */}
-        <div className="p-4 border rounded-lg bg-slate-50/50">
-          <h2 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Detalles del Presupuesto</h2>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <label className="text-xs text-muted-foreground">Fecha de Emisión</label>
-              <Input 
-                type="date" 
-                value={fechaEmision} 
-                onChange={(e) => setFechaEmision(e.target.value)}
-                className="bg-white"
-              />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Estado</p>
-              <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                Borrador / Pendiente
-              </span>
-            </div>
+            )}
+          </div>
+          {/* DATOS PRESUPUESTO */}
+          <div>
+            <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Fecha Emisión</label>
+            <Input 
+              type="date" 
+              value={fechaEmision} 
+              onChange={(e) => setFechaEmision(e.target.value)}
+              className="h-8 bg-white mt-1 text-xs px-2 text-[13px]"
+            />
+          </div>
+          <div className="flex flex-col justify-end pb-0.5 md:items-end">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 block md:hidden">Estado</span>
+            <span className="inline-flex items-center justify-center rounded-full bg-yellow-50 px-2.5 py-1 text-[13px] font-medium text-yellow-800 border border-yellow-200/60 shadow-sm w-full sm:w-auto">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1.5 animate-pulse" />
+              Borrador / Pendiente
+            </span>
           </div>
         </div>
       </div>
@@ -382,7 +385,7 @@ export default function NuevoPresupuestoPage() {
           </Table>
         </div>
         {/* CUERPO TABLA (CON SCROLL) */}
-        <div className="max-h-[320px] overflow-y-auto">
+        <div className="max-h-[215px] overflow-y-auto"> {/*estaba en 320px*/}
           <Table className="table-fixed">
             <TableBody>
               {itemsCarrito.map((item, index) => {
@@ -449,10 +452,10 @@ export default function NuevoPresupuestoPage() {
         </div>
       </div>
       {/* INFORMACIÓN ÚTIL */}
-      <div className="flex justify-end p-4 border-t bg-muted/20">
+      <div className="flex justify-end p-4 border rounded-b-md bg-slate-50/30">
         <div className="text-right">
-          <p className="text-sm text-muted-foreground">Total General</p>
-          <p className="text-2xl font-bold text-primary">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Presupuestado</p>
+          <p className="text-2xl font-black text-primary mt-1">
             {formatGuaranies(totalGeneral)}
           </p>
         </div>

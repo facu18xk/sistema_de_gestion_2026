@@ -204,6 +204,66 @@ export interface PreciosVentas {
     fechaHasta: string;
 }
 
+export interface FacturaVentaItem {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface FacturaVentaCompleto {
+    idFacturaVenta: number;
+    idOrdenVenta: number;
+    ordenVentaDescripcion: string;
+    idCliente: number;
+    cliente: string;
+    nroComprobante: string;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    medioPagoCompra: string;
+    fechaPago: string;
+    items: FacturaVentaItem[];
+}
+
+export interface FacturaVentaCompletoSave {
+    idOrdenVenta: number;
+    idCliente: number;
+    nroComprobante: string;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    fechaPago: string;
+    items: FacturaVentaItem[];
+}
+
+export interface FacturaVentaCabecera {
+    idFacturaVenta: number;
+    idOrdenVenta: number;
+    ordenVentaDescripcion: string;
+    idCliente: number;
+    cliente: string;
+    nroComprobante: string;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    medioPagoCompra: string;
+    fechaPago: string;
+}
+
+export interface OrdenVenta {
+    idOrdenVenta: number;
+    idPresupuesto: number;
+    presupuestoDescripción: string;
+    idCliente: number;
+    cliente: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+}
+
 export interface ProveedorCategoriaDTO {
     idCategoria: number;
     categoria: string;

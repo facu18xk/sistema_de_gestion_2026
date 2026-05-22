@@ -90,6 +90,7 @@ export default function Navbar() {
                               href={
                                   item === "Clientes" ? "/ventas/clientes" :
                                   item === "Presupuestos" ? "/ventas/presupuestos" :
+                                  item === "Facturación" ? "/ventas/facturacion" :
                                   item === "Proveedores" ? "/compras/proveedores" :
                                   item === "Pedidos" ? "/compras/pedidos" :
                                   item === "Cotizaciones" ? "/compras/cotizaciones" :
