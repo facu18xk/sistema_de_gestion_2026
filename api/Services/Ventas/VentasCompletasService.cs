@@ -140,12 +140,15 @@ public class VentasCompletasService
     {
         var page = pagination.GetNormalizedPage();
         var pageSize = pagination.GetNormalizedPageSize();
-        var query = BuildPresupuestosCompletosQuery();
+        var query = BuildTrackedPresupuestosCompletosQuery();
         var totalCount = await query.CountAsync();
         var presupuestos = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+
+        await UpdateEstadosByDatesAsync(presupuestos);
+
         var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
 
         return new PagedResultDto<PresupuestoCompletoDto>
@@ -162,10 +165,16 @@ public class VentasCompletasService
 
     public async Task<PresupuestoCompletoDto?> GetPresupuestoCompletoAsync(int idPresupuesto)
     {
-        var presupuesto = await BuildPresupuestosCompletosQuery()
+        var presupuesto = await BuildTrackedPresupuestosCompletosQuery()
             .FirstOrDefaultAsync(entity => entity.IdPresupuesto == idPresupuesto);
 
-        return presupuesto is null ? null : ToPresupuestoCompletoDto(presupuesto);
+        if (presupuesto is null)
+        {
+            return null;
+        }
+
+        await UpdateEstadoByDatesAsync(presupuesto);
+        return ToPresupuestoCompletoDto(presupuesto);
     }
 
     public async Task<OrdenesVenta> CreateOrdenVentaAsync(OrdenVentaCompletaCreateDto dto)
@@ -317,6 +326,16 @@ public class VentasCompletasService
                 .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 
+    private IQueryable<Presupuesto> BuildTrackedPresupuestosCompletosQuery()
+    {
+        return _context.Presupuestos
+            .Include(entity => entity.IdClienteNavigation)
+                .ThenInclude(cliente => cliente.IdPersonaNavigation)
+            .Include(entity => entity.IdEstadoNavigation)
+            .Include(entity => entity.PresupuestosDetalles)
+                .ThenInclude(detalle => detalle.IdProductoNavigation);
+    }
+
     private async Task<OrdenesVenta?> GetOrdenVentaAsync(int id)
     {
         return await _context.OrdenesVentas
@@ -377,6 +396,62 @@ public class VentasCompletasService
                 Subtotal = detalle.Subtotal
             }).ToArray()
         };
+    }
+
+    private async Task UpdateEstadosByDatesAsync(IEnumerable<Presupuesto> presupuestos)
+    {
+        var estadosByName = await GetEstadosByNameAsync();
+        var hasChanges = false;
+
+        foreach (var presupuesto in presupuestos)
+        {
+            hasChanges |= UpdateEstadoByDates(presupuesto, estadosByName);
+        }
+
+        if (hasChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task UpdateEstadoByDatesAsync(Presupuesto presupuesto)
+    {
+        var estadosByName = await GetEstadosByNameAsync();
+        if (UpdateEstadoByDates(presupuesto, estadosByName))
+        {
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task<Dictionary<string, Estado>> GetEstadosByNameAsync()
+    {
+        return await _context.Estados
+            .ToDictionaryAsync(estado => estado.Nombre, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool UpdateEstadoByDates(Presupuesto presupuesto, IReadOnlyDictionary<string, Estado> estadosByName)
+    {
+        var estadoName = CalculateEstadoByDates(presupuesto.Fecha, presupuesto.FechaVencimiento);
+        if (!estadosByName.TryGetValue(estadoName, out var estado) || presupuesto.IdEstado == estado.IdEstado)
+        {
+            return false;
+        }
+
+        presupuesto.IdEstado = estado.IdEstado;
+        presupuesto.IdEstadoNavigation = estado;
+        return true;
+    }
+
+    private static string CalculateEstadoByDates(DateTime fecha, DateTime fechaVencimiento)
+    {
+        var today = DateTime.Today;
+
+        if (today < fecha.Date)
+        {
+            return "Pendiente";
+        }
+
+        return today > fechaVencimiento.Date ? "Vencido" : "Vigente";
     }
 
     private static string FormatCliente(Cliente? cliente)
