@@ -25,6 +25,7 @@ import { ProcesoContableForm } from "@/components/contabilidad/proceso-contable-
 import { procesosContablesAPI } from "@/services/procesosContablesAPI";
 import { periodosContablesAPI } from "@/services/periodosContablesAPI";
 import { ProcesoContableDTO, ProcesoContableSaveDTO } from "@/types/types";
+import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notifications";
 
 export default function ProcesosContablesPage() {
@@ -247,7 +248,13 @@ export default function ProcesosContablesPage() {
                 <TableCell>{p.moneda}</TableCell>
                 <TableCell>{p.cantNiveles}</TableCell>
                 <TableCell>{p.cantDigitosNivel}</TableCell>
-                <TableCell>{p.estado}</TableCell>
+                <TableCell>
+                  {p.estado === "Habilitado" ? (
+                    <Badge variant="habilitado">{p.estado}</Badge>
+                  ) : (
+                    <Badge variant="destructive">{p.estado}</Badge>
+                  )}
+                </TableCell>
 
                 <TableCell className="text-right space-x-1">
                   <Button

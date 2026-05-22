@@ -31,6 +31,7 @@ import {
   ParienteFormState,
   ParienteSaveDTO,
 } from "@/types/types";
+import { EmpleadoSelector } from "@/components/personas/empleado-selector";
 
 import { notify } from "@/lib/notifications";
 
@@ -139,22 +140,13 @@ export function ParienteForm({
         <div className="grid gap-2">
           <Label>Empleado</Label>
 
-          <Select
-            value={formData.idEmpleado}
-            onValueChange={(v) => updateField("idEmpleado", v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccionar empleado" />
-            </SelectTrigger>
-
-            <SelectContent className="max-h-[300px]">
-              {empleadosOrdenados.map((e) => (
-                <SelectItem key={e.idEmpleado} value={e.idEmpleado.toString()}>
-                  {e.nombres} {e.apellidos}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <EmpleadoSelector
+            empleados={empleadosOrdenados}
+            selectedEmpleadoId={Number(formData.idEmpleado)}
+            onSelect={(empleado) =>
+              updateField("idEmpleado", empleado?.idEmpleado.toString() || "")
+            }
+          />
         </div>
 
         <div className="grid gap-2">

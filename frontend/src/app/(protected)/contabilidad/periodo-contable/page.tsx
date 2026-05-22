@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notifications";
 
 export default function PeriodosContablesPage() {
@@ -187,7 +188,13 @@ export default function PeriodosContablesPage() {
                   {new Date(p.fechaFin).toLocaleDateString()}
                 </TableCell>
 
-                <TableCell>{p.estado}</TableCell>
+                <TableCell>
+                  {p.estado === "Habilitado" ? (
+                    <Badge variant="habilitado">{p.estado}</Badge>
+                  ) : (
+                    <Badge variant="destructive">{p.estado}</Badge>
+                  )}
+                </TableCell>
 
                 <TableCell className="text-right">
                   <Button
