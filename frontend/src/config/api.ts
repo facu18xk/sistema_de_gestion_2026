@@ -12,7 +12,6 @@ export const API_CONFIG = {
     CIUDADES_POR_PAIS: "/api/Ciudades/PorPais",
     PEDIDOS: "/api/PedidosCompras",
     PEDIDOS_DETALLES: "/api/PedidosComprasDetalles",
-<<<<<<< HEAD
     STATUS: "/api/Estados",
     CLIENTS: "/api/Clientes",
     PRESUPUESTOS: "/api/Presupuestos",
@@ -20,11 +19,9 @@ export const API_CONFIG = {
     PRECIOS_VENTAS: "/api/PreciosVentas",
     COTIZACIONES: "/api/PedidosCotizaciones",
     COTIZACIONES_DETALLES: "/api/PedidosCotizacionesDetalles",
-=======
     PROCESOS_CONTABLES: "/api/ProcesosContables",
     EMPLEADOS: "/api/Empleados",
     PARIENTES: "/api/Parientes",
-    PERIODOS_CONTABLES: "/api/PeriodosContables"
->>>>>>> feature/proceso-contable
+    PERIODOS_CONTABLES: "/api/PeriodosContables",
   },
 } as const;
