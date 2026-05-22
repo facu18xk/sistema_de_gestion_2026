@@ -45,6 +45,8 @@ public class OrdenesCompraService : CrudServiceBase<OrdenesCompra, int>
         return _context.OrdenesCompras
             .Include(orden => orden.IdPedidoCotizacionNavigation)
             .Include(orden => orden.IdProveedorNavigation)
-            .Include(orden => orden.IdEstadoNavigation);
+            .Include(orden => orden.IdEstadoNavigation)
+            .Include(orden => orden.OrdenesComprasDetalles)
+            .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 }
