@@ -16,6 +16,10 @@ public class FacturasVentaDto
 
     public int IdTimbrado { get; set; }
 
+    public string Timbrado { get; set; } = string.Empty;
+
+    public string TimbradoRuc { get; set; } = string.Empty;
+
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;

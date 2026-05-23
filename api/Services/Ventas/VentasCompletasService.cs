@@ -9,11 +9,16 @@ public class VentasCompletasService
 {
     private readonly DblosAmigosContext _context;
     private readonly SalesPriceResolver _salesPriceResolver;
+    private readonly TimbradoNumberingService _timbradoNumberingService;
 
-    public VentasCompletasService(DblosAmigosContext context, SalesPriceResolver salesPriceResolver)
+    public VentasCompletasService(
+        DblosAmigosContext context,
+        SalesPriceResolver salesPriceResolver,
+        TimbradoNumberingService timbradoNumberingService)
     {
         _context = context;
         _salesPriceResolver = salesPriceResolver;
+        _timbradoNumberingService = timbradoNumberingService;
     }
 
     public async Task<Presupuesto> CreatePresupuestoAsync(PresupuestoCompletoCreateDto dto)
@@ -222,14 +227,13 @@ public class VentasCompletasService
         {
             IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
-            NroComprobante = dto.NroComprobante,
-            IdTimbrado = dto.IdTimbrado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,
             FechaPago = dto.FechaPago
         };
 
+        await _timbradoNumberingService.ApplyNextFacturaVentaNumberAsync(facturaVenta);
         _context.FacturasVentas.Add(facturaVenta);
         await _context.SaveChangesAsync();
 
@@ -447,7 +451,8 @@ public class VentasCompletasService
             Cliente = FormatCliente(facturaVenta.IdClienteNavigation),
             NroComprobante = facturaVenta.NroComprobante,
             IdTimbrado = facturaVenta.IdTimbrado,
-            Timbrado = facturaVenta.IdTimbradoNavigation?.Ruc ?? string.Empty,
+            Timbrado = facturaVenta.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
+            TimbradoRuc = facturaVenta.IdTimbradoNavigation?.Ruc ?? string.Empty,
             Fecha = facturaVenta.Fecha,
             Descripcion = facturaVenta.Descripcion,
             IdMedioPagoCompra = facturaVenta.IdMedioPagoCompra,

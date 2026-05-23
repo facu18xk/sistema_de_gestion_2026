@@ -54,11 +54,16 @@ public static class SwaggerModules
 
             ["FacturasVentas"] = "ventas",
             ["FacturasVentasDetalles"] = "ventas",
+            ["NotasCreditosVentas"] = "ventas",
+            ["NotasCreditosVentasDetalles"] = "ventas",
+            ["NotasDevolucionesVentas"] = "ventas",
+            ["NotasDevolucionesVentasDetalles"] = "ventas",
             ["OrdenesVentas"] = "ventas",
             ["OrdenesVentasDetalles"] = "ventas",
             ["PreciosVentas"] = "ventas",
             ["Presupuestos"] = "ventas",
             ["PresupuestosDetalles"] = "ventas",
+            ["Timbrados"] = "ventas",
 
             ["Asientos"] = "contabilidad",
             ["AsientosDetalles"] = "contabilidad",

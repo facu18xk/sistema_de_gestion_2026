@@ -1217,12 +1217,40 @@ public partial class DblosAmigosContext : DbContext
             entity.HasKey(e => e.IdTimbrado);
 
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Establecimiento)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasDefaultValue("001");
             entity.Property(e => e.FechaFinal).HasColumnName("Fecha_Final");
             entity.Property(e => e.FechaInicio).HasColumnName("Fecha_Inicio");
+            entity.Property(e => e.NumeroFinal)
+                .HasDefaultValue(9999999)
+                .HasColumnName("Numero_Final");
+            entity.Property(e => e.NumeroInicial)
+                .HasDefaultValue(1)
+                .HasColumnName("Numero_Inicial");
+            entity.Property(e => e.NumeroTimbrado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("Numero_Timbrado");
+            entity.Property(e => e.PuntoExpedicion)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasDefaultValue("001")
+                .HasColumnName("Punto_Expedicion");
             entity.Property(e => e.Ruc)
                 .HasMaxLength(12)
                 .IsUnicode(false)
                 .HasColumnName("RUC");
+            entity.Property(e => e.TipoComprobante)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("Factura")
+                .HasColumnName("Tipo_Comprobante");
+            entity.Property(e => e.UltimoNumeroUsado)
+                .HasDefaultValue(0)
+                .HasColumnName("Ultimo_Numero_Usado");
         });
 
         modelBuilder.Entity<ProcesoContable>(entity =>

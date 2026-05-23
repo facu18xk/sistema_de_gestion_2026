@@ -7,11 +7,13 @@ namespace api.Services;
 public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
 {
     private readonly DblosAmigosContext _context;
+    private readonly TimbradoNumberingService _timbradoNumberingService;
 
-    public FacturasVentaService(DblosAmigosContext context)
+    public FacturasVentaService(DblosAmigosContext context, TimbradoNumberingService timbradoNumberingService)
         : base(context)
     {
         _context = context;
+        _timbradoNumberingService = timbradoNumberingService;
     }
 
     protected override DbSet<FacturasVenta> Set => _context.FacturasVentas;
@@ -31,12 +33,22 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
         return entity => entity.IdFacturaVenta == id;
     }
 
+    public override async Task<FacturasVenta> CreateAsync(FacturasVenta entity)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        await _timbradoNumberingService.ApplyNextFacturaVentaNumberAsync(entity);
+        _context.FacturasVentas.Add(entity);
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return entity;
+    }
+
     protected override void UpdateEntity(FacturasVenta existingEntity, FacturasVenta incomingEntity)
     {
         existingEntity.IdPresupuesto = incomingEntity.IdPresupuesto;
         existingEntity.IdCliente = incomingEntity.IdCliente;
-        existingEntity.NroComprobante = incomingEntity.NroComprobante;
-        existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
         existingEntity.Fecha = incomingEntity.Fecha;
         existingEntity.Descripcion = incomingEntity.Descripcion;
         existingEntity.IdMedioPagoCompra = incomingEntity.IdMedioPagoCompra;

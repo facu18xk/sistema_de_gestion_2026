@@ -39,6 +39,7 @@ builder.Services.AddScoped<IContabilidadReportesService, ContabilidadReportesSer
 builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGeneratorService>();
 builder.Services.AddScoped<PreciosVentasService>();
 builder.Services.AddScoped<SalesPriceResolver>();
+builder.Services.AddScoped<TimbradoNumberingService>();
 builder.Services.AddScoped<VentasCompletasService>();
 builder.Services.AddScoped<MovimientoBancarioService>();
 builder.Services.AddScoped<ChequeEmitidoService>();

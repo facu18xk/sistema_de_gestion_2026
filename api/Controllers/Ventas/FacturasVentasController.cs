@@ -64,6 +64,8 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
             Cliente = FormatCliente(entity.IdClienteNavigation),
             NroComprobante = entity.NroComprobante,
             IdTimbrado = entity.IdTimbrado,
+            Timbrado = entity.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
+            TimbradoRuc = entity.IdTimbradoNavigation?.Ruc ?? string.Empty,
             Fecha = entity.Fecha,
             Descripcion = entity.Descripcion,
             IdMedioPagoCompra = entity.IdMedioPagoCompra,
