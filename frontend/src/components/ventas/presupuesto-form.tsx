@@ -18,6 +18,7 @@ import { ProductoForm } from "@/components/stock/producto-form";
 export interface PedidoItem {
   id: number | string;
   idProducto: number;
+  idCategoria: number;
   cantidad: number;
   descripcion: string;
   categoria: string;
@@ -75,6 +76,7 @@ export function PresupuestoForm({
 
       const mapeados: ProductoSeleccionable[] = res.items.map((p) => ({
         id: p.idProducto,
+        idCategoria: p.idCategoria,
         descripcion: p.descripcion,
         marca: p.marca,
         categoria: p.categoria,
@@ -126,6 +128,7 @@ export function PresupuestoForm({
         return {
           id: itemAnterior ? itemAnterior.id : (Date.now() + nuevo.id),
           idProducto: nuevo.id,
+          idCategoria: nuevo.idCategoria,
           cantidad: nuevo.cantidad,
           descripcion: nuevo.descripcion,
           categoria: nuevo.categoria,

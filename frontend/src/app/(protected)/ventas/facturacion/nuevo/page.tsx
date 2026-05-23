@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { formatearFecha } from "@/utils/date-utils";
 
-export default function NuevaFacturaDesdePresupuestoPage() {
+function NuevaFacturaDesdePresupuestoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
@@ -238,7 +238,10 @@ export default function NuevaFacturaDesdePresupuestoPage() {
       <div className="flex justify-between items-center my-2">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Factura de Venta</h1>
-          <p className="text-xs text-muted-foreground">Generada a partir del Presupuesto {formatearNumeroPresupuesto(idPresupuesto)}</p>
+          <p className="text-xs text-muted-foreground">
+            Generada a partir del Presupuesto{" "}
+            {idPresupuesto ? formatearNumeroPresupuesto(idPresupuesto) : "-"}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => router.back()}>
@@ -422,5 +425,13 @@ export default function NuevaFacturaDesdePresupuestoPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function NuevaFacturaDesdePresupuestoPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando datos de facturación...</div>}>
+      <NuevaFacturaDesdePresupuestoContent />
+    </Suspense>
   );
 }

@@ -23,7 +23,11 @@ export const API_CONFIG = {
     EMPLEADOS: "/api/Empleados",
     PARIENTES: "/api/Parientes",
     PERIODOS_CONTABLES: "/api/PeriodosContables",
+    CUENTAS_CONTABLES: "/api/CuentasContables",
+    ASIENTOS: "/api/Asientos",
+    ASIENTOS_COMPLETO: "/api/Asientos/completo",
     INVOICES: "/api/FacturasVentas",
+    ORDENES_VENTAS: "/api/OrdenesVentas",
     TIMBRADO: "/api/OrdenesVentas",
   },
 } as const;

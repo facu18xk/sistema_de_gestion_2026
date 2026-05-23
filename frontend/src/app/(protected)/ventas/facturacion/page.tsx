@@ -205,8 +205,8 @@ export default function PedidosPage() {
           {facturas.map((f) => {
           //const vigente = esPresupuestoVigente(p.fechaVencimiento);
           //const estadoActual = estados.find((e) => e.idEstado == p.idEstado)?.nombre;
-          const estadoActual = "Pendiente"
-          //const estadoExpirado = estados.find((e) => e.idEstado === 5)?.nombre;
+          const estadoActual: string = "Pendiente"
+          const estadoExpirado = "Vencido"
           const nombreCliente = facturas.find((c) => c.idCliente == f.idCliente)?.cliente;
           return (
             <TableRow key={f.idFacturaVenta}>

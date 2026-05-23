@@ -57,6 +57,13 @@ interface AgregarProductosModalProps {
   onNuevoProducto: () => void;
 }
 
+type AgregarProductosViewProps = Omit<
+  AgregarProductosModalProps,
+  "isOpen" | "onClose"
+> & {
+  onCancel: () => void;
+};
+
 export function AgregarProductosModal({
   isOpen,
   onClose,
@@ -391,5 +398,18 @@ export function AgregarProductosModal({
         productoDetalle={productoDetalle}
       />
     </>
+  );
+}
+
+export function AgregarProductosView({
+  onCancel,
+  ...props
+}: AgregarProductosViewProps) {
+  return (
+    <AgregarProductosModal
+      {...props}
+      isOpen={true}
+      onClose={onCancel}
+    />
   );
 }
