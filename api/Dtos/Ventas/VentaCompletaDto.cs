@@ -81,10 +81,6 @@ public class FacturaVentaCompletaCreateDto
 
     public int IdCliente { get; set; }
 
-    public string NroComprobante { get; set; } = string.Empty;
-
-    public int IdTimbrado { get; set; }
-
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;

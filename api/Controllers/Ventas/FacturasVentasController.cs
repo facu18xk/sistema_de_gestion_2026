@@ -80,8 +80,6 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         {
             IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
-            NroComprobante = dto.NroComprobante,
-            IdTimbrado = dto.IdTimbrado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,
