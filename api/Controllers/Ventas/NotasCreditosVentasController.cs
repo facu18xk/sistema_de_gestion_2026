@@ -1,4 +1,6 @@
 using api.Dtos.NotasCreditosVentas;
+using api.Dtos.NotasCreditosVentasDetalles;
+using api.Dtos.Ventas;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +11,32 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVenta, NotasCreditosVentaDto, NotasCreditosVentaUpsertDto, int>
 {
-    public NotasCreditosVentasController(ICrudService<NotasCreditosVenta, int> service)
+    private readonly VentasCompletasService _ventasCompletasService;
+
+    public NotasCreditosVentasController(
+        ICrudService<NotasCreditosVenta, int> service,
+        VentasCompletasService ventasCompletasService)
         : base(service)
     {
+        _ventasCompletasService = ventasCompletasService;
+    }
+
+    [HttpPost("completo")]
+    public async Task<ActionResult<NotasCreditosVentaDto>> CreateCompleto(NotaCreditoVentaCompletaCreateDto dto)
+    {
+        try
+        {
+            var createdEntity = await _ventasCompletasService.CreateNotaCreditoVentaAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = createdEntity.IdNotaCreditoVenta }, ToReadDto(createdEntity));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
     }
 
     protected override NotasCreditosVentaDto ToReadDto(NotasCreditosVenta entity)
@@ -27,7 +52,17 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             Timbrado = entity.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
             Motivo = entity.Motivo,
             FechaEmision = entity.FechaEmision,
-            Total = entity.Total
+            Total = entity.Total,
+            Detalles = entity.NotasCreditosVentasDetalles.Select(detalle => new NotasCreditosVentasDetalleDto
+            {
+                IdNotaCreditoVentaDetalle = detalle.IdNotaCreditoVentaDetalle,
+                IdNotaCreditoVenta = detalle.IdNotaCreditoVenta,
+                IdProducto = detalle.IdProducto,
+                Producto = detalle.IdProductoNavigation?.Descripcion ?? string.Empty,
+                Cantidad = detalle.Cantidad,
+                PrecioUnitario = detalle.PrecioUnitario,
+                Subtotal = detalle.Subtotal
+            }).ToArray()
         };
     }
 

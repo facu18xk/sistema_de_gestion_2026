@@ -46,6 +46,8 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
         return _context.NotasCreditosVentas
             .Include(entity => entity.IdFacturaVentaNavigation)
             .Include(entity => entity.IdNotaDevolucionVentaNavigation)
-            .Include(entity => entity.IdTimbradoNavigation);
+            .Include(entity => entity.IdTimbradoNavigation)
+            .Include(entity => entity.NotasCreditosVentasDetalles)
+                .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 }

@@ -141,3 +141,16 @@ public class FacturaVentaCompletaDto
 
     public IReadOnlyCollection<FacturaVentaItemDto> Items { get; set; } = Array.Empty<FacturaVentaItemDto>();
 }
+
+public class NotaCreditoVentaCompletaCreateDto
+{
+    public int IdFacturaVenta { get; set; }
+
+    public int IdTimbrado { get; set; }
+
+    public string Motivo { get; set; } = string.Empty;
+
+    public DateTime FechaEmision { get; set; }
+
+    public IReadOnlyCollection<VentaItemCreateDto> Items { get; set; } = Array.Empty<VentaItemCreateDto>();
+}

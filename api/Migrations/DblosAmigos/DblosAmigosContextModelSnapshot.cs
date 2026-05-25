@@ -1386,7 +1386,7 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Factura_Venta");
 
-                    b.Property<int>("IdNotaDevolucionVenta")
+                    b.Property<int?>("IdNotaDevolucionVenta")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Nota_Devolucion_Venta");
 
@@ -3136,7 +3136,7 @@ namespace api.Migrations.DblosAmigos
                     b.HasOne("api.Models.NotasDevolucionesVenta", "IdNotaDevolucionVentaNavigation")
                         .WithMany("NotasCreditosVenta")
                         .HasForeignKey("IdNotaDevolucionVenta")
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Notas_Devoluciones_Ventas");
 
                     b.HasOne("api.Models.Timbrado", "IdTimbradoNavigation")

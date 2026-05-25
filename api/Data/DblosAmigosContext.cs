@@ -505,7 +505,7 @@ public partial class DblosAmigosContext : DbContext
 
             entity.HasOne(d => d.IdNotaDevolucionVentaNavigation).WithMany(p => p.NotasCreditosVenta)
                 .HasForeignKey(d => d.IdNotaDevolucionVenta)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Notas_Creditos_Ventas_Notas_Devoluciones_Ventas");
 
             entity.HasOne(d => d.IdTimbradoNavigation).WithMany(p => p.NotasCreditosVenta)
