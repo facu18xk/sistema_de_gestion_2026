@@ -34,11 +34,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { formatearFecha } from "@/utils/date-utils";
 
-<<<<<<< HEAD
 export default function NuevaFacturaPage() {
-=======
-function NuevaFacturaDesdePresupuestoContent() {
->>>>>>> front
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
