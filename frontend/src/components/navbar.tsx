@@ -27,14 +27,8 @@ import { notify } from "@/lib/notifications";
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
-    {
-        title: "Ventas",
-        items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
-    },
-    {
-        title: "Compras",
-        items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
-    },
+    { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
+    { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"] },
     { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
     { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
     { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
@@ -103,22 +97,19 @@ export default function Navbar() {
                                                         <Link
                                                             href={
                                                                 item === "Clientes" ? "/ventas/clientes" :
-                                                                    item === "Presupuestos" ? "/ventas/presupuestos" :
-                                                                        item === "Proveedores" ? "/compras/proveedores" :
-                                                                            item === "Pedidos" ? "/compras/pedidos" :
-                                                                                item === "Cotizaciones" ? "/compras/cotizaciones" :
-                                                                                    item === "Productos" ? "/stock/productos" :
-                                                                                        item === "Empleados" ? "/personas/empleados" :
-                                                                                            item === "Productos" ? "/stock/productos"
-                                                                                                : item === "Parientes"
-                                                                                                    ? "/personas/parientes"
-                                                                                                    : item === "Pedidos"
-                                                                                                        ? "/compras/pedidos"
-                                                                                                        : item === "Proceso Contable"
-                                                                                                            ? "/contabilidad/proceso-contable"
-                                                                                                            : item === "Periodo Contable"
-                                                                                                                ? "/contabilidad/periodo-contable"
-                                                                                                                : "#"
+                                                                item === "Presupuestos" ? "/ventas/presupuestos" :
+                                                                item === "Facturación" ? "/ventas/facturacion" :
+                                                                item === "Devoluciones" ? "/ventas/devoluciones" :
+                                                                item === "Proveedores" ? "/compras/proveedores" :
+                                                                item === "Pedidos" ? "/compras/pedidos" :
+                                                                item === "Cotizaciones" ? "/compras/cotizaciones" :
+                                                                item === "Productos" ? "/stock/productos" :
+                                                                item === "Productos" ? "/stock/productos" :
+                                                                item === "Empleados" ? "/personas/empleados" :
+                                                                item === "Parientes" ? "/personas/parientes" :
+                                                                item === "Proceso Contable" ? "/contabilidad/proceso-contable" :
+                                                                item === "Periodo Contable" ? "/contabilidad/periodo-contable" :
+                                                                "#"
                                                             }
                                                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                                                         >

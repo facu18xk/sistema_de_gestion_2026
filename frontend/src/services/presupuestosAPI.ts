@@ -3,9 +3,9 @@ import { API_CONFIG } from "../config/api"
 import { PaginatedResponse, PresupuestoCabecera, PresupuestoCabeceraSave, PresupuestoCompleto, PresupuestoCompletoSave, PresupuestoDetalle } from "@/types/types"
 
 export const presupuestosAPI = {
-    getAll: async (page: number = 1, pageSize: number = 10): Promise<PaginatedResponse<PresupuestoCabecera>> => {
+    getAll: async (page: number = 1, pageSize: number = 10, idEstado?: number): Promise<PaginatedResponse<PresupuestoCabecera>> => {
         const response = await api.get(API_CONFIG.ENDPOINTS.PRESUPUESTOS, {
-            params: { Page: page, PageSize: pageSize }
+            params: { Page: page, PageSize: pageSize, IdEstado: idEstado }
         });
         return response.data;
     },

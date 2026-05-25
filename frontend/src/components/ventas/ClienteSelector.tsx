@@ -24,7 +24,7 @@ import { formatCI, formatRUC } from "@/utils/cedula-format"
 interface ClienteSelectorProps {
   onSelect: (cliente: Cliente | null) => void;
   selectedClienteId?: number;
-  clientesIniciales: Cliente[]; // Recibimos la lista completa como prop
+  clientesIniciales: Cliente[];
 }
 
 export function ClienteSelector({ onSelect, selectedClienteId, clientesIniciales }: ClienteSelectorProps) {

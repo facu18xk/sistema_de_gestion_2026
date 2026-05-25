@@ -25,7 +25,7 @@ export interface ProductoDTO {
     precioUnitario: number;
     esServicio: boolean;
     porcentajeIva: number;
-    cantidadTotal: number; // Stock sumado de todos los depósitos
+    cantidadTotal: number;
     idMarca: number;
     marca: string;
     idCategoria: number;
@@ -206,17 +206,29 @@ export interface PreciosVentas {
 
 export interface FacturaVentaItem {
     idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaVentaItemSave {
+    idProducto: number;
     cantidad: number;
 }
 
 export interface FacturaVentaCompleto {
     idFacturaVenta: number;
-    idOrdenVenta: number;
-    ordenVentaDescripcion: string;
+    idPresupuesto: number;
+    presupuestoDescripcion: string;
     idCliente: number;
     cliente: string;
     nroComprobante: string;
     idTimbrado: number;
+    timbrado: string;
+    timbradoRuc: string;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -226,7 +238,7 @@ export interface FacturaVentaCompleto {
 }
 
 export interface FacturaVentaCompletoSave {
-    idOrdenVenta: number;
+    idPresupuesto: number;
     idCliente: number;
     nroComprobante: string;
     idTimbrado: number;
@@ -234,17 +246,19 @@ export interface FacturaVentaCompletoSave {
     descripcion: string;
     idMedioPagoCompra: number;
     fechaPago: string;
-    items: FacturaVentaItem[];
+    items: FacturaVentaItemSave[];
 }
 
 export interface FacturaVentaCabecera {
     idFacturaVenta: number;
-    idOrdenVenta: number;
-    ordenVentaDescripcion: string;
+    idPresupuesto: number;
+    presupuestoDescripcion: string;
     idCliente: number;
     cliente: string;
     nroComprobante: string;
     idTimbrado: number;
+    timbrado: string;
+    timbradoRuc: string;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -262,6 +276,11 @@ export interface OrdenVenta {
     estado: string;
     fecha: string;
     descripcion: string;
+}
+
+export interface MedioPago {
+    idMedioPagoCompra: number;
+    nombre: string;
 }
 
 export interface ProveedorCategoriaDTO {

@@ -13,4 +13,8 @@ export const facturasAPI = {
         const response = await api.post(`${API_CONFIG.ENDPOINTS.INVOICES}/completo`, facturaData);
         return response.data;
     },
+    getById: async (facturaId: number): Promise<FacturaVentaCompleto> => {
+        const response = await api.get(`${API_CONFIG.ENDPOINTS.INVOICES}/${facturaId}/completo`);
+        return response.data;
+    },
 };

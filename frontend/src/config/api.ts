@@ -24,6 +24,7 @@ export const API_CONFIG = {
     PARIENTES: "/api/Parientes",
     PERIODOS_CONTABLES: "/api/PeriodosContables",
     INVOICES: "/api/FacturasVentas",
-    TIMBRADO: "/api/OrdenesVentas",
+    ORDENES_VENTAS: "/api/OrdenesVentas",
+    MEDIOS_PAGO: "/api/MediosPagosCompras",
   },
 } as const;
