@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { formatearFecha } from "@/utils/date-utils";
 
+<<<<<<< HEAD
 export default function NuevaFacturaPage() {
+=======
+function NuevaFacturaDesdePresupuestoContent() {
+>>>>>>> front
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)

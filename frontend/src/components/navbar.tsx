@@ -27,13 +27,42 @@ import { notify } from "@/lib/notifications";
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
-    { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
-    { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"] },
+    {
+        title: "Ventas",
+        items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
+    },
+    {
+        title: "Compras",
+        items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
+    },
     { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
     { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
     { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
-    { title: "Contabilidad", items: ["Proceso Contable", "Periodo Contable"] },
+    {
+        title: "Contabilidad",
+        items: [
+            "Proceso Contable",
+            "Periodo Contable",
+            "Asientos",
+            "Plan de Cuentas",
+        ],
+    },
 ];
+
+const routeByItem: Record<string, string> = {
+    Clientes: "/ventas/clientes",
+    Presupuestos: "/ventas/presupuestos",
+    Proveedores: "/compras/proveedores",
+    Pedidos: "/compras/pedidos",
+    Cotizaciones: "/compras/cotizaciones",
+    Productos: "/stock/productos",
+    Empleados: "/personas/empleados",
+    Parientes: "/personas/parientes",
+    "Proceso Contable": "/contabilidad/proceso-contable",
+    "Periodo Contable": "/contabilidad/periodo-contable",
+    Asientos: "/contabilidad/asientos",
+    "Plan de Cuentas": "/contabilidad/plan-cuentas",
+};
 
 export default function Navbar() {
     const [userName, setUserName] = useState("Usuario");
@@ -95,22 +124,7 @@ export default function Navbar() {
                                                 <li key={item}>
                                                     <NavigationMenuLink asChild>
                                                         <Link
-                                                            href={
-                                                                item === "Clientes" ? "/ventas/clientes" :
-                                                                item === "Presupuestos" ? "/ventas/presupuestos" :
-                                                                item === "Facturación" ? "/ventas/facturacion" :
-                                                                item === "Devoluciones" ? "/ventas/devoluciones" :
-                                                                item === "Proveedores" ? "/compras/proveedores" :
-                                                                item === "Pedidos" ? "/compras/pedidos" :
-                                                                item === "Cotizaciones" ? "/compras/cotizaciones" :
-                                                                item === "Productos" ? "/stock/productos" :
-                                                                item === "Productos" ? "/stock/productos" :
-                                                                item === "Empleados" ? "/personas/empleados" :
-                                                                item === "Parientes" ? "/personas/parientes" :
-                                                                item === "Proceso Contable" ? "/contabilidad/proceso-contable" :
-                                                                item === "Periodo Contable" ? "/contabilidad/periodo-contable" :
-                                                                "#"
-                                                            }
+                                                            href={routeByItem[item] ?? "#"}
                                                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                                                         >
                                                             <div className="text-sm font-medium leading-none">

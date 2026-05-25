@@ -129,62 +129,6 @@ export default function EmpleadosPage() {
 
   return (
     <>
-<<<<<<< HEAD
-      <PageBreadcrumb steps={[{ label: "RRHH", href: "#" }, { label: "Empleados" }]} />
-      <PageHeader title="Listado de Empleados" buttonLabel="Nuevo Empleado" onButtonClick={handleCrearNuevo} />
-
-      <DataTable
-        caption="Lista actualizada de empleados."
-        headerRow={
-          <TableRow>
-            <TableHead className="w-[100px]">ID</TableHead>
-            <TableHead>Nombre Completo</TableHead>
-            <TableHead>CI/RUC</TableHead>
-            <TableHead>Fecha Ingreso</TableHead>
-            <TableHead>Salario</TableHead>
-            <TableHead>Cargo</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        }
-      >
-        {empleadosIniciales.map((e) => (
-          <TableRow key={e.id}>
-            <TableCell className="font-medium">{e.id}</TableCell>
-            <TableCell className="font-semibold">{e.nombre} {e.apellido}</TableCell>
-            <TableCell>{e.ciRuc}</TableCell>
-            <TableCell>{e.fechaIngreso}</TableCell>
-            <TableCell>Gs. {parseInt(e.salario).toLocaleString()}</TableCell>
-            <TableCell>{e.cargo}</TableCell>
-            <TableCell className="text-right space-x-1">
-              <Button variant="ghost" size="icon" onClick={() => handleEditar(e)} className="cursor-pointer">
-                <Pencil className="size-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="cursor-pointer">
-                <Trash2 className="size-4 text-destructive" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </DataTable>
-
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="px-6 sm:max-w-[540px]">
-          <SheetHeader>
-            <SheetTitle>{empleadoAEditar ? "Editar Empleado" : "Nuevo Empleado"}</SheetTitle>
-            <SheetDescription>Completa la información del personal.</SheetDescription>
-          </SheetHeader>
-          <EmpleadoForm
-            key={empleadoAEditar?.id || "nuevo"}
-            empleadoEditado={empleadoAEditar} cargos={listaCargos}
-            onSubmit={() => setIsSheetOpen(false)}
-            onCancel={() => setIsSheetOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
-    </>
-  )
-}
-=======
       <PageBreadcrumb
         steps={[{ label: "Personas", href: "#" }, { label: "Empleados" }]}
       />
@@ -305,4 +249,3 @@ export default function EmpleadosPage() {
     </>
   );
 }
->>>>>>> feature/proceso-contable
