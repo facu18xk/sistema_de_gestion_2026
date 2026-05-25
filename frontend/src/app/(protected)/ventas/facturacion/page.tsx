@@ -46,12 +46,14 @@ export default function PedidosPage() {
     "items": [
         {
             "idFacturaVenta": 1,
-            "idOrdenVenta": 1,
-            "ordenVentaDescripcion": "Factura de Venta 1",
+            "idPresupuesto": 1,
+            "presupuestoDescripcion": "Factura de Venta 1",
             "idCliente": 1,
             "cliente": "Cliente 1",
             "nroComprobante": "-- Sin especificar --",
             "idTimbrado": 1,
+            "timbrado": "",
+            "timbradoRuc": "",
             "fecha": "2026-05-22",
             "descripcion": "Descripcion 1",
             "idMedioPagoCompra": 1,
@@ -60,12 +62,14 @@ export default function PedidosPage() {
         },
         {
             "idFacturaVenta": 2,
-            "idOrdenVenta": 2,
-            "ordenVentaDescripcion": "Factura de Venta 2",
+            "idPresupuesto": 2,
+            "presupuestoDescripcion": "Factura de Venta 2",
             "idCliente": 2,
             "cliente": "Cliente 2",
             "nroComprobante": "-- Sin especificar --",
             "idTimbrado": 2,
+            "timbrado": "",
+            "timbradoRuc": "",
             "fecha": "2026-05-22",
             "descripcion": "Descripcion 2",
             "idMedioPagoCompra": 1,
@@ -74,12 +78,14 @@ export default function PedidosPage() {
         },
         {
             "idFacturaVenta": 3,
-            "idOrdenVenta": 3,
-            "ordenVentaDescripcion": "Factura de Venta 3",
+            "idPresupuesto": 3,
+            "presupuestoDescripcion": "Factura de Venta 3",
             "idCliente": 3,
             "cliente": "Cliente 3",
             "nroComprobante": "-- Sin especificar --",
             "idTimbrado": 3,
+            "timbrado": "",
+            "timbradoRuc": "",
             "fecha": "2026-05-22",
             "descripcion": "Descripcion 3",
             "idMedioPagoCompra": 2,
@@ -218,7 +224,7 @@ export default function PedidosPage() {
                 estadoActual === 'Aprobado' ? <Badge variant="aprobado">{estadoActual}</Badge>
                 : estadoActual === 'Pendiente' ? <Badge variant="pendiente">{estadoActual}</Badge>
                 : estadoActual === 'Rechazado' ? <Badge variant="rechazado">{estadoActual}</Badge>
-                : <Badge variant="destructive">{estadoExpirado}</Badge>
+                : <Badge variant="destructive">Expirado</Badge>
                 
                 }</TableCell>
               <TableCell className="text-right">
@@ -226,7 +232,7 @@ export default function PedidosPage() {
                   variant="ghost"
                   size="icon"
                   title="Editar Factura"
-                  onClick={() => handleEditar(f)}
+                  onClick={() => router.push(`/ventas/facturacion/${f.idFacturaVenta}`)}
                 >
                   <Eye className="size-3.5" />
                 </Button>

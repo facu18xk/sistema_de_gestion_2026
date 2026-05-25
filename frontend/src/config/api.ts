@@ -28,6 +28,6 @@ export const API_CONFIG = {
     ASIENTOS_COMPLETO: "/api/Asientos/completo",
     INVOICES: "/api/FacturasVentas",
     ORDENES_VENTAS: "/api/OrdenesVentas",
-    TIMBRADO: "/api/OrdenesVentas",
+    MEDIOS_PAGO: "/api/MediosPagosCompras",
   },
 } as const;
