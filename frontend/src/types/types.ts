@@ -297,6 +297,7 @@ export interface OrdenCompraDTO {
     estado: string
     fecha: string
     descripcion: string
+    detalles: OrdenCompraDetalleDTO[]
 }
 
 export interface OrdenCompraDetalleSaveDTO {
@@ -384,7 +385,7 @@ export interface OrdenPagoCompraDetalle {
     monto: number;
     facturaCompra?: {
         idFacturaCompra: number;
-        numeroFactura: string;
+        nro_Comprobante: string;
     };
 }
 

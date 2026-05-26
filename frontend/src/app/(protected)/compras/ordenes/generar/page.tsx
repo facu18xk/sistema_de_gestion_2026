@@ -28,7 +28,6 @@ interface ItemPropuesto {
 
 interface SugerenciaOrden {
     idPedidoCotizacion: number
-    idCotizacionCompra: number
     idProveedor: number
     razonSocial: string
     descripcionOrden: string
@@ -102,7 +101,7 @@ export default function GenerarOrdenesPage() {
                 const idProd = det.idProducto || det.productoId
                 const precioNetoActual = Number(det.precioProducto || det.precioUnitario) - Number(det.descuento || 0)
                 const cotizacionAsociada = cotizacionesDelPedido.find(
-                    (c: any) => Number(c.idPedidoCotizacion || c.id) === Number(det.idPedidoCotizacion || det.cotizacionCompraId)
+                    (c: any) => Number(c.idPedidoCotizacion || c.id) === Number(det.idPedidoCotizacion || det.idPedidoCotizacion)
                 )
 
                 if (!mejoresOpcionesPorProducto[idProd]) {
@@ -133,7 +132,6 @@ export default function GenerarOrdenesPage() {
                 if (!agrupacionSugerida[idCotizacion]) {
                     agrupacionSugerida[idCotizacion] = {
                         idPedidoCotizacion: Number(cotizacion.idPedidoCotizacion || 0),
-                        idCotizacionCompra: idCotizacion,
                         idProveedor: Number(cotizacion.idProveedor),
                         razonSocial: typeof cotizacion.proveedor === 'object' && cotizacion.proveedor !== null
                             ? cotizacion.proveedor.razonSocial
@@ -175,7 +173,7 @@ export default function GenerarOrdenesPage() {
 
         setOrdenesSugeridas(prev =>
             prev.map(orden => {
-                if (orden.idCotizacionCompra !== idCotizacion) return orden
+                if (orden.idPedidoCotizacion !== idCotizacion) return orden
 
                 const nuevosItems = orden.items.map(item => {
                     if (item.idProducto !== idProducto) return item
@@ -199,7 +197,7 @@ export default function GenerarOrdenesPage() {
     const handleEliminarItem = (idCotizacion: number, idProducto: number) => {
         setOrdenesSugeridas(prev =>
             prev.map(orden => {
-                if (orden.idCotizacionCompra !== idCotizacion) return orden
+                if (orden.idPedidoCotizacion !== idCotizacion) return orden
                 const nuevosItems = orden.items.filter(i => i.idProducto !== idProducto)
                 return {
                     ...orden,
@@ -225,7 +223,7 @@ export default function GenerarOrdenesPage() {
         const idOrdenGenerada = nuevaOrdenRes?.idOrdenCompra
 
         if (!idOrdenGenerada) {
-            throw new Error(`El servidor no retornó un idOrdenCompra válido para la cotización #${sugerencia.idCotizacionCompra}`)
+            throw new Error(`El servidor no retornó un idOrdenCompra válido para la cotización #${sugerencia.idPedidoCotizacion}`)
         }
 
         // 2. Guardar detalles
@@ -249,20 +247,19 @@ export default function GenerarOrdenesPage() {
                 estado: "Aprobada", // Modificamos el campo string o el ID correspondiente según tu backend
                 idEstado: 2 // Por si maneja identificadores de estado numéricos
             }
-            const idCotiz = sugerencia.idCotizacionCompra || sugerencia.cotizacionOriginal.id
+            const idCotiz = sugerencia.idPedidoCotizacion || sugerencia.cotizacionOriginal.id
             await cotizacionesAPI.update(idCotiz, cotizacionUpdatePayload)
         }
     }
 
     const handleGenerarOrdenIndividual = async (sugerencia: SugerenciaOrden) => {
         setIsProcesando(true)
-        setProcesandoId(sugerencia.idCotizacionCompra)
+        setProcesandoId(sugerencia.idPedidoCotizacion)
         try {
             await procesarUnaOrden(sugerencia)
-            notify.success("Éxito", `Orden de compra creada correctamente para la Cotización #${sugerencia.idCotizacionCompra} y cotización marcada como Aprobada.`)
+            notify.success("Éxito", `Orden de compra creada correctamente para la Cotización #${sugerencia.idPedidoCotizacion} y cotización marcada como Aprobada.`)
 
-            // Remover del estado la orden que ya fue generada
-            setOrdenesSugeridas(prev => prev.filter(o => o.idCotizacionCompra !== sugerencia.idCotizacionCompra))
+            setOrdenesSugeridas(prev => prev.filter(o => o.idPedidoCotizacion !== sugerencia.idPedidoCotizacion))
         } catch (error: any) {
             console.error("Error al generar orden individual:", error)
             const detalleError = error?.response?.data?.message || "Fallo interno al procesar la orden."
@@ -340,11 +337,11 @@ export default function GenerarOrdenesPage() {
                 {!isLoadingData && ordenesSugeridas.length > 0 && (
                     <div className="space-y-6">
                         {ordenesSugeridas.map((orden) => (
-                            <Card key={orden.idCotizacionCompra} className="border-l-4 border-l-primary shadow-xs">
+                            <Card key={orden.idPedidoCotizacion} className="border-l-4 border-l-primary shadow-xs">
                                 <CardHeader className="bg-muted/30 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
                                     <div>
                                         <CardTitle className="text-sm font-bold text-primary">
-                                            Propuesta de Orden (Cotización #{orden.idCotizacionCompra})
+                                            Propuesta de Orden (Cotización #{orden.idPedidoCotizacion})
                                         </CardTitle>
                                         <p className="text-xs text-muted-foreground font-medium mt-1">
                                             Proveedor: <span className="text-foreground font-semibold">{orden.razonSocial}</span>
@@ -364,7 +361,7 @@ export default function GenerarOrdenesPage() {
                                             disabled={isProcesando}
                                             onClick={() => handleGenerarOrdenIndividual(orden)}
                                         >
-                                            {isProcesando && procesandoId === orden.idCotizacionCompra ? (
+                                            {isProcesando && procesandoId === orden.idPedidoCotizacion ? (
                                                 <Loader2 className="h-3 w-3 animate-spin" />
                                             ) : (
                                                 <ShoppingCart className="h-3 w-3" />
@@ -375,13 +372,13 @@ export default function GenerarOrdenesPage() {
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <div className="p-3 bg-card border-b">
-                                        <FieldWrapper label="Descripción / Nota de la Orden" id={`desc-${orden.idCotizacionCompra}`}>
+                                        <FieldWrapper label="Descripción / Nota de la Orden" id={`desc-${orden.idPedidoCotizacion}`}>
                                             <Input
                                                 className="h-8 text-xs"
                                                 value={orden.descripcionOrden}
                                                 onChange={(e) => {
                                                     const val = e.target.value
-                                                    setOrdenesSugeridas(prev => prev.map(o => o.idCotizacionCompra === orden.idCotizacionCompra ? { ...o, descripcionOrden: val } : o))
+                                                    setOrdenesSugeridas(prev => prev.map(o => o.idPedidoCotizacion === orden.idPedidoCotizacion ? { ...o, descripcionOrden: val } : o))
                                                 }}
                                                 disabled={isProcesando}
                                             />
@@ -408,7 +405,7 @@ export default function GenerarOrdenesPage() {
                                                             className="h-7 w-20 mx-auto text-center text-xs p-1"
                                                             value={item.cantidad}
                                                             min={0}
-                                                            onChange={(e) => handleCambiarCantidad(orden.idCotizacionCompra, item.idProducto, Number(e.target.value))}
+                                                            onChange={(e) => handleCambiarCantidad(orden.idPedidoCotizacion, item.idProducto, Number(e.target.value))}
                                                             disabled={isProcesando}
                                                         />
                                                     </TableCell>
@@ -420,7 +417,7 @@ export default function GenerarOrdenesPage() {
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                                                            onClick={() => handleEliminarItem(orden.idCotizacionCompra, item.idProducto)}
+                                                            onClick={() => handleEliminarItem(orden.idPedidoCotizacion, item.idProducto)}
                                                             disabled={isProcesando}
                                                         >
                                                             <Trash2 className="h-4 w-4" />

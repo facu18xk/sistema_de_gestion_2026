@@ -81,7 +81,8 @@ export default function CotizacionesPage() {
               <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="w-32">Nro Cotización</TableHead>
-                  <TableHead>Proveedor</TableHead>
+                  <TableHead className="w-24">Nro Pedido asociado</TableHead>
+                  <TableHead className="w-48">Proveedor</TableHead>
                   <TableHead className="w-36">Fecha</TableHead>
                   <TableHead className="w-32">Estado</TableHead>
                   <TableHead className="w-24 text-center">Acciones</TableHead>
@@ -90,7 +91,7 @@ export default function CotizacionesPage() {
               <TableBody>
                 {cotizaciones.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-xs text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-10 text-xs text-muted-foreground">
                       No se encontraron cotizaciones registradas.
                     </TableCell>
                   </TableRow>
@@ -99,6 +100,9 @@ export default function CotizacionesPage() {
                     <TableRow key={c.idPedidoCotizacion} className="hover:bg-muted/40 transition-colors">
                       <TableCell className="font-mono text-xs font-semibold">
                         #{c.idPedidoCotizacion}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {c.idPedidoCompra ? `#${c.idPedidoCompra}` : "—"}
                       </TableCell>
                       <TableCell className="text-xs font-medium">
                         {c.proveedor?.razonSocial || "Proveedor no asignado"}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Plus, Loader2, FileText, ArrowUpRight } from "lucide-react"
+import { Plus, Loader2, ArrowUpRight, Eye } from "lucide-react"
 import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
 import { FacturaCompra } from "@/types/types"
 import { notify } from "@/lib/notifications"
@@ -18,7 +18,8 @@ export default function FacturasPage() {
         const fetchFacturas = async () => {
             try {
                 const response = await FacturasCompraAPI.getAll(1, 50)
-                setFacturas(response.items || response || [])
+                const lista: FacturaCompra[] = response.items || response || []
+                setFacturas(lista)
             } catch (error) {
                 notify.error("Error", "No se pudo traer las facturas de compra.")
             } finally {
@@ -35,10 +36,10 @@ export default function FacturasPage() {
     }
 
     return (
-        <div className="bg-background">
+        <div className="bg-background w-full">
             <PageBreadcrumb steps={[{ label: "Compras" }, { label: "Facturas de Proveedores" }]} />
 
-            <main className="container p-4">
+            <main className="w-full p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold tracking-tight">Facturas de Proveedores</h2>
                     <Link href="/compras/facturas/cargar">
@@ -54,8 +55,8 @@ export default function FacturasPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : (
-                    <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
-                        <Table>
+                    <div className="rounded-lg border bg-card shadow-sm overflow-hidden w-full">
+                        <Table className="w-full">
                             <TableHeader className="bg-muted/50">
                                 <TableRow>
                                     <TableHead className="w-36">Nro. Comprobante</TableHead>
@@ -64,12 +65,13 @@ export default function FacturasPage() {
                                     <TableHead className="w-28">Fecha</TableHead>
                                     <TableHead className="w-32 text-center">Orden Origen</TableHead>
                                     <TableHead className="w-32 text-right">Total Neto</TableHead>
+                                    <TableHead className="w-20 text-center">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {facturas.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-10 text-xs text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-10 text-xs text-muted-foreground">
                                             No hay facturas registradas.
                                         </TableCell>
                                     </TableRow>
@@ -102,8 +104,20 @@ export default function FacturasPage() {
                                                     </span>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-xs text-right font-bold text-foreground">
+                                            <TableCell className="text-xs text-right font-bold font-mono text-foreground">
                                                 {calcularTotalFactura(f).toLocaleString("es-PY")} Gs.
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Link href={`/compras/facturas/${f.idFacturaCompra}`}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-7 w-7 text-muted-foreground hover:text-primary transition"
+                                                        title="Visualizar Detalle"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
                                             </TableCell>
                                         </TableRow>
                                     ))

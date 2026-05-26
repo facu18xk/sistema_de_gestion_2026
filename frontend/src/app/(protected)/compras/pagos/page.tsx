@@ -9,16 +9,20 @@ import { ordenesPagosAPI } from "@/services/ordenesPagosCompraAPI"
 import { OrdenPagoCompra } from "@/types/types"
 import { notify } from "@/lib/notifications"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import router from "next/dist/shared/lib/router/router"
 
 export default function OrdenesPagosPage() {
+    const [pagina, setPagina] = useState(1);
+    const [totalPaginas, setTotalPaginas] = useState(1);
     const [ordenesPago, setOrdenesPago] = useState<OrdenPagoCompra[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         const fetchOrdenesPago = async () => {
             try {
-                const response = await ordenesPagosAPI.getAll(1, 50)
+                const response = await ordenesPagosAPI.getAll(pagina, 10)
                 setOrdenesPago(response.items || response || [])
+                setTotalPaginas(response.totalPages || 1)
             } catch (error) {
                 notify.error("Error", "No se pudo traer las órdenes de pago.")
             } finally {
@@ -28,7 +32,6 @@ export default function OrdenesPagosPage() {
         fetchOrdenesPago()
     }, [])
 
-    // Sumariza de forma segura los montos de las facturas liquidadas en la orden
     const calcularTotalOrdenPago = (op: OrdenPagoCompra): number => {
         if (!op.detalles || !Array.isArray(op.detalles)) return 0
         return op.detalles.reduce((acc, det) => acc + (det.monto || 0), 0)
@@ -41,7 +44,7 @@ export default function OrdenesPagosPage() {
             <main className="container p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold tracking-tight">Órdenes de Pago a Proveedores</h2>
-                    <Link href="/compras/pagos/cargar">
+                    <Link href="/compras/pagos/pagar">
                         <Button size="sm" className="flex items-center gap-2">
                             <Plus className="h-4 w-4" />
                             Nueva Orden de Pago
@@ -103,7 +106,29 @@ export default function OrdenesPagosPage() {
                         </Table>
                     </div>
                 )}
+                <div className="flex items-center justify-between p-3 bg-muted/20 border-t text-xs">
+                    <span className="text-muted-foreground">
+                        Página <b>{pagina}</b> de {totalPaginas}
+                    </span>
+                    <div className="flex gap-1">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => setPagina((prev) => Math.max(prev - 1, 1))}>
+                            Anterior
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => setPagina((prev) => Math.min(prev + 1, totalPaginas))}>
+                            Siguiente
+                        </Button>
+                    </div>
+                </div>
             </main>
+
         </div>
     )
 }

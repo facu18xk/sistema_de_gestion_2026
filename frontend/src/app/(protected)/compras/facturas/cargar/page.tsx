@@ -5,405 +5,451 @@ import { useRouter } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Save, ArrowLeft, AlertCircle } from "lucide-react"
+import { Loader2, Save, ArrowLeft, Check, ChevronsUpDown } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
-import { ordenesCompraDetallesAPI } from "@/services/ordenesCompraDetallesAPI"
+import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
-import { FacturasCompraDetallesAPI } from "@/services/facturasCompraDetallesAPI"
+import { facturasCompraDetallesAPI } from "@/services/facturasCompraDetallesAPI"
+import { OrdenCompraDTO, CotizacionDetalleDTO } from "@/types/types"
+import { FacturaCompraSaveDTO } from "@/types/types"
 import { notify } from "@/lib/notifications"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FieldWrapper } from "@/components/FieldWrapper"
-import { FacturaCompraSaveDTO, FacturaCompraDetalleSaveDTO, FacturaCompra } from "@/types/types"
 
-interface ItemOrden {
+interface ItemFacturaForm {
     idProducto: number
     descripcion: string
-    cantidadSolicitada: number
-    cantidadYaFacturada: number
-    cantidadPendiente: number
+    cantidadPedida: number
     cantidadRecibidaAhora: number
     precioUnitario: number
     descuento: number
-    totalItem: number
+    totalBruto: number
+    totalIva: number
+    totalNeto: number
 }
 
 export default function CargarFacturaPage() {
     const router = useRouter()
-    const [ordenesPendientes, setOrdenesPendientes] = useState<any[]>([])
+    const [ordenes, setOrdenes] = useState<OrdenCompraDTO[]>([])
     const [idOrdenSeleccionada, setIdOrdenSeleccionada] = useState<string>("")
-
+    const [openCombo, setOpenCombo] = useState<boolean>(false)
     const [nroComprobante, setNroComprobante] = useState<string>("")
     const [timbrado, setTimbrado] = useState<string>("")
-    const [fechaFactura, setFechaFactura] = useState<string>(new Date().toISOString().split('T')[0])
-    const [descripcionCabecera, setDescripcionCabecera] = useState<string>("")
-    const [proveedorInfo, setProveedorInfo] = useState<{ id: number; razonSocial: string } | null>(null)
-
-    const [isLoadingData, setIsLoadingData] = useState(false)
-    const [isProcesando, setIsProcesando] = useState(false)
-    const [itemsFactura, setItemsFactura] = useState<ItemOrden[]>([])
+    const [fecha, setFecha] = useState<string>(new Date().toISOString().split('T')[0])
+    const [descripcion, setDescripcion] = useState<string>("")
+    const [itemsFactura, setItemsFactura] = useState<ItemFacturaForm[]>([])
+    const [isLoadingOrdenes, setIsLoadingOrdenes] = useState<boolean>(true)
+    const [isProcesando, setIsProcesando] = useState<boolean>(false)
 
     useEffect(() => {
-        const cargarOrdenesPendientes = async () => {
+        const fetchOrdenes = async () => {
             try {
-                const resOC = await ordenesCompraAPI.getAll(1, 500)
-                const lista = resOC.items || resOC || []
-                setOrdenesPendientes(lista.filter((o: any) => o.estado === "Generada" || o.estado === "Pendiente de Entrega"))
-            } catch (error) {
-                notify.error("Error", "No se pudo mapear la lista de órdenes de compra pendientes.")
+                const res = await ordenesCompraAPI.getAll(1, 100)
+                const lista: OrdenCompraDTO[] = res.items || res || []
+                setOrdenes(lista.filter((o) => o.estado !== "Facturado"))
+            } catch (err) {
+                notify.error("Error", "No se pudieron obtener las órdenes de compra.")
+            } finally {
+                setIsLoadingOrdenes(false)
             }
         }
-        cargarOrdenesPendientes()
+        fetchOrdenes()
     }, [])
 
-    const handleSeleccionarOrden = async (idOrden: string) => {
-        setIdOrdenSeleccionada(idOrden)
-        if (!idOrden) {
+    // Formateador dinámico para el número de comprobante (001-001-0000001)
+    const formatNroComprobante = (value: string) => {
+        // Deja solo los dígitos numéricos
+        const nums = value.replace(/\D/g, "")
+
+        // Corta el exceso si pegan un string muy largo (máximo 13 dígitos)
+        const digits = nums.slice(0, 13)
+
+        if (digits.length <= 3) {
+            return digits
+        }
+        if (digits.length <= 6) {
+            return `${digits.slice(0, 3)}-${digits.slice(3)}`
+        }
+        return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+    }
+
+    const handleNroComprobanteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatNroComprobante(e.target.value)
+        setNroComprobante(formatted)
+    }
+
+    const handleSeleccionarOrden = async (idOC: string) => {
+        setIdOrdenSeleccionada(idOC)
+        if (!idOC) {
             setItemsFactura([])
-            setProveedorInfo(null)
             return
         }
 
-        setIsLoadingData(true)
         try {
-            const todasLasOC = await ordenesCompraAPI.getAll(1, 500)
-            const listaOC = todasLasOC.items || todasLasOC || []
-            const ocSeleccionada = listaOC.find((o: any) => String(o.idOrdenCompra) === String(idOrden))
+            const ordenDoc = ordenes.find(o => String(o.idOrdenCompra) === String(idOC))
+            if (!ordenDoc) return
 
-            if (ocSeleccionada) {
-                setProveedorInfo({
-                    id: ocSeleccionada.idProveedor,
-                    razonSocial: ocSeleccionada.proveedor?.razonSocial || `Proveedor #${ocSeleccionada.idProveedor}`
-                })
-                setDescripcionCabecera(`Factura asociada a la Orden de Compra #${idOrden}`)
-            }
+            const idCotizacionGanadora = ordenDoc.idPedidoCotizacion
 
-            const resDetalles = await ordenesCompraDetallesAPI.getAll(1, 2000)
-            const listaDetalles = resDetalles.items || resDetalles || []
-            const detallesDeOC = listaDetalles.filter((d: any) => String(d.idOrdenCompra) === String(idOrden))
+            const [resOrdenCompleta, resTodasLasCotizaciones] = await Promise.all([
+                ordenesCompraAPI.getById(idOC),
+                cotizacionesDetallesAPI.getAll(1, 500)
+            ])
 
-            let facturasPreviasDetalles: any[] = []
-            try {
-                const resFacturas = await FacturasCompraDetallesAPI.getDetallesPorOrden(idOrden)
-                facturasPreviasDetalles = resFacturas.items || resFacturas || []
-            } catch (pErr) {
-                console.warn("No se detectaron facturas previas cargadas para esta OC. Inicializando en 0.")
-            }
+            const detallesOC: any[] = resOrdenCompleta.detalles || []
+            const todasLasCotizaciones: any = resTodasLasCotizaciones.items || resTodasLasCotizaciones || []
 
-            const itemsMapeados: ItemOrden[] = detallesDeOC.map((det: any) => {
-                const idProd = det.idProducto
-                const yaFacturado = facturasPreviasDetalles
-                    .filter((fDet: any) => fDet.idProducto === idProd)
-                    .reduce((acc: number, fDet: any) => acc + Number(fDet.cantidad), 0)
+            const detallesCotizFiltrados: CotizacionDetalleDTO[] = todasLasCotizaciones.filter(
+                (c: CotizacionDetalleDTO) => c.idPedidoCotizacion === idCotizacionGanadora
+            )
 
-                const solicitado = Number(det.cantidad)
-                const pendiente = solicitado - yaFacturado
+            const itemsMapeados: ItemFacturaForm[] = detallesOC.map((detOC) => {
+                const coincidenciaCotizacion = detallesCotizFiltrados.find(
+                    (c) => c.idProducto === detOC.idProducto
+                )
+
+                const coincindex = !!coincidenciaCotizacion;
+                const precioUnitario = coincidenciaCotizacion ? coincidenciaCotizacion.precioProducto : 0
+                const descuento = coincidenciaCotizacion ? ((coincidenciaCotizacion as any).descuento || 0) : 0;
+                const cantidad = detOC.cantidad || 0
+
+                const totalBruto = cantidad * precioUnitario
+                const netoSinDescuento = totalBruto - descuento
+                const totalIva = Math.round(netoSinDescuento / 11)
+                const totalNeto = netoSinDescuento
 
                 return {
-                    idProducto: idProd,
-                    descripcion: det.producto?.descripcion || det.descripcion || `Producto #${idProd}`,
-                    cantidadSolicitada: solicitado,
-                    cantidadYaFacturada: yaFacturado,
-                    cantidadPendiente: pendiente > 0 ? pendiente : 0,
-                    cantidadRecibidaAhora: pendiente > 0 ? pendiente : 0,
-                    precioUnitario: Number(det.precioUnitario || det.precioProducto || 0),
-                    descuento: Number(det.descuento || 0),
-                    totalItem: 0
+                    idProducto: detOC.idProducto,
+                    descripcion: detOC.producto?.descripcion || detOC.descripcion || `Producto #${detOC.idProducto}`,
+                    cantidadPedida: cantidad,
+                    cantidadRecibidaAhora: cantidad,
+                    precioUnitario: precioUnitario,
+                    descuento: descuento,
+                    totalBruto: totalBruto,
+                    totalIva: totalIva,
+                    totalNeto: totalNeto
                 }
             })
 
-            const itemsConTotales = itemsMapeados.map(item => ({
-                ...item,
-                totalItem: (item.precioUnitario - item.descuento) * item.cantidadRecibidaAhora
-            }))
-
-            setItemsFactura(itemsConTotales)
-
-            if (itemsConTotales.every(i => i.cantidadPendiente === 0)) {
-                notify.error("OC Completa", "Todos los productos de esta orden de compra ya fueron facturados por completo.")
-            }
+            setItemsFactura(itemsMapeados)
+            setDescripcion(`Facturación de la OC #${idOC}`)
         } catch (err) {
             console.error(err)
-            notify.error("Error", "Error al procesar la trazabilidad de cantidades pendientes.")
-        } finally {
-            setIsLoadingData(false) // <-- Cambiado de declare a finally corregido
+            notify.error("Error de Cruce", "Fallo al procesar el listado y sus cotizaciones.")
         }
     }
 
-    const handleCantidadFacturadaChange = (idProducto: number, valor: number) => {
-        setItemsFactura(prev =>
-            prev.map(item => {
-                if (item.idProducto !== idProducto) return item
+    const handleCantidadFacturadaChange = (index: number, nuevaCant: number) => {
+        setItemsFactura(prev => prev.map((item, i) => {
+            if (i !== index) return item
 
-                let cantidadValidada = valor
-                if (cantidadValidada > item.cantidadPendiente) {
-                    cantidadValidada = item.cantidadPendiente
-                    notify.error("Límite excedido", `No se puede recibir más de la cantidad pendiente (${item.cantidadPendiente}).`)
-                }
-                if (cantidadValidada < 0) cantidadValidada = 0
+            // Limitamos que visualmente no meta valores negativos, pero dejamos que escriba libremente para la validación final
+            const cant = Math.max(0, nuevaCant)
+            const totalBruto = cant * item.precioUnitario
+            const descuentoProporcional = item.cantidadPedida > 0 ? (item.descuento / item.cantidadPedida) * cant : 0
+            const totalNeto = totalBruto - descuentoProporcional
+            const totalIva = Math.round(totalNeto / 11)
 
-                return {
-                    ...item,
-                    cantidadRecibidaAhora: cantidadValidada,
-                    totalItem: (item.precioUnitario - item.descuento) * cantidadValidada
-                }
-            })
-        )
+            return {
+                ...item,
+                cantidadRecibidaAhora: cant,
+                totalBruto,
+                totalIva,
+                totalNeto
+            }
+        }))
     }
 
-    const calcularTotalFactura = () => {
-        return itemsFactura.reduce((acc, item) => acc + item.totalItem, 0)
-    }
+    const totalFacturaNeto = itemsFactura.reduce((acc, item) => acc + item.totalNeto, 0)
+    const totalFacturaIva = itemsFactura.reduce((acc, item) => acc + item.totalIva, 0)
 
     const handleGuardarFactura = async () => {
-        if (!idOrdenSeleccionada) return notify.error("Campos vacíos", "Debe seleccionar una Orden de Compra origen.")
-        if (!nroComprobante.trim() || !timbrado.trim()) return notify.error("Campos vacíos", "El Número de Factura y el Timbrado son obligatorios.")
+        if (!idOrdenSeleccionada || !nroComprobante || !timbrado) {
+            return notify.error("Campos Requeridos", "Por favor completa el comprobante, timbrado y la orden origen.")
+        }
 
-        const itemsAFacturar = itemsFactura.filter(item => item.cantidadRecibidaAhora > 0)
-        if (itemsAFacturar.length === 0) {
-            return notify.error("Sin ítems", "Debe ingresar al menos una cantidad mayor a 0 para generar la factura.")
+        // Validación estricta del formato del comprobante (Debe cumplir 15 caracteres incluyendo guiones)
+        if (nroComprobante.length < 15) {
+            return notify.error("Formato Inválido", "El número de comprobante debe tener el formato completo: 001-001-0000001")
+        }
+
+        // VALIDACIÓN: Verificar que ninguna cantidad cargada supere lo pedido originalmente
+        const itemExcedido = itemsFactura.find(item => item.cantidadRecibidaAhora > item.cantidadPedida)
+        if (itemExcedido) {
+            return notify.error(
+                "Cantidad Excedida",
+                `El producto "${itemExcedido.descripcion}" supera la cantidad disponible en la Orden de Compra (${itemExcedido.cantidadPedida}).`
+            )
+        }
+
+        // VALIDACIÓN: Evitar guardar facturas vacías en 0 unidades
+        const totalItemsFacturados = itemsFactura.reduce((acc, item) => acc + item.cantidadRecibidaAhora, 0)
+        if (totalItemsFacturados === 0) {
+            return notify.error("Operación Inválida", "La factura debe contener al menos 1 producto con cantidad mayor a 0.")
         }
 
         setIsProcesando(true)
         try {
+            const ordenDoc = ordenes.find(o => String(o.idOrdenCompra) === String(idOrdenSeleccionada))
+            const idProveedorFinal = ordenDoc ? ordenDoc.idProveedor : 0
+
+            const fechaFormateada = new Date(fecha + 'T00:00:00').toISOString().split('T')[0]
+
             const facturaPayload: FacturaCompraSaveDTO = {
                 idOrdenCompra: Number(idOrdenSeleccionada),
-                idProveedor: proveedorInfo?.id || 0,
+                idProveedor: idProveedorFinal,
                 nroComprobante: nroComprobante,
                 timbrado: timbrado,
-                fecha: new Date(fechaFactura).toISOString(),
-                descripcion: descripcionCabecera
+                fecha: fechaFormateada,
+                descripcion: descripcion
             }
 
-            const nuevaFacturaRes: any = await FacturasCompraAPI.create(facturaPayload)
-            const idFacturaGenerada = nuevaFacturaRes?.idFacturaCompra || nuevaFacturaRes?.id
+            // 1. Mandamos la cabecera
+            const nuevaFactura: any = await FacturasCompraAPI.create(facturaPayload)
+            const idFacturaGenerada = nuevaFactura?.idFacturaCompra || nuevaFactura?.id
 
             if (!idFacturaGenerada) {
-                throw new Error("El servidor no retornó un ID válido.")
+                throw new Error("El backend no retornó un ID válido para la cabecera de la factura.")
             }
 
-            const promesasDetalles = itemsAFacturar.map(item => {
-                const totalBrutoCalculado = item.precioUnitario * item.cantidadRecibidaAhora
-                const totalNetoCalculado = item.totalItem
-                const totalIvaCalculado = totalNetoCalculado * 0.10
+            // Filtrar para registrar solo ítems cuya cantidad cargada sea mayor a cero (Facturación parcial compatible)
+            const itemsFiltradosParaGuardar = itemsFactura.filter(item => item.cantidadRecibidaAhora > 0)
 
-                const detallePayload: FacturaCompraDetalleSaveDTO = {
+            // 2. Guardamos el lote de detalles filtrados
+            const promesasDetalles = itemsFiltradosParaGuardar.map(item => {
+                return facturasCompraDetallesAPI.createDetalle({
                     idFacturaCompra: idFacturaGenerada,
                     idProducto: item.idProducto,
                     cantidad: item.cantidadRecibidaAhora,
                     precioUnitario: item.precioUnitario,
-                    totalBruto: totalBrutoCalculado,
-                    totalIva: totalIvaCalculado,
-                    totalNeto: totalNetoCalculado
-                }
-                return FacturasCompraDetallesAPI.createDetalle(detallePayload)
+                    totalBruto: item.totalBruto,
+                    totalIva: item.totalIva,
+                    totalNeto: item.totalNeto
+                })
             })
 
             await Promise.all(promesasDetalles)
 
-            const totalPendienteRestante = itemsFactura.reduce((acc, item) => {
-                return acc + (item.idProducto ? (item.cantidadPendiente - item.cantidadRecibidaAhora) : 0)
-            }, 0)
+            // 3. Modificación del estado de la Orden de Compra basado en la cantidad global pendiente
+            try {
+                const totalPendiente = itemsFactura.reduce((acc, i) => acc + (i.cantidadPedida - i.cantidadRecibidaAhora), 0)
+                const nuevoEstado = totalPendiente === 0 ? "Facturado" : "Pendiente de Entrega"
+                await ordenesCompraAPI.updateEstado(idOrdenSeleccionada, { estado: nuevoEstado })
+            } catch (stateError) {
+                console.warn("La factura se guardó pero la OC no pudo cambiar su estado:", stateError)
+            }
 
-            const nuevoEstadoOC = totalPendienteRestante === 0 ? "Recibido Completado" : "Pendiente de Entrega"
-            await ordenesCompraAPI.updateEstado(idOrdenSeleccionada, { estado: nuevoEstadoOC })
-
-            notify.success("Carga Exitosa", `Factura ${nroComprobante} procesada correctamente.`)
+            notify.success("Operación Exitosa", "Factura asentada e ingresada al Stock de forma correcta.")
             router.push("/compras/facturas")
-        } catch (error: any) {
-            console.error(error)
-            notify.error("Error de Procesamiento", error?.response?.data?.message || "Error al asentar factura.")
+        } catch (err) {
+            console.error(err)
+            notify.error("Error", "Ocurrió un error al procesar el cierre de la factura.")
         } finally {
             setIsProcesando(false)
         }
     }
 
-    return (
-        <div className="bg-background">
-            <PageBreadcrumb
-                steps={[
-                    { label: "Compras" },
-                    { label: "Facturas de Proveedores", href: "/compras/facturas" },
-                    { label: "Registrar Factura" },
-                ]}
-            />
+    const ordenSeleccionadaActual = ordenes.find(o => String(o.idOrdenCompra) === String(idOrdenSeleccionada))
 
-            <main className="container mx-auto p-2 max-w-5xl">
-                <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-xl font-bold tracking-tight">Registrar Factura de Proveedor</h2>
-                    <Button variant="outline" size="sm" onClick={() => router.push("/compras/facturas")} className="h-8 gap-1">
-                        <ArrowLeft className="h-3.5 w-3.5" /> Volver
+    return (
+        <div className="bg-background w-full">
+            <PageBreadcrumb steps={[{ label: "Compras" }, { label: "Facturas", href: "/compras/facturas" }, { label: "Cargar" }]} />
+
+            <main className="w-full p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold tracking-tight">Registrar Factura de Proveedor</h2>
+                    <Button variant="outline" size="sm" onClick={() => router.push("/compras/facturas")} className="gap-1">
+                        <ArrowLeft className="h-4 w-4" /> Volver
                     </Button>
                 </div>
 
-                <Card className="mb-3">
-                    <CardHeader className="py-2.5">
-                        <CardTitle className="text-sm font-semibold">1. Vincular Orden de Compra Pendiente</CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FieldWrapper label="Orden de Compra Pendiente" id="ocSelect">
-                            <select
-                                className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs focus:ring-2 focus:ring-primary"
-                                value={idOrdenSeleccionada}
-                                onChange={(e) => handleSeleccionarOrden(e.target.value)}
-                                disabled={isProcesando}
-                            >
-                                <option value="">Seleccione una orden de compra activa...</option>
-                                {ordenesPendientes.map((o) => (
-                                    <option key={o.idOrdenCompra} value={String(o.idOrdenCompra)}>
-                                        OC #{o.idOrdenCompra} — {o.proveedor?.razonSocial || `ID: ${o.idProveedor}`}
-                                    </option>
-                                ))}
-                            </select>
-                        </FieldWrapper>
+                <div className="flex flex-row flex-wrap md:flex-nowrap gap-4 items-end mb-6 border p-4 rounded-lg bg-card w-full">
+                    <div className="flex-1 min-w-[280px]">
+                        <FieldWrapper label="Orden de Compra Origen" id="soOC">
+                            <Popover open={openCombo} onOpenChange={setOpenCombo}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openCombo}
+                                        className="w-full h-9 justify-between text-xs font-normal px-3 bg-background"
+                                        disabled={isProcesando || isLoadingOrdenes}
+                                    >
+                                        {ordenSeleccionadaActual
+                                            ? `OC #${ordenSeleccionadaActual.idOrdenCompra} — ${ordenSeleccionadaActual.proveedor}`
+                                            : "Buscar por OC, RUC o Proveedor..."}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[380px] p-0" align="start">
+                                    <Command filter={(value, search) => {
+                                        const target = value.toLowerCase()
+                                        const term = search.toLowerCase()
+                                        return target.includes(term) ? 1 : 0
+                                    }}>
+                                        <CommandInput placeholder="Ingresa Nro. OC, Nombre o RUC..." className="h-8 text-xs" />
+                                        <CommandList>
+                                            <CommandEmpty className="p-2 text-xs text-muted-foreground text-center">
+                                                No se encontraron coincidencias.
+                                            </CommandEmpty>
+                                            <CommandGroup>
+                                                {ordenes.map((o) => {
+                                                    const rucProveedor = (o as any).ruc || ""
+                                                    const valorDeBusqueda = `oc-${o.idOrdenCompra} ${o.proveedor} ${rucProveedor}`
 
-                        {proveedorInfo && (
-                            <div className="bg-muted/40 rounded-md p-2 flex items-center gap-2 border border-dashed text-xs">
-                                <AlertCircle className="h-4 w-4 text-primary shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-muted-foreground">Proveedor Detectado</p>
-                                    <p className="font-bold text-foreground">{proveedorInfo.razonSocial}</p>
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                                                    return (
+                                                        <CommandItem
+                                                            key={o.idOrdenCompra}
+                                                            value={valorDeBusqueda}
+                                                            onSelect={() => {
+                                                                handleSeleccionarOrden(String(o.idOrdenCompra))
+                                                                setOpenCombo(false)
+                                                            }}
+                                                            className="text-xs flex items-center justify-between cursor-pointer"
+                                                        >
+                                                            <div className="flex flex-col">
+                                                                <span className="font-semibold">OC #{o.idOrdenCompra}</span>
+                                                                <span className="text-muted-foreground text-[11px]">
+                                                                    {o.proveedor} {rucProveedor ? `(${rucProveedor})` : ""}
+                                                                </span>
+                                                            </div>
+                                                            <Check
+                                                                className={cn(
+                                                                    "h-4 w-4 text-primary",
+                                                                    idOrdenSeleccionada === String(o.idOrdenCompra) ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                        </CommandItem>
+                                                    )
+                                                })}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </FieldWrapper>
+                    </div>
+
+                    <div className="flex-1 min-w-[150px]">
+                        <FieldWrapper label="Nro. Comprobante Factura" id="txtComp">
+                            <Input
+                                placeholder="001-001-0001234"
+                                className="h-9 text-xs w-full font-mono tracking-wider"
+                                value={nroComprobante}
+                                onChange={handleNroComprobanteChange}
+                                disabled={isProcesando}
+                            />
+                        </FieldWrapper>
+                    </div>
+
+                    <div className="flex-1 min-w-[150px]">
+                        <FieldWrapper label="Número de Timbrado" id="txtTimb">
+                            <Input
+                                placeholder="16743210"
+                                className="h-9 text-xs w-full"
+                                value={timbrado}
+                                onChange={(e) => setTimbrado(e.target.value.replace(/\D/g, ""))}
+                                disabled={isProcesando}
+                            />
+                        </FieldWrapper>
+                    </div>
+
+                    <div className="flex-1 min-w-[120px]">
+                        <FieldWrapper label="Fecha de Factura" id="txtFech">
+                            <Input
+                                type="date"
+                                className="h-9 text-xs w-full"
+                                value={fecha}
+                                onChange={(e) => setFecha(e.target.value)}
+                                disabled={isProcesando}
+                            />
+                        </FieldWrapper>
+                    </div>
+                </div>
 
                 {idOrdenSeleccionada && (
-                    <>
-                        <Card className="mb-3">
-                            <CardHeader className="py-2.5">
-                                <CardTitle className="text-sm font-semibold">2. Datos de Control e Impositivos</CardTitle>
-                            </CardHeader>
-                            <CardContent className="py-2 space-y-3">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <FieldWrapper label="Número de Factura" id="txtFactura">
-                                        <Input
-                                            className="h-8 text-xs"
-                                            placeholder="001-001-0012345"
-                                            value={nroComprobante}
-                                            onChange={(e) => setNroComprobante(e.target.value)}
-                                            disabled={isProcesando}
-                                        />
-                                    </FieldWrapper>
+                    <div className="rounded-lg border bg-card shadow-sm overflow-hidden w-full">
+                        <Table className="w-full">
+                            <TableHeader className="bg-muted/50">
+                                <TableRow>
+                                    <TableHead>Producto / Descripción</TableHead>
+                                    <TableHead className="w-24 text-center">Cant. OC</TableHead>
+                                    <TableHead className="w-28 text-center">Cant. A Facturar</TableHead>
+                                    <TableHead className="w-32 text-right">Precio Unit.</TableHead>
+                                    <TableHead className="w-24 text-right">Descuento</TableHead>
+                                    <TableHead className="w-32 text-right">Total Neto</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {itemsFactura.map((item, index) => {
+                                    const esInvalido = item.cantidadRecibidaAhora > item.cantidadPedida
+                                    return (
+                                        <TableRow
+                                            key={item.idProducto}
+                                            className={cn("hover:bg-muted/10", esInvalido && "bg-destructive/10 hover:bg-destructive/15")}
+                                        >
+                                            <TableCell className="text-xs font-medium">
+                                                {item.descripcion}
+                                            </TableCell>
+                                            <TableCell className="text-xs text-center text-muted-foreground font-semibold">
+                                                {item.cantidadPedida}
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Input
+                                                    type="number"
+                                                    className={cn(
+                                                        "h-7 text-xs text-center w-20 mx-auto",
+                                                        esInvalido && "border-destructive text-destructive focus-visible:ring-destructive"
+                                                    )}
+                                                    value={item.cantidadRecibidaAhora}
+                                                    onChange={(e) => handleCantidadFacturadaChange(index, Number(e.target.value))}
+                                                    disabled={isProcesando}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-xs text-right font-mono">
+                                                {item.precioUnitario.toLocaleString("es-PY")} Gs.
+                                            </TableCell>
+                                            <TableCell className="text-xs text-right font-mono text-destructive">
+                                                {item.descuento > 0 ? `-${item.descuento.toLocaleString("es-PY")}` : "0"}
+                                            </TableCell>
+                                            <TableCell className="text-xs text-right font-bold font-mono text-foreground">
+                                                {item.totalNeto.toLocaleString("es-PY")} Gs.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
 
-                                    <FieldWrapper label="Número de Timbrado" id="txtTimbrado">
-                                        <Input
-                                            className="h-8 text-xs"
-                                            placeholder="Ej. 16543210"
-                                            value={timbrado}
-                                            onChange={(e) => setTimbrado(e.target.value)}
-                                            disabled={isProcesando}
-                                        />
-                                    </FieldWrapper>
-
-                                    <FieldWrapper label="Fecha de Emisión" id="txtFecha">
-                                        <Input
-                                            type="date"
-                                            className="h-8 text-xs"
-                                            value={fechaFactura}
-                                            onChange={(e) => setFechaFactura(e.target.value)}
-                                            disabled={isProcesando}
-                                        />
-                                    </FieldWrapper>
-                                </div>
-
-                                <FieldWrapper label="Notas / Descripción de la Factura" id="txtDesc">
-                                    <Input
-                                        className="h-8 text-xs"
-                                        placeholder="Observaciones internas..."
-                                        value={descripcionCabecera}
-                                        onChange={(e) => setDescripcionCabecera(e.target.value)}
-                                        disabled={isProcesando}
-                                    />
-                                </FieldWrapper>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="mb-3">
-                            <CardHeader className="py-2.5 bg-muted/20 flex flex-row items-center justify-between">
-                                <CardTitle className="text-sm font-semibold">3. Productos Recibidos e Ingreso a Stock</CardTitle>
-                                <div className="text-right">
-                                    <span className="text-[10px] text-muted-foreground uppercase block">Total Factura</span>
-                                    <span className="text-sm font-black text-primary">
-                                        {calcularTotalFactura().toLocaleString("es-PY")} Gs.
-                                    </span>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                {isLoadingData ? (
-                                    <div className="flex flex-col items-center justify-center py-6 space-y-1">
-                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                        <p className="text-[11px] text-muted-foreground">Cruzando historial...</p>
-                                    </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="text-xs">
-                                                <TableHead>Producto</TableHead>
-                                                <TableHead className="text-center w-24">Solicitado</TableHead>
-                                                <TableHead className="text-center w-24">Ya Facturado</TableHead>
-                                                <TableHead className="text-center w-24 text-primary font-bold">Saldo</TableHead>
-                                                <TableHead className="text-center w-28">Recibido</TableHead>
-                                                <TableHead className="text-right">Precio Neto</TableHead>
-                                                <TableHead className="text-right">Subtotal</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {itemsFactura.map((item) => (
-                                                <TableRow key={item.idProducto} className="text-xs">
-                                                    <TableCell className="font-medium max-w-[200px] truncate">
-                                                        {item.descripcion}
-                                                    </TableCell>
-                                                    <TableCell className="text-center text-muted-foreground">
-                                                        {item.cantidadSolicitada}
-                                                    </TableCell>
-                                                    <TableCell className="text-center text-muted-foreground">
-                                                        {item.cantidadYaFacturada}
-                                                    </TableCell>
-                                                    <TableCell className="text-center font-bold text-primary bg-primary/5">
-                                                        {item.cantidadPendiente}
-                                                    </TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Input
-                                                            type="number"
-                                                            className={`h-7 text-center text-xs p-1 ${item.cantidadPendiente === 0 ? 'bg-muted' : ''}`}
-                                                            value={item.cantidadRecibidaAhora}
-                                                            min={0}
-                                                            max={item.cantidadPendiente}
-                                                            disabled={item.cantidadPendiente === 0 || isProcesando}
-                                                            onChange={(e) => handleCantidadFacturadaChange(item.idProducto, Number(e.target.value))}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        {(item.precioUnitario - item.descuento).toLocaleString("es-PY")} Gs.
-                                                    </TableCell>
-                                                    <TableCell className="text-right font-semibold">
-                                                        {item.totalItem.toLocaleString("es-PY")} Gs.
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <div className="flex justify-end gap-2 mt-4">
-                            <Button
-                                size="sm"
-                                onClick={handleGuardarFactura}
-                                disabled={isProcesando || isLoadingData}
-                                className="gap-1.5"
-                            >
-                                {isProcesando ? (
-                                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Procesando...</>
-                                ) : (
-                                    <><Save className="h-3.5 w-3.5" /> Asentar Factura</>
-                                )}
-                            </Button>
+                        <div className="p-4 bg-muted/30 flex flex-col items-end border-t gap-1.5 text-xs w-full">
+                            <div className="text-muted-foreground">
+                                Liquidación IVA (10% inc.): <span className="font-mono font-medium text-foreground">{totalFacturaIva.toLocaleString("es-PY")} Gs.</span>
+                            </div>
+                            <div className="text-sm font-bold text-primary">
+                                Total General Factura: <span className="font-mono text-lg">{totalFacturaNeto.toLocaleString("es-PY")} Gs.</span>
+                            </div>
                         </div>
-                    </>
+                    </div>
+                )}
+
+                {idOrdenSeleccionada && (
+                    <div className="flex justify-end mt-6 w-full">
+                        <Button
+                            size="sm"
+                            onClick={handleGuardarFactura}
+                            disabled={isProcesando || itemsFactura.length === 0}
+                            className="gap-2"
+                        >
+                            {isProcesando ? (
+                                <><Loader2 className="h-4 w-4 animate-spin" /> Procesando Stock...</>
+                            ) : (
+                                <><Save className="h-4 w-4" /> Registrar Factura e Ingresar</>
+                            )}
+                        </Button>
+                    </div>
                 )}
             </main>
         </div>

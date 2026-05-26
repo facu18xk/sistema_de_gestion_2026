@@ -1,9 +1,12 @@
 import api from "@/services/api";
+import { API_CONFIG } from "@/config/api";
 import { OrdenPagoCompraSaveDTO, OrdenPagoCompraDetalleSaveDTO } from "@/types/types";
 
 export const ordenesPagosAPI = {
-    getAll: async (page = 1, pageSize = 50) => {
-        const response = await api.get(`/OrdenesPagosCompras?page=${page}&pageSize=${pageSize}`);
+    getAll: async (page: number, pageSize: number) => {
+        const response = await api.get(API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA, {
+            params: { Page: page, PageSize: pageSize },
+        });
         return response.data;
     },
 
