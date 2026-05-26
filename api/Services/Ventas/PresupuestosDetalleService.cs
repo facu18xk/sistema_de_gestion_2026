@@ -83,7 +83,7 @@ public class PresupuestosDetalleService : CrudServiceBase<PresupuestosDetalle, i
         entity.Iva = porcentajeIva.Value;
 
         var totalBruto = Math.Round(entity.Cantidad * entity.PrecioUnitario, 2, MidpointRounding.AwayFromZero);
-        var totalIva = Math.Round(totalBruto * entity.Iva, 2, MidpointRounding.AwayFromZero);
+        var totalIva = IvaCalculator.CalculateTotal(totalBruto, entity.Iva);
         entity.Subtotal = totalBruto + totalIva;
     }
 }

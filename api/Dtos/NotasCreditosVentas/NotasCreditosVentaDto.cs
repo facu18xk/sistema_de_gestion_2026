@@ -1,6 +1,7 @@
 namespace api.Dtos.NotasCreditosVentas;
 
 using api.Dtos.NotasCreditosVentasDetalles;
+using api.Dtos.Ventas;
 
 public class NotasCreditosVentaDto
 {
@@ -40,4 +41,6 @@ public class NotasCreditosVentaUpsertDto
     public DateTime FechaEmision { get; set; }
 
     public decimal Total { get; set; }
+
+    public IReadOnlyCollection<VentaItemCreateDto> Items { get; set; } = Array.Empty<VentaItemCreateDto>();
 }

@@ -21,13 +21,67 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         _ventasCompletasService = ventasCompletasService;
     }
 
+    [HttpPost]
+    public override async Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaUpsertDto dto)
+    {
+        return await CreateFromCompletaDto(new NotaCreditoVentaCompletaCreateDto
+        {
+            IdFacturaVenta = dto.IdFacturaVenta,
+            IdTimbrado = dto.IdTimbrado,
+            Motivo = dto.Motivo,
+            FechaEmision = dto.FechaEmision,
+            Items = dto.Items
+        });
+    }
+
     [HttpPost("completo")]
     public async Task<ActionResult<NotasCreditosVentaDto>> CreateCompleto(NotaCreditoVentaCompletaCreateDto dto)
+    {
+        return await CreateFromCompletaDto(dto);
+    }
+
+    [HttpPut("{id:int}")]
+    public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpsertDto dto)
+    {
+        return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaCreateDto
+        {
+            IdFacturaVenta = dto.IdFacturaVenta,
+            IdTimbrado = dto.IdTimbrado,
+            Motivo = dto.Motivo,
+            FechaEmision = dto.FechaEmision,
+            Items = dto.Items
+        });
+    }
+
+    [HttpPut("completo/{id:int}")]
+    public async Task<ActionResult<NotasCreditosVentaDto>> UpdateCompleto(int id, NotaCreditoVentaCompletaCreateDto dto)
+    {
+        return await UpdateFromCompletaDto(id, dto);
+    }
+
+    private async Task<ActionResult<NotasCreditosVentaDto>> CreateFromCompletaDto(NotaCreditoVentaCompletaCreateDto dto)
     {
         try
         {
             var createdEntity = await _ventasCompletasService.CreateNotaCreditoVentaAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = createdEntity.IdNotaCreditoVenta }, ToReadDto(createdEntity));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    private async Task<ActionResult<NotasCreditosVentaDto>> UpdateFromCompletaDto(int id, NotaCreditoVentaCompletaCreateDto dto)
+    {
+        try
+        {
+            var updatedEntity = await _ventasCompletasService.UpdateNotaCreditoVentaAsync(id, dto);
+            return Ok(ToReadDto(updatedEntity));
         }
         catch (InvalidOperationException ex)
         {
