@@ -326,6 +326,7 @@ public class VentasCompletasService
         var notaCredito = new NotasCreditosVenta
         {
             IdFacturaVenta = dto.IdFacturaVenta,
+            IdEstado = dto.IdEstado,
             IdNotaDevolucionVenta = null,
             IdTimbrado = dto.IdTimbrado,
             Motivo = dto.Motivo,
@@ -437,6 +438,7 @@ public class VentasCompletasService
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
         notaCredito.IdFacturaVenta = dto.IdFacturaVenta;
+        notaCredito.IdEstado = dto.IdEstado;
         notaCredito.IdNotaDevolucionVenta = null;
         notaCredito.IdTimbrado = dto.IdTimbrado;
         notaCredito.Motivo = dto.Motivo;
@@ -740,6 +742,7 @@ public class VentasCompletasService
         return await _context.NotasCreditosVentas
             .AsNoTracking()
             .Include(entity => entity.IdFacturaVentaNavigation)
+            .Include(entity => entity.IdEstadoNavigation)
             .Include(entity => entity.IdNotaDevolucionVentaNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.NotasCreditosVentasDetalles)
@@ -757,7 +760,9 @@ public class VentasCompletasService
             .Include(entity => entity.IdMedioPagoCompraNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.FacturasVentasDetalles)
-                .ThenInclude(detalle => detalle.IdProductoNavigation);
+                .ThenInclude(detalle => detalle.IdProductoNavigation)
+            .Include(entity => entity.NotasCreditosVenta)
+                .ThenInclude(nc => nc.NotasCreditosVentasDetalles);
     }
 
     private static decimal CalcularTotalBruto(int cantidad, decimal precioUnitario)
@@ -818,6 +823,10 @@ public class VentasCompletasService
                 IdProducto = detalle.IdProducto,
                 Producto = detalle.IdProductoNavigation?.Descripcion ?? string.Empty,
                 Cantidad = detalle.Cantidad,
+                CantidadDevuelta = facturaVenta.NotasCreditosVenta
+                    .SelectMany(nc => nc.NotasCreditosVentasDetalles)
+                    .Where(ncvd => ncvd.IdProducto == detalle.IdProducto)
+                    .Sum(ncvd => ncvd.Cantidad),
                 PrecioUnitario = detalle.PrecioUnitario,
                 TotalBruto = detalle.TotalBruto,
                 TotalIva = detalle.TotalIva,

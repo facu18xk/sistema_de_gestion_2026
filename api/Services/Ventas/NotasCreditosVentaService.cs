@@ -34,6 +34,7 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
     protected override void UpdateEntity(NotasCreditosVenta existingEntity, NotasCreditosVenta incomingEntity)
     {
         existingEntity.IdFacturaVenta = incomingEntity.IdFacturaVenta;
+        existingEntity.IdEstado = incomingEntity.IdEstado;
         existingEntity.IdNotaDevolucionVenta = incomingEntity.IdNotaDevolucionVenta;
         existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
         existingEntity.Motivo = incomingEntity.Motivo;
@@ -45,6 +46,7 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
     {
         return _context.NotasCreditosVentas
             .Include(entity => entity.IdFacturaVentaNavigation)
+            .Include(entity => entity.IdEstadoNavigation)
             .Include(entity => entity.IdNotaDevolucionVentaNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.NotasCreditosVentasDetalles)

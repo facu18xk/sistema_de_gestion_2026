@@ -60,6 +60,8 @@ public class FacturasVentasDetalleService : CrudServiceBase<FacturasVentasDetall
     {
         return _context.FacturasVentasDetalles
             .Include(entity => entity.IdFacturaVentaNavigation)
+                .ThenInclude(fv => fv.NotasCreditosVenta)
+                    .ThenInclude(nc => nc.NotasCreditosVentasDetalles)
             .Include(entity => entity.IdProductoNavigation);
     }
 }

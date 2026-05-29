@@ -491,6 +491,7 @@ public partial class DblosAmigosContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("Fecha_Emision");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdNotaDevolucionVenta).HasColumnName("Id_Nota_Devolucion_Venta");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
             entity.Property(e => e.Motivo)
@@ -502,6 +503,11 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdFacturaVenta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Notas_Creditos_Ventas_Facturas_Ventas");
+
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany()
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Notas_Creditos_Ventas_Estados");
 
             entity.HasOne(d => d.IdNotaDevolucionVentaNavigation).WithMany(p => p.NotasCreditosVenta)
                 .HasForeignKey(d => d.IdNotaDevolucionVenta)

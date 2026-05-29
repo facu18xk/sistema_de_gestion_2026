@@ -100,6 +100,8 @@ public class FacturaVentaItemDto
 
     public int Cantidad { get; set; }
 
+    public int CantidadDevuelta { get; set; }
+
     public decimal PrecioUnitario { get; set; }
 
     public decimal TotalBruto { get; set; }
@@ -145,6 +147,8 @@ public class FacturaVentaCompletaDto
 public class NotaCreditoVentaCompletaCreateDto
 {
     public int IdFacturaVenta { get; set; }
+
+    public int IdEstado { get; set; }
 
     public int IdTimbrado { get; set; }
 

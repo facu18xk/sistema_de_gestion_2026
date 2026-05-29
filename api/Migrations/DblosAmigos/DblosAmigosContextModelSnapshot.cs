@@ -1386,6 +1386,10 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Factura_Venta");
 
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Estado");
+
                     b.Property<int?>("IdNotaDevolucionVenta")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Nota_Devolucion_Venta");
@@ -1406,6 +1410,8 @@ namespace api.Migrations.DblosAmigos
                     b.HasKey("IdNotaCreditoVenta");
 
                     b.HasIndex("IdFacturaVenta");
+
+                    b.HasIndex("IdEstado");
 
                     b.HasIndex("IdNotaDevolucionVenta");
 
@@ -3133,6 +3139,13 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Facturas_Ventas");
 
+                    b.HasOne("api.Models.Estado", "IdEstadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .IsRequired()
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_Notas_Creditos_Ventas_Estados");
+
                     b.HasOne("api.Models.NotasDevolucionesVenta", "IdNotaDevolucionVentaNavigation")
                         .WithMany("NotasCreditosVenta")
                         .HasForeignKey("IdNotaDevolucionVenta")
@@ -3146,6 +3159,8 @@ namespace api.Migrations.DblosAmigos
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Timbrados");
 
                     b.Navigation("IdFacturaVentaNavigation");
+
+                    b.Navigation("IdEstadoNavigation");
 
                     b.Navigation("IdNotaDevolucionVentaNavigation");
 

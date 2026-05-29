@@ -11,6 +11,10 @@ public class NotasCreditosVentaDto
 
     public string FacturaVenta { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public int? IdNotaDevolucionVenta { get; set; }
 
     public string NotaDevolucionVenta { get; set; } = string.Empty;
@@ -31,6 +35,8 @@ public class NotasCreditosVentaDto
 public class NotasCreditosVentaUpsertDto
 {
     public int IdFacturaVenta { get; set; }
+
+    public int IdEstado { get; set; }
 
     public int? IdNotaDevolucionVenta { get; set; }
 

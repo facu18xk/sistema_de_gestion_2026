@@ -27,6 +27,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         return await CreateFromCompletaDto(new NotaCreditoVentaCompletaCreateDto
         {
             IdFacturaVenta = dto.IdFacturaVenta,
+            IdEstado = dto.IdEstado,
             IdTimbrado = dto.IdTimbrado,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
@@ -46,6 +47,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaCreateDto
         {
             IdFacturaVenta = dto.IdFacturaVenta,
+            IdEstado = dto.IdEstado,
             IdTimbrado = dto.IdTimbrado,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
@@ -100,6 +102,8 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             IdNotaCreditoVenta = entity.IdNotaCreditoVenta,
             IdFacturaVenta = entity.IdFacturaVenta,
             FacturaVenta = entity.IdFacturaVentaNavigation?.NroComprobante ?? string.Empty,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             IdNotaDevolucionVenta = entity.IdNotaDevolucionVenta,
             NotaDevolucionVenta = entity.IdNotaDevolucionVentaNavigation?.Motivo ?? string.Empty,
             IdTimbrado = entity.IdTimbrado,
@@ -125,6 +129,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         return new NotasCreditosVenta
         {
             IdFacturaVenta = dto.IdFacturaVenta,
+            IdEstado = dto.IdEstado,
             IdNotaDevolucionVenta = dto.IdNotaDevolucionVenta,
             IdTimbrado = dto.IdTimbrado,
             Motivo = dto.Motivo,
