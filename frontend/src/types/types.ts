@@ -1,15 +1,23 @@
 //Interfaces para Login/Auth
-export interface User {
+export type UserRole = "ADMIN" | "USER";
+
+/** Datos que devuelve la API al iniciar sesión */
+export interface AuthUser {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
 }
 
+/** Usuario en sesión (frontend agrega el rol) */
+export interface User extends AuthUser {
+    role: UserRole;
+}
+
 export interface LoginResponse {
     token: string;
     expiresAtUtc: string;
-    user: User;
+    user: AuthUser;
 }
 
 export interface LoginCredentials {
@@ -461,4 +469,180 @@ export interface CotizacionItemForm {
     cantidad: number;
     precioUnitario: number;
     descuento: number;
+}
+
+// Banco y Tesorería
+export interface Banco {
+    idBanco: number;
+    nombre: string;
+    activo: boolean;
+}
+
+export interface BancoSaveDTO {
+    nombre: string;
+    activo: boolean;
+}
+
+export interface TipoCuentaBancaria {
+    idTipoCuentaBancaria: number;
+    nombre: string;
+}
+
+export interface CuentaBancaria {
+    idCuentaBancaria: number;
+    idBanco: number;
+    banco: string;
+    idTipoCuentaBancaria: number;
+    tipoCuentaBancaria: string;
+    idCuentaContable: number;
+    cuentaContable: string;
+    numeroCuenta: string;
+    moneda: string;
+    saldo: number;
+    saldoDisponible: number;
+    activa: boolean;
+}
+
+export interface CuentaBancariaSaveDTO {
+    idBanco: number;
+    idTipoCuentaBancaria: number;
+    idCuentaContable: number;
+    numeroCuenta: string;
+    moneda: string;
+    activa: boolean;
+}
+
+export interface CuentaContable {
+    idCuentaContable: number;
+    idProcesoContable: number;
+    procesoContable: string;
+    idCuentaPadre: number | null;
+    cuentaPadre: string;
+    numeroCuenta: string;
+    nombre: string;
+    tipoCuenta: string;
+    esAsentable: boolean;
+    activa: boolean;
+}
+
+export interface TipoMovimientoBancario {
+    idTipoMovimientoBancario: number;
+    nombre: string;
+}
+
+export interface MovimientoBancario {
+    idMovimientoBancario: number;
+    idCuentaBancaria: number;
+    cuentaBancaria: string;
+    idTipoMovimientoBancario: number;
+    tipoMovimientoBancario: string;
+    idEstado: number;
+    estado: string;
+    idOrdenMedioPagoCompra: number | null;
+    idChequeEmitido: number | null;
+    fecha: string;
+    monto: number;
+    concepto: string;
+    referencia: string;
+}
+
+export interface MovimientoBancarioSaveDTO {
+    idCuentaBancaria: number;
+    idTipoMovimientoBancario: number;
+    idEstado: number;
+    idOrdenMedioPagoCompra?: number | null;
+    idChequeEmitido?: number | null;
+    fecha: string;
+    monto: number;
+    concepto: string;
+    referencia: string;
+}
+
+export interface ChequeEmitido {
+    idChequeEmitido: number;
+    idCuentaBancaria: number;
+    cuentaBancaria: string;
+    idOrdenMedioPagoCompra: number;
+    idMovimientoBancario: number;
+    numeroCheque: string;
+    beneficiario: string;
+    fechaEmision: string;
+    fechaPago: string | null;
+    monto: number;
+    estado: string;
+}
+
+export interface ChequeEmitidoSaveDTO {
+    idCuentaBancaria: number;
+    idOrdenMedioPagoCompra?: number | null;
+    idMovimientoBancario?: number | null;
+    numeroCheque: string;
+    beneficiario: string;
+    fechaEmision: string;
+    fechaPago?: string | null;
+    monto: number;
+    estado?: string;
+}
+
+export interface ChequeTercero {
+    idChequeTercero: number;
+    idDepositoBancario: number;
+    bancoEmisor: string;
+    numeroCheque: string;
+    librador: string;
+    fechaEmision: string;
+    monto: number;
+    estado: string;
+}
+
+export interface ChequeTerceroLineSave {
+    bancoEmisor: string;
+    numeroCheque: string;
+    librador: string;
+    fechaEmision: string;
+    monto: number;
+}
+
+export interface ChequeMismoBanco {
+    idChequeMismoBanco: number;
+    idDepositoBancario: number;
+    numeroCheque: string;
+    librador: string;
+    fechaEmision: string;
+    monto: number;
+}
+
+export interface ChequeMismoBancoLineSave {
+    numeroCheque: string;
+    librador: string;
+    fechaEmision: string;
+    monto: number;
+}
+
+export interface TipoDepositoBancario {
+    idTipoDepositoBancario: number;
+    nombre: string;
+}
+
+export interface DepositoBancario {
+    idDepositoBancario: number;
+    idCuentaBancaria: number;
+    cuentaBancaria: string;
+    idTipoDepositoBancario: number;
+    tipoDepositoBancario: string;
+    idMovimientoBancario: number;
+    fecha: string;
+    monto: number;
+    concepto: string;
+    estado: string;
+}
+
+export interface DepositoBancarioSaveDTO {
+    idCuentaBancaria: number;
+    idTipoDepositoBancario: number;
+    fecha: string;
+    monto: number;
+    concepto: string;
+    chequesTercero?: ChequeTerceroLineSave[];
+    chequesMismoBanco?: ChequeMismoBancoLineSave[];
 }

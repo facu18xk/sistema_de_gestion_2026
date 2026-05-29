@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,30 +15,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { FormSheet } from "@/components/shared/form-sheet";
-
-import { EmpleadoForm } from "@/components/personas/empleados-form";
-import { empleadosAPI } from "@/services/empleadosAPI";
-import { ubicacionesAPI } from "@/services/ubicacionesAPI";
-import { Empleado, EmpleadoSaveDTO, Pais } from "@/types/types";
+import { BancoForm } from "@/components/banco-tesoreria/banco-form";
+import { bancosAPI } from "@/services/bancosAPI";
 import { notify } from "@/lib/notifications";
+import type { Banco, BancoSaveDTO } from "@/types/types";
 
-export default function EmpleadosPage() {
+export default function BancosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const [empleados, setEmpleados] = useState<Empleado[]>([]);
-  const [paises, setPaises] = useState<Pais[]>([]);
-
-  const [empleadoAEditar, setEmpleadoAEditar] = useState<Empleado | null>(null);
-  const [empleadoAEliminar, setEmpleadoAEliminar] = useState<Empleado | null>(
-    null,
-  );
+  const [bancos, setBancos] = useState<Banco[]>([]);
+  const [bancoAEditar, setBancoAEditar] = useState<Banco | null>(null);
+  const [bancoAEliminar, setBancoAEliminar] = useState<Banco | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,32 +39,18 @@ export default function EmpleadosPage() {
 
   const cargarPagina = async () => {
     setIsLoading(true);
-
     try {
-      const resPaginada = await empleadosAPI.getAll(currentPage, itemsPerPage);
-      setEmpleados(resPaginada.items);
-      setTotalPages(resPaginada.totalPages);
+      const res = await bancosAPI.getAll(currentPage, itemsPerPage);
+      setBancos(res.items);
+      setTotalPages(res.totalPages);
     } catch (error) {
-      console.error("Error al cargar empleados:", error);
+      console.error("Error al cargar bancos:", error);
       notify.error(
         "Error de conexión",
-        "No se pudo obtener la lista de empleados.",
+        "No se pudo obtener el listado de bancos.",
       );
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const cargarPaises = async () => {
-    try {
-      const res = await ubicacionesAPI.getPaises();
-      setPaises(res.items);
-    } catch (error) {
-      console.error("Error al cargar países:", error);
-      notify.error(
-        "Error de conexión",
-        "No se pudo obtener la lista de países.",
-      );
     }
   };
 
@@ -79,51 +58,46 @@ export default function EmpleadosPage() {
     cargarPagina();
   }, [currentPage]);
 
-  useEffect(() => {
-    cargarPaises();
-  }, []);
-
   const handleCrearNuevo = () => {
-    setEmpleadoAEditar(null);
+    setBancoAEditar(null);
     setIsSheetOpen(true);
   };
 
-  const handleEditar = (empleado: Empleado) => {
-    setEmpleadoAEditar(empleado);
+  const handleEditar = (banco: Banco) => {
+    setBancoAEditar(banco);
     setIsSheetOpen(true);
   };
 
   const confirmarEliminacion = async () => {
-    if (!empleadoAEliminar) return;
+    if (!bancoAEliminar) return;
 
     try {
-      await empleadosAPI.delete(empleadoAEliminar.idEmpleado);
-      notify.success("Eliminado", "El empleado fue eliminado correctamente.");
+      await bancosAPI.delete(bancoAEliminar.idBanco);
+      notify.success("Eliminado", "El banco fue eliminado del sistema.");
       await cargarPagina();
     } catch (error) {
-      console.error("Error al eliminar empleado:", error);
-      notify.error("Error", "No se pudo eliminar el empleado.");
+      console.error("Error al eliminar banco:", error);
+      notify.error("Error", "No se pudo eliminar el banco.");
     } finally {
       setIsAlertOpen(false);
-      setEmpleadoAEliminar(null);
+      setBancoAEliminar(null);
     }
   };
 
-  const handleFormSubmit = async (data: EmpleadoSaveDTO) => {
+  const handleFormSubmit = async (data: BancoSaveDTO) => {
     try {
-      if (empleadoAEditar) {
-        await empleadosAPI.update(empleadoAEditar.idEmpleado, data);
-        notify.success("Actualizado", "Empleado actualizado correctamente.");
+      if (bancoAEditar) {
+        await bancosAPI.update(bancoAEditar.idBanco, data);
+        notify.success("Actualizado", "Banco actualizado correctamente.");
       } else {
-        await empleadosAPI.create(data);
-        notify.success("Registrado", "Nuevo empleado guardado.");
+        await bancosAPI.create(data);
+        notify.success("Registrado", "Nuevo banco guardado.");
       }
-
       setIsSheetOpen(false);
       await cargarPagina();
     } catch (error) {
-      console.error("Error al guardar empleado:", error);
-      notify.error("Error", "No se pudo procesar la solicitud.");
+      console.error("Error al guardar banco:", error);
+      notify.error("Error", "No se pudo guardar el banco.");
     }
   };
 
@@ -131,37 +105,36 @@ export default function EmpleadosPage() {
     <>
       <PageBreadcrumb
         steps={[
-          { label: "RRHH", href: "/dashboard" },
-          { label: "Empleados" },
+          { label: "Tesorería y Bancos", href: "/banco-tesoreria/cuentas" },
+          { label: "Bancos" },
         ]}
       />
 
       <PageHeader
-        title="Listado de Empleados"
-        buttonLabel="Nuevo Empleado"
+        title="Listado de bancos"
+        buttonLabel="Nuevo banco"
         onButtonClick={handleCrearNuevo}
       />
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar banco?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Eliminarás permanentemente a{" "}
-              <span className="font-bold text-foreground">
-                &quot;{empleadoAEliminar?.nombres} {empleadoAEliminar?.apellidos}&quot;
+              Se eliminará{" "}
+              <span className="font-semibold text-foreground">
+                {bancoAEliminar?.nombre}
               </span>
-              .
+              . Verifique que no tenga cuentas asociadas.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmarEliminacion}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Eliminar Empleado
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -173,13 +146,11 @@ export default function EmpleadosPage() {
         </div>
       ) : (
         <DataTable
-          caption="Lista actualizada de empleados."
+          caption="Bancos registrados en el sistema."
           headerRow={
             <TableRow>
-              <TableHead>Nombre Completo</TableHead>
-              <TableHead>CI</TableHead>
-              <TableHead>RUC</TableHead>
-              <TableHead>Fecha Ingreso</TableHead>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           }
@@ -187,43 +158,47 @@ export default function EmpleadosPage() {
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         >
-          {empleados.length === 0 ? (
+          {bancos.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={3}
                 className="h-24 text-center text-muted-foreground"
               >
-                No hay empleados registrados.
+                No hay bancos registrados.
               </TableCell>
             </TableRow>
           ) : (
-            empleados.map((e) => (
-              <TableRow key={e.idEmpleado}>
+            bancos.map((b) => (
+              <TableRow key={b.idBanco}>
+                <TableCell className="font-medium">{b.nombre}</TableCell>
                 <TableCell>
-                  {e.nombres} {e.apellidos}
+                  <span
+                    className={
+                      b.activo
+                        ? "text-sm font-medium text-emerald-600"
+                        : "text-sm text-muted-foreground"
+                    }
+                  >
+                    {b.activo ? "Activo" : "Inactivo"}
+                  </span>
                 </TableCell>
-                <TableCell>{e.ci || "Sin CI"}</TableCell>
-                <TableCell>{e.ruc || "Sin RUC"}</TableCell>
-                <TableCell>{e.fechaIngreso}</TableCell>
-
                 <TableCell className="text-right space-x-1">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleEditar(e)}
                     className="cursor-pointer"
+                    onClick={() => handleEditar(b)}
                   >
                     <Pencil className="size-3.5" />
                   </Button>
-
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="cursor-pointer"
                     onClick={() => {
-                      setEmpleadoAEliminar(e);
+                      setBancoAEliminar(b);
                       setIsAlertOpen(true);
                     }}
-                    className="cursor-pointer"
                   >
                     <Trash2 className="size-3.5 text-destructive" />
                   </Button>
@@ -237,14 +212,11 @@ export default function EmpleadosPage() {
       <FormSheet
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        title={empleadoAEditar ? "Editar Empleado" : "Nuevo Empleado"}
-        description="Información personal y laboral del empleado."
+        title={bancoAEditar ? "Editar banco" : "Nuevo banco"}
       >
-        <EmpleadoForm
-          key={empleadoAEditar?.idEmpleado ?? "nuevo"}
-          empleadoEditado={empleadoAEditar}
-          paises={paises}
-          onRefreshPaises={cargarPaises}
+        <BancoForm
+          key={bancoAEditar?.idBanco ?? "nuevo"}
+          bancoEditado={bancoAEditar}
           onSubmit={handleFormSubmit}
           onCancel={() => setIsSheetOpen(false)}
         />

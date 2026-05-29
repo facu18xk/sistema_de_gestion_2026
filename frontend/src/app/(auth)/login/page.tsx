@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Cookies from 'js-cookie'
 import { authAPI } from "@/services/authAPI"
+import { saveSessionUser } from "@/lib/auth"
 import { notify } from "@/lib/notifications"
 
 export default function LoginPage() {
@@ -35,7 +36,7 @@ export default function LoginPage() {
             // 1. Guardar el token en una Cookie (expira en 1 día)
             Cookies.set("token", data.token, { expires: 1, path: '/' });
             // 2. Guardar los datos del usuario en localStorage (para mostrar el nombre en el Navbar)
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSessionUser(data.user);
             //Notificación de éxito
             notify.success("¡Bienvenido!", "Has iniciado sesión correctamente.");
             // 3. Redirigimos a /dashboard
