@@ -52,6 +52,8 @@ const modulos = [
 const routeByItem: Record<string, string> = {
     Clientes: "/ventas/clientes",
     Presupuestos: "/ventas/presupuestos",
+    Facturación: "/ventas/facturacion",
+    Devoluciones: "/ventas/devoluciones",
     Proveedores: "/compras/proveedores",
     Pedidos: "/compras/pedidos",
     Cotizaciones: "/compras/cotizaciones",

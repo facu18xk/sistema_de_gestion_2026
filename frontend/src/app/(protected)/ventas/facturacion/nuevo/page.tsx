@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { PresupuestoSelector } from "@/components/ventas/PresupuestoSelector";
 import { notify } from "@/lib/notifications";
 import { formatGuaranies } from "@/utils/money-format";
 import { formatearNumeroProducto } from "@/utils/producto-format";
-import { Cliente, PresupuestoCompleto, ProductoDTO, PreciosVentas, FacturaVentaItem, PresupuestoItem, MedioPago, PresupuestoCabecera } from "@/types/types";
+import { Cliente, PresupuestoCompleto, ProductoDTO, PreciosVentas, FacturaVentaItem, PresupuestoItem, MedioPago, PresupuestoCabecera, FacturaVentaCompletoSave } from "@/types/types";
 import { presupuestosAPI } from "@/services/presupuestosAPI";
 import { clientesAPI } from "@/services/clientesAPI";
 import { productosAPI } from "@/services/productosAPI";
@@ -51,12 +51,7 @@ export default function NuevaFacturaPage() {
   const [presupuestoSel, setPresupuestoSel] = useState<PresupuestoCabecera>();
   const [itemsCarrito, setItemsCarrito] = useState<PresupuestoItem[]>([]);
   const [descripcionFactura, setDescripcionFactura] = useState("");
-
-  // Campos específicos requeridos por el payload del POST de Facturas
-  const [nroComprobante, setNroComprobante] = useState("");
-  const [idTimbrado, setIdTimbrado] = useState<number>(1); // Valor por defecto o dinámico
   const [idMedioPago, setIdMedioPago] = useState<number>(1); // Ej: 1=Efectivo, 2=Tarjeta
-
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [indexAEliminar, setIndexAEliminar] = useState<number>(-1);
   const [itemAEliminarDescripcion, setItemAEliminarDescripcion] = useState("");
@@ -101,6 +96,7 @@ export default function NuevaFacturaPage() {
 
           setDescripcionFactura(`Generado desde ${formatearNumeroPresupuesto(idPresupuesto)}`);
           setItemsCarrito(srcPresupuesto.items);
+          setPresupuestoSel(srcPresupuesto);
 
           if (srcPresupuesto.idCliente) {
             const resCliente = await clientesAPI.getById(srcPresupuesto.idCliente);
@@ -111,7 +107,7 @@ export default function NuevaFacturaPage() {
           setItemsCarrito([]);
           setCliente(null);
           setDescripcionFactura("Nueva factura de venta directa");
-          const resPresupuestos = await presupuestosAPI.getAll(1, 200, 2);
+          const resPresupuestos = await presupuestosAPI.getAll(1, 200);
           setListaPresupuestos(resPresupuestos.items);
         }
 
@@ -188,28 +184,27 @@ export default function NuevaFacturaPage() {
   };
 
   const handleGuardarFactura = async () => {
+    const presupuestoIdFinal = idPresupuesto || presupuestoSel?.idPresupuesto || 0;
+    if (presupuestoIdFinal === 0) {
+      notify.error("Presupuesto Requerido", "Debe seleccionar un presupuesto aprobado para emitir la factura.");
+      return;
+    }
+
     if (!cliente || itemsCarrito.length === 0) {
       notify.error("Incompleto", "Asegúrese de contar con un cliente e ítems cargados.");
       return;
     }
-    if (!nroComprobante.trim()) {
-      notify.error("Falta número", "Por favor, ingrese el número de comprobante/factura.");
-      return;
-    }
 
     setIsSubmitting(true);
+    const fechaHoy = new Date().toISOString().split('T')[0];
 
-    const fechaHoyIso = new Date().toISOString().split('T')[0];
-
-    const payload = {
-      idPresupuesto: 0,
+    const payload: FacturaVentaCompletoSave = {
+      idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
-      nroComprobante: nroComprobante,
-      idTimbrado: idTimbrado,
-      fecha: fechaHoyIso,
-      descripcion: descripcionFactura,
+      fecha: fechaHoy,
+      descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,
-      fechaPago: fechaHoyIso,
+      fechaPago: fechaHoy,
       items: itemsCarrito.map(item => ({
         idProducto: item.idProducto,
         cantidad: item.cantidad
@@ -253,7 +248,7 @@ export default function NuevaFacturaPage() {
       console.error("Error al importar presupuesto:", error);
       notify.error("Error", "No se pudieron obtener los datos del presupuesto.");
     } finally {
-      setLoading(false);
+      setIsImporting(false);
     }
   };
 
@@ -284,21 +279,18 @@ export default function NuevaFacturaPage() {
       {/* CABECERA DE ACCIONES */}
       <div className="flex justify-between items-center my-2">
         <div>
-        {idPresupuesto && (
-            <p className="text-xs text-muted-foreground">Generada a partir del Presupuesto {formatearNumeroPresupuesto(idPresupuesto)}</p>
-        )}
         {presupuestoSel && (
             <p className="text-xs text-muted-foreground">Generada a partir del Presupuesto {formatearNumeroPresupuesto(presupuestoSel.idPresupuesto)}</p>
         )}
-        {!idPresupuesto && !cliente && (
-        <div className="w-[350px] flex items-center gap-2">
-          <PresupuestoSelector 
-            presupuestos={listaPresupuestos} 
-            onSelectPresupuesto={handleSeleccionarPresupuesto}
-            selectedPresupuestoId={presupuestoSel?.idPresupuesto}
-          />
-          {isImporting && <span className="text-[10px] text-amber-600 animate-pulse font-medium">Importando...</span>}
-        </div>
+        {!idPresupuesto && (
+          <div className="w-[350px] flex items-center gap-2 mt-2">
+            <PresupuestoSelector 
+              presupuestos={listaPresupuestos} 
+              onSelectPresupuesto={handleSeleccionarPresupuesto}
+              selectedPresupuestoId={presupuestoSel?.idPresupuesto}
+            />
+            {isImporting && <RefreshCw className="h-4 w-4 text-amber-600 animate-spin" />}
+          </div>
         )} 
         </div>
         <div className="flex gap-2">
@@ -345,46 +337,50 @@ export default function NuevaFacturaPage() {
             </div>
             {/* MEDIO PAGO Y DESCRIPCIÓN*/}
             <div className="flex flex-col gap-2">
-            <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Medio Pago</label>
-            <Select
-                value={idMedioPago ? String(idMedioPago) : undefined}
-                onValueChange={(val) => setIdMedioPago(Number(val))}
-            >
-                <SelectTrigger className="w-full h-8 bg-white shadow-sm text-sm mt-0.5 px-2">
-                <SelectValue placeholder="Seleccione..." />
-                </SelectTrigger>
-                <SelectContent>
-                {listaMediosPagos.map((medio) => (
-                    <SelectItem 
-                    key={medio.idMedioPagoCompra} 
-                    value={String(medio.idMedioPagoCompra)} 
-                    className="text-sm"
-                    >
-                    {medio.nombre} 
-                    </SelectItem>
-                ))}
-                </SelectContent>
-            </Select>
-            <div>
-                <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción Interna</label>
-                <Input 
-                    placeholder="Observaciones de la factura..."
-                    value={descripcionFactura} 
-                    onChange={(e) => setDescripcionFactura(e.target.value)} 
-                    className="h-8 bg-white mt-0.5 text-sm px-2"
-                />
-            </div>
+              <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Medio Pago</label>
+              <Select
+                  value={idMedioPago ? String(idMedioPago) : undefined}
+                  onValueChange={(val) => setIdMedioPago(Number(val))}
+              >
+                  <SelectTrigger className="w-full h-8 bg-white shadow-sm text-sm mt-0.5 px-2">
+                  <SelectValue placeholder="Seleccione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                  {listaMediosPagos.map((medio) => (
+                      <SelectItem 
+                      key={medio.idMedioPagoCompra} 
+                      value={String(medio.idMedioPagoCompra)} 
+                      className="text-sm"
+                      >
+                      {medio.nombre} 
+                      </SelectItem>
+                  ))}
+                  </SelectContent>
+              </Select>
+              <div>
+                  <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción Interna</label>
+                  <Input 
+                      placeholder="Observaciones de la factura..."
+                      value={descripcionFactura} 
+                      onChange={(e) => setDescripcionFactura(e.target.value)} 
+                      className="h-8 bg-white mt-0.5 text-sm px-2"
+                  />
+              </div>
             </div>
             {/* ESTADO DE LA FACTURA */}
-            <div className="flex flex-col justify-end h-full md:items-end md:pl-2">
-            <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 block md:hidden">Estado</span>
-            <div className="w-full md:w-auto mt-2 md:mt-0">
-                <span className="inline-flex items-center justify-center rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 border border-amber-200/60 shadow-sm w-full md:w-auto">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2 animate-pulse" />
-                    Borrador
-                </span>
+          {/*<div className="flex flex-col justify-start h-full md:items-end md:pl-2">
+            <span className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Estado de Factura</span>
+            <div className="w-full md:w-auto">
+              <span className="inline-flex items-center justify-center rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 border border-amber-200 shadow-sm w-full md:w-auto">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2" />
+                Borrador
+              </span>
             </div>
-            </div>
+          </div>*/}
+          <div className="self-start">
+              <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">N° Comprobante</p>
+              <p className="font-medium text-slate-800 text-[13px]">123</p>
+          </div>
         </div>
         </div>
       {/* SELECTOR DE PRODUCTOS */}
@@ -396,7 +392,7 @@ export default function NuevaFacturaPage() {
         precios={listaPrecios}
       />
       <div className="mt-3 flex justify-end">
-        <Button variant="default" className="h-8 gap-2 cursor-pointer" onClick={() => setIsProductoModalOpen(true)}>
+        <Button variant="default" className="h-8 gap-2 cursor-pointer" onClick={() => setIsProductoModalOpen(true)} disabled={!cliente}>
           <Plus/> Agregar
         </Button>
       </div>
@@ -475,7 +471,7 @@ export default function NuevaFacturaPage() {
               {/* CARRITO VACÍO */}
               {itemsCarrito.length === 0 && (
                 <TableRow>
-                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => setIsProductoModalOpen(true)}>
+                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(cliente) {setIsProductoModalOpen(true)}}}>
                   No hay productos seleccionados. Use el botón "+ Agregar" para comenzar.
                 </TableCell>
                 </TableRow>

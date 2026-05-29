@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Printer, FileText } from "lucide-react";
+import { ArrowLeft, Printer, FileText, ReceiptText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
@@ -13,8 +13,19 @@ import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
 import { facturasAPI } from "@/services/facturasAPI";
 import { formatearFecha } from "@/utils/date-utils";
 import { FacturaVentaCompleto } from "@/types/types";
+import { esVigenteParaNotaCredito } from "@/utils/date-utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
-const res = {
+/*const res = {
     "idFacturaVenta": 1,
     "idPresupuesto": 1,
     "presupuestoDescripcion": "Factura de Venta 1",
@@ -38,7 +49,7 @@ const res = {
         "totalIva": 500,
         "totalNeto": 5500
     },]
-};
+};*/
 
 export default function DetalleFacturaPage() {
   const router = useRouter();
@@ -47,6 +58,7 @@ export default function DetalleFacturaPage() {
 
   const [loading, setLoading] = useState(true);
   const [factura, setFactura] = useState<FacturaVentaCompleto | null>(null);
+  const [isExpiradoAlertOpen, setIsExpiradoAlertOpen] = useState(false);
 
   const columnWidths = {
     producto: "w-[40%]",
@@ -62,14 +74,14 @@ export default function DetalleFacturaPage() {
         setLoading(true);
         // Llama a tu endpoint: /api/FacturasVentas/{id}/completo
         // Si no lo tienes mapeado en facturasAPI, puedes usar un fetch directamente.
-        //const res = await facturasAPI.getById(idFactura); 
-        
-        if (!res) {
+        const resFacturas = await facturasAPI.getById(idFactura);
+
+        if (!resFacturas) {
           notify.error("Error", "La factura solicitada no existe.");
           router.push("/ventas/facturacion");
           return;
         }
-        setFactura(res);
+        setFactura(resFacturas);
       } catch (error) {
         console.error("Error al obtener la factura:", error);
         notify.error("Error de conexión", "No se pudieron cargar los datos de la factura.");
@@ -87,6 +99,17 @@ export default function DetalleFacturaPage() {
   // Calculamos el total general sumando el totalNeto (o totalBruto + IVA según maneje tu backend) de cada ítem
   const totalGeneral = factura.items.reduce((acc, item) => acc + item.totalNeto, 0);
 
+  const handleCrearNotaCredito = () => {
+    const esVigente = esVigenteParaNotaCredito(factura.fechaPago);
+    console.log(`Vigencia: ${esVigente}`)
+    if (esVigente) {
+      router.push(`/ventas/devoluciones/nuevo?facturaId=${idFactura}`);
+      notify.success("Procesando", "Iniciando la generación de la Nota de Crédito...");
+    } else {
+      setIsExpiradoAlertOpen(true);
+    }
+  };
+
   return (
     <>
       <PageBreadcrumb steps={[
@@ -96,10 +119,31 @@ export default function DetalleFacturaPage() {
       ]} />
       
       <div className="flex items-center gap-2">
-        <FileText className="h-5 w-5 text-slate-500" />
         <h1 className="text-xl font-bold tracking-tight">Factura de Venta Emitida</h1>
       </div>
-
+      {/* ALERT DIALOG PARA MENSAJE */}
+      <AlertDialog open={isExpiradoAlertOpen} onOpenChange={setIsExpiradoAlertOpen}>
+        <AlertDialogContent className="max-w-[450px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              Plazo de Emisión Vencido
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600 pt-2 text-sm leading-relaxed">
+              No es posible generar una Nota de Crédito para esta factura. Según las reglas de negocio, 
+              estos comprobantes solo pueden ser emitidos dentro de las <strong>48 horas</strong> posteriores 
+              a la emisión de la factura.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => setIsExpiradoAlertOpen(false)}
+              className="bg-slate-900 hover:bg-slate-800 text-white"
+            >
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* CABECERA DE ACCIONES */}
       <div className="flex justify-between items-center my-2">
         <div>
@@ -116,6 +160,14 @@ export default function DetalleFacturaPage() {
           <Button size="sm" variant="secondary" onClick={() => window.print()} className="gap-2">
             <Printer className="h-4 w-4"/> Imprimir
           </Button>
+          <Button
+            size="sm"
+            variant="default"
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+            onClick={handleCrearNotaCredito}
+          >
+              <ReceiptText className="h-4 w-4"/> {"Generar Nota de Crédito"}
+          </Button>
         </div>
       </div>
 
@@ -125,24 +177,24 @@ export default function DetalleFacturaPage() {
           
           {/* DATOS CLIENTE */}
           <div className="md:col-span-2 border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
               Datos del Cliente
             </p>
             <div className="grid grid-cols-2 gap-x-3 gap-y-2">
               <div>
-                <p className="text-muted-foreground text-[12px]">Razón Social / Cliente</p>
+                <p className="text-muted-foreground text-[13px]">Razón Social / Cliente</p>
                 <p className="font-bold text-slate-900 text-[13px]">{factura.cliente || "Sin especificar"}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-[12px]">N° Comprobante</p>
+                <p className="text-muted-foreground text-[13px]">N° Comprobante</p>
                 <p className="font-bold text-emerald-700 text-[13px]">{factura.nroComprobante}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-[12px]">Timbrado N°</p>
+                <p className="text-muted-foreground text-[13px]">Timbrado N°</p>
                 <p className="font-medium text-slate-800 text-[13px]">{factura.timbrado} <span className="text-xs text-muted-foreground">({factura.timbradoRuc})</span></p>
               </div>
               <div>
-                <p className="text-muted-foreground text-[12px]">Fecha de Emisión</p>
+                <p className="text-muted-foreground text-[13px]">Fecha de Emisión</p>
                 <p className="font-medium text-slate-700 text-[13px]">{formatearFecha(factura.fecha)}</p>
               </div>
             </div>
@@ -151,13 +203,13 @@ export default function DetalleFacturaPage() {
           {/* MEDIO PAGO Y DESCRIPCIÓN*/}
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Medio de Pago</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Medio de Pago</p>
               <p className="font-semibold text-slate-800 bg-white border rounded px-2.5 py-1 text-[13px] shadow-sm inline-block w-full">
                 {factura.medioPagoCompra || "Efectivo"}
               </p>
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Descripción Interna</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Descripción Interna</p>
               <p className="text-slate-700 bg-white border rounded px-2.5 py-1 text-[12px] shadow-sm italic min-h-[30px] flex items-center">
                 {factura.descripcion || "Sin observaciones."}
               </p>
@@ -166,11 +218,11 @@ export default function DetalleFacturaPage() {
 
           {/* ESTADO DE LA FACTURA */}
           <div className="flex flex-col justify-start h-full md:items-end md:pl-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Estado de Factura</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Estado de Factura</span>
             <div className="w-full md:w-auto">
               <span className="inline-flex items-center justify-center rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 border border-green-200 shadow-sm w-full md:w-auto">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2" />
-                Vigente / Emitida
+                  Emitida
               </span>
             </div>
           </div>
@@ -188,8 +240,8 @@ export default function DetalleFacturaPage() {
                 <TableHead className={columnWidths.producto}>Producto</TableHead>
                 <TableHead className={columnWidths.cantidad}>Cantidad</TableHead>
                 <TableHead className={columnWidths.precio}>Precio Unitario</TableHead>
-                <TableHead className={columnWidths.iva}>IVA Liquidado</TableHead>
-                <TableHead className={`${columnWidths.subtotal} text-right`}>Subtotal (Neto)</TableHead>
+                <TableHead className={columnWidths.iva}>IVA</TableHead>
+                <TableHead className={`${columnWidths.subtotal} text-right`}>Subtotal Neto</TableHead>
               </TableRow>
             </TableHeader>
           </Table>

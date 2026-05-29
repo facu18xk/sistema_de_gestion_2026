@@ -51,6 +51,7 @@ export default function VerPresupuestoPage() {
   const [isProductoModalOpen, setIsProductoModalOpen] = useState(false);
   const [esEditable, setEsEditable] = useState(false);
   const [esAprobado, setEsAprobado] = useState(false);
+  const [esVigente, setEsVigente] = useState(true);
 
   const columnWidths = {
     producto: "w-[35%]",
@@ -79,6 +80,8 @@ export default function VerPresupuestoPage() {
           setEsEditable(permiteEditar);
           const permiteFacturar = resPresupuesto.idEstado === 2 ? true : false;
           setEsAprobado(permiteFacturar);
+          const expirado = resPresupuesto.idEstado === 5 ? true : false;
+          setEsVigente(!expirado);
           //Cargamos los datos del cliente
           if (resPresupuesto.idCliente) {
             const resCliente = await clientesAPI.getById(resPresupuesto.idCliente);
@@ -87,7 +90,7 @@ export default function VerPresupuestoPage() {
         }
         //Cargamos los estados
         const resEstados = await estadosAPI.getAll();
-        const toRemove = ['Enviado', 'Respondido', 'Expirado', 'Pagado', 'Anulado'];
+        const toRemove = ['Enviado', 'Respondido', 'Expirado', 'Pagado', 'Anulado', 'Emitido', 'Facturado', 'Registrado'];
         const estadosFiltrados = resEstados.items.filter(item => !toRemove.includes(item.nombre));
         setListaEstados(estadosFiltrados);
         //Cargamos los productos disponibles
@@ -236,7 +239,10 @@ export default function VerPresupuestoPage() {
             size="sm"
             variant="default"
             className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-            onClick={() => router.push(`/ventas/facturacion/nuevo?presupuestoId=${presupuesto.idPresupuesto}`)}
+            onClick={() => {
+              router.push(`/ventas/facturacion/nuevo?presupuestoId=${presupuesto.idPresupuesto}`)
+              notify.success("Procesando", "Iniciando la generación de la Factura...");
+            }}
           >
               <ReceiptText className="h-4 w-4"/> {"Generar Factura"}
           </Button>)}
@@ -294,9 +300,9 @@ export default function VerPresupuestoPage() {
                     <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
                       est.idEstado === 1 ? "bg-yellow-400" : 
                       est.idEstado === 2 ? "bg-green-500" : 
-                      est.idEstado === 6 ? "bg-red-500" : "bg-slate-400"
+                      est.idEstado === 6 ? "bg-red-500" : "bg-red-400"
                     }`} />
-                    {est.nombre}
+                    {esVigente ? est.nombre : 'Expirado'}
                   </SelectItem>
                 ))}
               </SelectContent>
