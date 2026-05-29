@@ -23,16 +23,20 @@ namespace api.Migrations.DblosAmigos
                 DECLARE
                     default_estado_id integer;
                 BEGIN
+                    INSERT INTO "Estados" ("Nombre")
+                    SELECT 'Registrado'
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM "Estados"
+                        WHERE "Nombre" = 'Registrado'
+                    );
+
                     SELECT "Id_Estado"
                     INTO default_estado_id
                     FROM "Estados"
                     WHERE "Nombre" = 'Registrado'
                     ORDER BY "Id_Estado"
                     LIMIT 1;
-
-                    IF default_estado_id IS NULL THEN
-                        RAISE EXCEPTION 'No se encontró un estado "Registrado" para backfill en Notas_Creditos_Ventas.';
-                    END IF;
 
                     UPDATE "Notas_Creditos_Ventas"
                     SET "Id_Estado" = default_estado_id
