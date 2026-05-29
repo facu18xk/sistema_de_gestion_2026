@@ -27,6 +27,10 @@ public class ParientesController : CrudControllerBase<Pariente, ParienteDto, Par
             TipoRelacion = entity.TipoRelacion,
             Edad = entity.Edad,
             FechaNacimiento = entity.FechaNacimiento,
+            Nombre = entity.Nombre,
+            Apellido = entity.Apellido,
+            Ci = entity.Ci,
+
             Empleado = empleado is null 
                 ? null 
                 : new EmpleadoParienteDto 
@@ -46,7 +50,10 @@ public class ParientesController : CrudControllerBase<Pariente, ParienteDto, Par
             IdEmpleado = dto.IdEmpleado,
             TipoRelacion = dto.TipoRelacion,
             Edad = dto.Edad,
-            FechaNacimiento = dto.FechaNacimiento
+            FechaNacimiento = dto.FechaNacimiento,
+            Nombre = dto.Nombre,
+            Apellido = dto.Apellido,
+            Ci = dto.Ci
         };
     }
 

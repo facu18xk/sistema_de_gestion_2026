@@ -14,6 +14,10 @@ public class ParienteDto
     
     public DateOnly FechaNacimiento { get; set; }
 
+    public string Nombre { get; set; } = string.Empty;
+    public string Apellido { get; set; } = string.Empty;
+    public string Ci { get; set; } = string.Empty;
+
     public EmpleadoParienteDto? Empleado { get; set; }
 }
 
@@ -35,4 +39,8 @@ public class ParienteUpsertDto
     public short Edad { get; set; }
     
     public DateOnly FechaNacimiento { get; set; }
+
+    public string Nombre { get; set; } = string.Empty;
+    public string Apellido { get; set; } = string.Empty;
+    public string Ci { get; set; } = string.Empty;
 }
