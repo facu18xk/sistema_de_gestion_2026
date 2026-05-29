@@ -37,8 +37,7 @@ export const ProductoSelector = ({ isOpen, onClose, onSelect, productos, precios
         <DialogHeader>
           <DialogTitle>Seleccionar Producto</DialogTitle>
           <DialogDescription>
-            Puede buscar el producto por Nombre o por Código. Aquellos Stock en número rojo
-            se encuentran en stock mínimo. Haga clic sobre el producto para agregarlo a
+            Puede buscar el producto por Nombre o por Código. Haga clic sobre el producto para agregarlo a
             la lista.
           </DialogDescription>
         </DialogHeader>

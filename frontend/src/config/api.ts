@@ -29,5 +29,7 @@ export const API_CONFIG = {
     INVOICES: "/api/FacturasVentas",
     ORDENES_VENTAS: "/api/OrdenesVentas",
     MEDIOS_PAGO: "/api/MediosPagosCompras",
+    STOCK: "/api/StocksDepositos",
+    NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
   },
 } as const;
