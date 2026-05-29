@@ -14,22 +14,18 @@ export default function NuevoPedidoPage() {
 
   const handleSubmit = async (data: Pedido) => {
     try {
-      // Validación preventiva en el cliente
       if (!data.items || data.items.length === 0) {
         notify.error("Pedido incompleto", "Debe agregar al menos un producto a la tabla.");
         return;
       }
 
       const cabeceraPayload: PedidoSaveDTO = {
-        idEstado: 1, // 1 = Pendiente
+        idEstado: 1,
         numeroPedido: 0,
         fecha: data.fecha || new Date().toISOString(),
       };
 
-      console.log("Enviando cabecera de pedido:", cabeceraPayload);
-
       const nuevoPedido = await pedidosAPI.create(cabeceraPayload);
-
       const idPedidoGenerado = nuevoPedido.idPedidoCompra;
 
       const promesasNuevosDetalles = data.items.map((item: PedidoItem) => {
@@ -56,7 +52,6 @@ export default function NuevoPedidoPage() {
 
   return (
     <div className="bg-background">
-      <Navbar />
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -64,7 +59,7 @@ export default function NuevoPedidoPage() {
           { label: "Nuevo Pedido" },
         ]}
       />
-      <div className="container mx-auto py-6 max-w-5xl">
+      <div className="container py-6">
         <h2 className="text-2xl font-bold tracking-tight mb-2">Nuevo Pedido</h2>
 
         <PedidoForm

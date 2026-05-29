@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { FormContainer } from "@/components/FormContainer";
-import { FieldWrapper } from "@/components/FieldWrapper";
-import { PedidoItemsTable } from "@/components/compras/pedido-item-table";
+import { useState, useEffect } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { FormContainer } from "@/components/FormContainer"
+import { FieldWrapper } from "@/components/FieldWrapper"
+import { PedidoItemsTable } from "@/components/compras/pedido-item-table"
 import {
   AgregarProductosModal,
   ProductoSeleccionable,
   ProductoSeleccionadoParaPedido,
-} from "@/components/compras/agregar-producto-view";
-import { productosAPI } from "@/services/productosAPI";
-import { FormSheet } from "@/components/shared/form-sheet";
-import { ProductoForm } from "@/components/stock/producto-form";
+} from "@/components/compras/agregar-producto-view"
+import { productosAPI } from "@/services/productosAPI"
+import { FormSheet } from "@/components/shared/form-sheet"
+import { ProductoForm } from "@/components/stock/producto-form"
 
 export interface PedidoItem {
   id: number | string;
@@ -37,39 +37,42 @@ interface Props {
   pedidoEditado?: Pedido | null;
   onSubmit: (data: Pedido) => void;
   onCancel: () => void;
+  readOnly?: boolean; // Agregado de forma opcional para recibir el estado de la URL
 }
 
 export function PedidoForm({
   pedidoEditado,
   onSubmit,
   onCancel,
+  readOnly = false, // Por defecto es false para el flujo de "Nuevo Pedido"
 }: Props) {
   const [formData, setFormData] = useState<Pedido>({
     nroPedido: "",
     fecha: new Date().toISOString().split("T")[0],
     estado: "Pendiente",
     items: [],
-  });
+  })
 
-  const [productos, setProductos] = useState<ProductoSeleccionable[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [productos, setProductos] = useState<ProductoSeleccionable[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [itemsPerPage] = useState(10)
 
-  const [isModalProductosOpen, setIsModalProductosOpen] = useState(false);
-  const [sheetProductoOpen, setSheetProductoOpen] = useState(false);
+  const [isModalProductosOpen, setIsModalProductosOpen] = useState(false)
+  const [sheetProductoOpen, setSheetProductoOpen] = useState(false)
 
-  const esEditable = formData.estado === "Pendiente";
+  // Si está en modo lectura (parámetro en URL), bloqueamos la edición por completo
+  const esEditable = readOnly ? false : formData.estado === "Pendiente"
 
   useEffect(() => {
     if (pedidoEditado) {
-      setFormData(pedidoEditado);
+      setFormData(pedidoEditado)
     }
-  }, [pedidoEditado]);
+  }, [pedidoEditado])
 
   const cargarProductos = async () => {
     try {
-      const res = await productosAPI.getAll(currentPage, itemsPerPage);
+      const res = await productosAPI.getAll(currentPage, itemsPerPage)
 
       const mapeados: ProductoSeleccionable[] = res.items.map((p) => ({
         id: p.idProducto,
@@ -79,46 +82,46 @@ export function PedidoForm({
         categoria: p.categoria,
         precio: p.precioUnitario,
         disponible: p.cantidadTotal,
-      }));
+      }))
 
-      setProductos(mapeados);
-      setTotalPages(res.totalPages);
+      setProductos(mapeados)
+      setTotalPages(res.totalPages)
     } catch (error) {
-      console.error("Error al cargar productos:", error);
+      console.error("Error al cargar productos:", error)
     }
-  };
+  }
 
   useEffect(() => {
-    cargarProductos();
-  }, [currentPage]);
+    cargarProductos()
+  }, [currentPage])
 
   const updateField = (field: keyof Pedido, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
 
   const updateItem = (
     index: number,
     field: keyof PedidoItem,
     value: string | number,
   ) => {
-    const items = [...formData.items];
-    items[index] = { ...items[index], [field]: value } as PedidoItem;
-    setFormData((prev) => ({ ...prev, items }));
-  };
+    const items = [...formData.items]
+    items[index] = { ...items[index], [field]: value } as PedidoItem
+    setFormData((prev) => ({ ...prev, items }))
+  }
 
   const handleDeleteItem = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.filter((_, i) => i !== index),
-    }));
-  };
+    }))
+  }
 
   const handleAgregarProductos = (
     productosSeleccionados: ProductoSeleccionadoParaPedido[],
   ) => {
     setFormData((prev) => {
       const nuevosItems: PedidoItem[] = productosSeleccionados.map((nuevo) => {
-        const itemAnterior = prev.items.find(i => i.idProducto === nuevo.id);
+        const itemAnterior = prev.items.find(i => i.idProducto === nuevo.id)
 
         return {
           id: itemAnterior ? itemAnterior.id : (Date.now() + nuevo.id),
@@ -128,26 +131,19 @@ export function PedidoForm({
           descripcion: nuevo.descripcion,
           categoria: nuevo.categoria,
           esNuevo: !itemAnterior,
-        };
-      });
+        }
+      })
 
-      return { ...prev, items: nuevosItems };
-    });
+      return { ...prev, items: nuevosItems }
+    })
 
-    setIsModalProductosOpen(false);
-  };
+    setIsModalProductosOpen(false)
+  }
 
-  return (
-    <FormContainer
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(formData);
-      }}
-      onCancel={onCancel}
-      isEditing={!!pedidoEditado}
-      submitText={{ save: "Guardar", update: "Actualizar" }}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl">
+  // Almacenamos el contenido visual común para no duplicar código JSX
+  const renderFormFields = () => (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mb-4">
         <FieldWrapper label="Nro Pedido" id="nroPedido">
           <Input
             id="nroPedido"
@@ -174,7 +170,8 @@ export function PedidoForm({
             id="estado"
             value={formData.estado}
             onChange={(e) => updateField("estado", e.target.value)}
-            className={`w-full h-9 rounded-md border px-3 text-sm ${!esEditable ? "bg-gray-100" : ""
+            disabled={!esEditable}
+            className={`w-full h-9 rounded-md border px-3 text-sm ${!esEditable ? "bg-gray-100 cursor-not-allowed" : ""
               }`}
           >
             <option value="Pendiente">Pendiente</option>
@@ -185,17 +182,19 @@ export function PedidoForm({
         </FieldWrapper>
       </div>
 
-      {esEditable && (
-        <div className="flex justify-end">
+      {/* MODIFICACIÓN: Título y Botón alineados en la misma fila para ahorrar espacio vertical */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">Productos del Pedido</span>
+        {esEditable && (
           <Button
             type="button"
             onClick={() => setIsModalProductosOpen(true)}
-            className="w-auto px-4 bg-zinc-400 text-white hover:bg-zinc-500"
+            className="w-auto h-8 px-4 bg-zinc-400 text-white hover:bg-zinc-500 text-xs"
           >
             Agregar productos
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       <PedidoItemsTable
         items={formData.items}
@@ -204,9 +203,6 @@ export function PedidoForm({
         readOnly={!esEditable}
       />
 
-      {/* Si AgregarProductosModal está por fuera o por dentro de un Sheet del componente superior, 
-        se renderizará de acuerdo a los cambios del w-[95vw] y md:max-w-5xl aplicados previamente.
-      */}
       <AgregarProductosModal
         isOpen={isModalProductosOpen}
         onClose={() => setIsModalProductosOpen(false)}
@@ -219,10 +215,6 @@ export function PedidoForm({
         onCargarProductos={handleAgregarProductos}
       />
 
-      {/* MODIFICACIÓN AQUÍ: Le pasamos propiedades dinámicas a FormSheet para que 
-        cuando se registre un "Nuevo Producto" de raíz, use todo el ancho lateral 
-        cómodo disponible (incrementado de sm:max-w-[540px] a sm:max-w-[800px] o w-[50vw]).
-      */}
       <FormSheet
         open={sheetProductoOpen}
         onOpenChange={setSheetProductoOpen}
@@ -237,12 +229,46 @@ export function PedidoForm({
           categorias={[]}
           marcas={[]}
           onSubmit={() => {
-            setSheetProductoOpen(false);
-            cargarProductos();
+            setSheetProductoOpen(false)
+            cargarProductos()
           }}
           onCancel={() => setSheetProductoOpen(false)}
         />
       </FormSheet>
+    </>
+  )
+
+  // SI ES READONLY: Retornamos usando una estructura regular de HTML para no alterar el FormContainer global
+  if (readOnly) {
+    return (
+      <div className="grid gap-4">
+        {renderFormFields()}
+        <div className="flex justify-end gap-3 mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="cursor-pointer"
+          >
+            Volver
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // SI ES EDICIÓN / ALTA NORMAL: Retorna usando tu FormContainer de siempre
+  return (
+    <FormContainer
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSubmit(formData)
+      }}
+      onCancel={onCancel}
+      isEditing={!!pedidoEditado}
+      submitText={{ save: "Guardar", update: "Actualizar" }}
+    >
+      {renderFormFields()}
     </FormContainer>
-  );
+  )
 }

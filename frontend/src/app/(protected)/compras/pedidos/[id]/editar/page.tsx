@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "@/components/navbar";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { PedidoForm, Pedido, PedidoItem } from "@/components/compras/pedido-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { pedidosAPI } from "@/services/pedidosAPI";
@@ -13,7 +13,11 @@ import { PedidoDetalleSaveDTO } from "@/types/types";
 export default function EditarPedidoPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const [pedido, setPedido] = useState<Pedido | null>(null);
+
+  // Capturamos si viene ?readOnly=true desde la URL
+  const isReadOnly = searchParams?.get("readOnly") === "true";
 
   const formatearNumeroPedido = (numero: number | string) => {
     return `PD-${String(numero).padStart(4, "0")}`;
@@ -21,7 +25,6 @@ export default function EditarPedidoPage() {
 
   useEffect(() => {
     const cargarPedido = async () => {
-      // MODIFICACIÓN SEGURA: Si no hay id o no es un número válido (ej. precarga de Next.js), frena la ejecución.
       if (!params?.id || isNaN(Number(params.id))) {
         return;
       }
@@ -121,27 +124,35 @@ export default function EditarPedidoPage() {
     }
   };
 
+  // Spinner/Cargando idéntico a tu lógica original para evitar flasheos de layouts vacíos
   if (!pedido) {
-    return <div className="p-6">Cargando datos...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
     <div className="bg-background">
-      <Navbar />
+
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
           { label: "Pedidos", href: "/compras/pedidos" },
-          { label: "Editar Pedido" },
+          { label: isReadOnly ? "Visualizar Pedido" : "Editar Pedido" },
         ]}
       />
-      <div className="container mx-auto py-6">
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Editar Pedido</h2>
+      <div className="container">
+        <h2 className="text-2xl font-bold tracking-tight mb-2">
+          {isReadOnly ? "Visualizar Pedido" : "Editar Pedido"}
+        </h2>
 
         <PedidoForm
           pedidoEditado={pedido}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/compras/pedidos")}
+          readOnly={isReadOnly}
         />
       </div>
     </div>
