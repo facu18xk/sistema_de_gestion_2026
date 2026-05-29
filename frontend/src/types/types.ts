@@ -407,3 +407,65 @@ export interface MedioPagoLinea {
     referencia: string;
     monto: number;
 }
+
+export interface ProductoNotaCreditoDetalleDTO {
+    idProducto: number;
+    descripcion: string;
+}
+
+export interface NotaCreditoCompraDetalleDTO {
+    idNotaCreditoCompraDetalle: number;
+    idNotaCreditoCompra: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+    producto?: ProductoNotaCreditoDetalleDTO;
+}
+
+export interface NotaCreditoCompraDTO {
+    idNotaCreditoCompra: number;
+    idFacturaCompra: number;
+    nroComprobanteFactura: string;
+    idNotaDevolucionCompra: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoCompraDetalleDTO[];
+}
+
+export interface NotaCreditoCompraSaveDTO {
+    idFacturaCompra: number;
+    idNotaDevolucionCompra: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+}
+
+export interface NotaCreditoCompraDetalleSaveDTO {
+    idNotaCreditoCompra: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoItemForm {
+    idDetalle?: number;
+    idProducto: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoFormState {
+    idFacturaCompra: string;
+    idNotaDevolucionCompra: string;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoItemForm[];
+}

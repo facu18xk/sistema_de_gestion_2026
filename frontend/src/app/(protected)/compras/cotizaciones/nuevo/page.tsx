@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navbar from "@/components/navbar";
 import { useRouter } from "next/navigation";
 import { CotizacionForm } from "@/components/compras/cotizacion-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
@@ -15,27 +14,22 @@ import { notify } from "@/lib/notifications";
 export default function NuevaCotizacionPage() {
   const router = useRouter();
   const [pedidosDisponibles, setPedidosDisponibles] = useState<any[]>([]);
-  const [detallesPedidosOriginales, setDetallesPedidosOriginales] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const cargarPedidosOrigen = async () => {
       try {
         setIsLoading(true);
-        const [resPedidos, resDetalles] = await Promise.all([
-          pedidosAPI.getAll(1, 500),
-          pedidosDetallesAPI.getAll(1, 1000)
-        ]);
-
+        // Solamente traemos las cabeceras de los pedidos al iniciar para poblar el select.
+        // Cero llamadas masivas a detalles aquí, evitando la duplicidad visual.
+        const resPedidos = await pedidosAPI.getAll(1, 500);
         const listaPedidos = resPedidos.items || resPedidos || [];
-        const listaDetalles = resDetalles.items || resDetalles || [];
 
         const filtrados = listaPedidos.filter(
           (p: any) => p.estado === "Aprobado" || p.estado === "Enviado" || p.estado === "Respondido"
         );
 
         setPedidosDisponibles(filtrados);
-        setDetallesPedidosOriginales(listaDetalles);
       } catch (error) {
         console.error("Error al cargar pedidos de origen:", error);
         notify.error("Error", "No se pudo cargar el listado de pedidos de compra.");
@@ -54,22 +48,24 @@ export default function NuevaCotizacionPage() {
         return;
       }
 
-      // 1. Crear Cabecera de la Cotización usando el CotizacionSaveDTO estricto
       const cabeceraPayload: CotizacionSaveDTO = {
         idPedidoCompra: Number(data.solicitudCotizacionId),
-        idEstado: data.idEstado || 1, // 1 por defecto (Pendiente)
+        idEstado: data.idEstado || 1,
         idProveedor: Number(data.proveedorId),
         numeroPedido: data.numeroPedido || Math.floor(Math.random() * 10000),
         fecha: data.fecha,
       };
 
       const nuevaCotizacion = await cotizacionesAPI.create(cabeceraPayload);
-
-      const idCotizacionGenerado = nuevaCotizacion.idPedidoCotizacion || nuevaCotizacion.idPedidoCotizacion;
+      const idCotizacionGenerado = nuevaCotizacion.idPedidoCotizacion;
 
       if (!idCotizacionGenerado) {
         throw new Error("No se pudo obtener el ID de la cotización generada.");
       }
+
+      // Traemos los detalles del pedido específico solo al momento de guardar para validar categorías en el backend
+      const resDetalles = await pedidosDetallesAPI.getAll(1, 1000);
+      const listaDetalles = resDetalles.items || resDetalles || [];
 
       for (const item of data.items) {
         const idProductoFinal = Number(item.productoId);
@@ -79,12 +75,11 @@ export default function NuevaCotizacionPage() {
           continue;
         }
 
-        const original = detallesPedidosOriginales.find(
+        const original = listaDetalles.find(
           (d: any) =>
             String(d.idPedidoCompra) === String(data.solicitudCotizacionId) &&
             Number(d.idProducto || d.productoId) === idProductoFinal
         );
-
 
         const detallePayload: CotizacionDetalleSaveDTO = {
           idPedidoCotizacion: Number(idCotizacionGenerado),

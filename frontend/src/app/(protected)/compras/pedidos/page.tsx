@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Pencil, Trash2, Loader2, Eye, FileText } from "lucide-react"
+import { Pencil, Trash2, Loader2, Eye, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -41,13 +41,28 @@ export default function PedidosPage() {
     fechaHasta: ""
   })
 
+  // Cargar estado guardado al montar
+  useEffect(() => {
+    const savedFilters = sessionStorage.getItem("filters_pedidos");
+    if (savedFilters) {
+      try {
+        const parsed = JSON.parse(savedFilters);
+        if (parsed.filters) setFilters(parsed.filters);
+        if (parsed.pagina) setCurrentPage(parsed.pagina);
+      } catch (e) {
+        console.error("Error recuperando filtros de pedidos", e);
+      }
+    }
+  }, []);
+
+  // Función unificada para guardar el estado actual antes de salir de la página
+  const guardarSnapshotFiltros = () => {
+    const stateToSave = { filters, pagina: currentPage };
+    sessionStorage.setItem("filters_pedidos", JSON.stringify(stateToSave));
+  }
+
   const camposFiltro: FilterField[] = [
-    {
-      id: "nroPedido",
-      label: "Buscar por Nro Pedido",
-      type: "text",
-      placeholder: "Ej: 7 o PD-0007"
-    },
+    { id: "nroPedido", label: "Buscar por Nro Pedido", type: "text", placeholder: "Ej: 7 o PD-0007" },
     {
       id: "estado",
       label: "Estado",
@@ -60,18 +75,9 @@ export default function PedidosPage() {
         { value: "Respondido", label: "Respondido" }
       ]
     },
-    {
-      id: "fechaDesde",
-      label: "Fecha Desde",
-      type: "date"
-    },
-    {
-      id: "fechaHasta",
-      label: "Fecha Hasta",
-      type: "date"
-    }
+    { id: "fechaDesde", label: "Fecha Desde", type: "date" },
+    { id: "fechaHasta", label: "Fecha Hasta", type: "date" }
   ]
-
 
   const formatearNumeroPedido = (numero: number | string) => {
     return `PD-${String(numero).padStart(4, "0")}`
@@ -82,26 +88,29 @@ export default function PedidosPage() {
     setCurrentPage(1)
   }
 
+  const handleLimpiarFiltros = () => {
+    setFilters({ nroPedido: "", estado: "", fechaDesde: "", fechaHasta: "" });
+    setCurrentPage(1);
+    sessionStorage.removeItem("filters_pedidos");
+  };
+
   const getEstadoStyle = (estado: string) => {
     switch (estado.toLowerCase()) {
-      case 'pendiente':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'pendiente': return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'aprobado':
-      case 'completado':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'cancelado':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
-      default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+      case 'completado': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'cancelado': return 'bg-rose-50 text-rose-700 border-rose-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
     }
   };
+
   const cargarTodosLosPedidos = async () => {
     setIsLoading(true)
     try {
       const resPaginada = await pedidosAPI.getAll(1, 99999)
       setAllPedidos(resPaginada.items || [])
     } catch (error) {
-      console.error("Error al cargar pedidos:", error)
+      console.error(error)
       notify.error("Error de conexión", "No se pudo obtener la lista de pedidos.")
     } finally {
       setIsLoading(false)
@@ -119,20 +128,10 @@ export default function PedidosPage() {
       const filtroNro = (filters.nroPedido || "").toLowerCase().trim().replace("pd-", "")
 
       const cumpleNro = nroFormateado.includes(filtroNro) || nroLimpio.includes(filtroNro)
-
-      const cumpleEstado = filters.estado
-        ? p.estado.toLowerCase() === filters.estado.toLowerCase()
-        : true
-
+      const cumpleEstado = filters.estado ? p.estado.toLowerCase() === filters.estado.toLowerCase() : true
       const fechaPedido = p.fecha.substring(0, 10)
-
-      const cumpleDesde = filters.fechaDesde
-        ? fechaPedido >= filters.fechaDesde
-        : true
-
-      const cumpleHasta = filters.fechaHasta
-        ? fechaPedido <= filters.fechaHasta
-        : true
+      const cumpleDesde = filters.fechaDesde ? fechaPedido >= filters.fechaDesde : true
+      const cumpleHasta = filters.fechaHasta ? fechaPedido <= filters.fechaHasta : true
 
       return cumpleNro && cumpleEstado && cumpleDesde && cumpleHasta
     })
@@ -149,19 +148,24 @@ export default function PedidosPage() {
     return pedidosFiltrados.slice(startIndex, endIndex)
   }, [pedidosFiltrados, currentPage, itemsPerPage])
 
+  // Lógica de navegación resguardando filtros de forma explícita
   const handleCrearNuevo = () => {
+    guardarSnapshotFiltros()
     router.push("/compras/pedidos/nuevo")
   }
 
   const handleEditar = (p: PedidoDTO) => {
+    guardarSnapshotFiltros()
     router.push(`/compras/pedidos/${p.idPedidoCompra}/editar`)
   }
 
   const handleVerDetalle = (p: PedidoDTO) => {
+    guardarSnapshotFiltros()
     router.push(`/compras/pedidos/${p.idPedidoCompra}/editar?readOnly=true`)
   }
 
   const handleVerCotizaciones = (p: PedidoDTO) => {
+    guardarSnapshotFiltros()
     router.push(`/compras/cotizaciones?idPedidoCompra=${p.idPedidoCompra}`)
   }
 
@@ -172,7 +176,7 @@ export default function PedidosPage() {
         notify.success("Eliminado", "El pedido fue eliminado correctamente.")
         await cargarTodosLosPedidos()
       } catch (error) {
-        console.error("Error al eliminar pedido:", error)
+        console.error(error)
         notify.error("Error al eliminar", "El pedido podría tener registros asociados.")
       } finally {
         setIsAlertOpen(false)
@@ -180,6 +184,8 @@ export default function PedidosPage() {
       }
     }
   }
+
+  const tieneFiltrosActivos = Object.values(filters).some((val) => val !== "");
 
   return (
     <>
@@ -191,11 +197,20 @@ export default function PedidosPage() {
         onButtonClick={handleCrearNuevo}
       />
 
-      <FilterBar
-        fields={camposFiltro}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
+      <div className="relative w-full mb-4">
+        <FilterBar fields={camposFiltro} filters={filters} onFilterChange={handleFilterChange} />
+        {tieneFiltrosActivos && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLimpiarFiltros}
+            className="absolute right-3 -top-3.5 h-6 text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1 bg-background border px-2 rounded-full shadow-xs z-10"
+          >
+            <X className="h-3 w-3" />
+            Limpiar filtros
+          </Button>
+        )}
+      </div>
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
@@ -209,13 +224,9 @@ export default function PedidosPage() {
               y se quitará del servidor.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmarEliminacion}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={confirmarEliminacion} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Eliminar Pedido
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -252,9 +263,7 @@ export default function PedidosPage() {
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getEstadoStyle(p.estado)}`}>
                     {p.estado}
                   </span>
-
                 </TableCell>
-
                 <TableCell className="text-right space-x-1">
                   {p.estado === "Respondido" && (
                     <Button
@@ -267,22 +276,12 @@ export default function PedidosPage() {
                       <FileText className="size-3.5" />
                     </Button>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleVerDetalle(p)}
-                    className="cursor-pointer"
-                  >
+                  <Button variant="ghost" size="icon" onClick={() => handleVerDetalle(p)} className="cursor-pointer" title="Ver Detalle">
                     <Eye className="size-3.5 text-muted-foreground hover:text-foreground" />
                   </Button>
                   {esModificable && (
                     <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditar(p)}
-                        className="cursor-pointer"
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer" title="Editar">
                         <Pencil className="size-3.5" />
                       </Button>
                       <Button
@@ -293,6 +292,7 @@ export default function PedidosPage() {
                           setIsAlertOpen(true)
                         }}
                         className="cursor-pointer"
+                        title="Eliminar"
                       >
                         <Trash2 className="size-3.5 text-foreground hover:text-destructive transition-colors" />
                       </Button>

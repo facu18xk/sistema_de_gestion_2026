@@ -59,12 +59,10 @@ export default function CargarFacturaPage() {
         fetchOrdenes()
     }, [])
 
-    // Formateador dinámico para el número de comprobante (001-001-0000001)
     const formatNroComprobante = (value: string) => {
         // Deja solo los dígitos numéricos
         const nums = value.replace(/\D/g, "")
 
-        // Corta el exceso si pegan un string muy largo (máximo 13 dígitos)
         const digits = nums.slice(0, 13)
 
         if (digits.length <= 3) {
@@ -146,7 +144,7 @@ export default function CargarFacturaPage() {
         setItemsFactura(prev => prev.map((item, i) => {
             if (i !== index) return item
 
-            // Limitamos que visualmente no meta valores negativos, pero dejamos que escriba libremente para la validación final
+
             const cant = Math.max(0, nuevaCant)
             const totalBruto = cant * item.precioUnitario
             const descuentoProporcional = item.cantidadPedida > 0 ? (item.descuento / item.cantidadPedida) * cant : 0
@@ -171,12 +169,10 @@ export default function CargarFacturaPage() {
             return notify.error("Campos Requeridos", "Por favor completa el comprobante, timbrado y la orden origen.")
         }
 
-        // Validación estricta del formato del comprobante (Debe cumplir 15 caracteres incluyendo guiones)
         if (nroComprobante.length < 15) {
             return notify.error("Formato Inválido", "El número de comprobante debe tener el formato completo: 001-001-0000001")
         }
 
-        // VALIDACIÓN: Verificar que ninguna cantidad cargada supere lo pedido originalmente
         const itemExcedido = itemsFactura.find(item => item.cantidadRecibidaAhora > item.cantidadPedida)
         if (itemExcedido) {
             return notify.error(

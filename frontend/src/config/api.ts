@@ -20,5 +20,7 @@ export const API_CONFIG = {
     FACTURAS_COMPRA_DETALLES: "/api/FacturasComprasDetalles",
     ORDENES_PAGO_COMPRA: "/api/OrdenesPagosCompras",
     ORDENES_PAGO_COMPRA_DETALLES: "/api/OrdenesPagosComprasDetalles",
+    NOTAS_CREDITO_COMPRA: "/api/NotasCreditosCompras",
+    NOTAS_CREDITO_COMPRA_DETALLES: "/api/NotasCreditosComprasDetalles",
   },
 } as const;

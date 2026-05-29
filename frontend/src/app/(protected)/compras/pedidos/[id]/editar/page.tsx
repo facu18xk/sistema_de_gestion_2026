@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navbar from "@/components/navbar";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { PedidoForm, Pedido, PedidoItem } from "@/components/compras/pedido-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 import { pedidosAPI } from "@/services/pedidosAPI";
 import { pedidosDetallesAPI } from "@/services/pedidosDetallesAPI";
 import { notify } from "@/lib/notifications";
@@ -16,7 +17,6 @@ export default function EditarPedidoPage() {
   const searchParams = useSearchParams();
   const [pedido, setPedido] = useState<Pedido | null>(null);
 
-  // Capturamos si viene ?readOnly=true desde la URL
   const isReadOnly = searchParams?.get("readOnly") === "true";
 
   const formatearNumeroPedido = (numero: number | string) => {
@@ -25,9 +25,7 @@ export default function EditarPedidoPage() {
 
   useEffect(() => {
     const cargarPedido = async () => {
-      if (!params?.id || isNaN(Number(params.id))) {
-        return;
-      }
+      if (!params?.id || isNaN(Number(params.id))) return;
 
       try {
         const id = Number(params.id);
@@ -67,6 +65,12 @@ export default function EditarPedidoPage() {
     cargarPedido();
   }, [params?.id]);
 
+  const handleVerCotizacionesAsociadas = () => {
+    if (pedido) {
+      router.push(`/compras/cotizaciones?idPedidoCompra=${pedido.id}`);
+    }
+  };
+
   const handleSubmit = async (data: Pedido) => {
     try {
       if (!data.items || data.items.length === 0) {
@@ -75,7 +79,6 @@ export default function EditarPedidoPage() {
       }
 
       const id = Number(params.id);
-
       const obtenerIdEstado = (estado: string) => {
         switch (estado) {
           case "Pendiente": return 1;
@@ -110,21 +113,19 @@ export default function EditarPedidoPage() {
           descripcion: item.descripcion || "",
           cantidad: Number(item.cantidad),
         };
-
         return pedidosDetallesAPI.create(detallePayload);
       });
 
       await Promise.all(promesasNuevosDetalles);
 
-      notify.success("Pedido actualizado", "Los detalles han sido reemplazados y guardados.");
+      notify.success("Pedido actualizado", "Los detalles han sido reemplazados.");
       router.push("/compras/pedidos");
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      notify.error("Error", "No se pudo completar la actualización por reemplazo.");
+      notify.error("Error", "No se pudo completar la actualización.");
     }
   };
 
-  // Spinner/Cargando idéntico a tu lógica original para evitar flasheos de layouts vacíos
   if (!pedido) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -135,7 +136,6 @@ export default function EditarPedidoPage() {
 
   return (
     <div className="bg-background">
-
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -144,9 +144,25 @@ export default function EditarPedidoPage() {
         ]}
       />
       <div className="container">
-        <h2 className="text-2xl font-bold tracking-tight mb-2">
-          {isReadOnly ? "Visualizar Pedido" : "Editar Pedido"}
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold tracking-tight">
+            {isReadOnly ? "Visualizar Pedido" : "Editar Pedido"}
+          </h2>
+
+          {/* Botón dinámico insertado en la cabecera */}
+          {pedido.estado === "Respondido" && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleVerCotizacionesAsociadas}
+              className="flex items-center gap-2 border-blue-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 dark:border-blue-900/30 dark:text-blue-400"
+            >
+              <FileText className="h-4 w-4" />
+              Ver Cotizaciones Recibidas
+            </Button>
+          )}
+        </div>
 
         <PedidoForm
           pedidoEditado={pedido}
