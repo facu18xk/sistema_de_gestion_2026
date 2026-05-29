@@ -292,6 +292,9 @@ export interface EmpleadoFormState {
 export interface Pariente {
   idPariente: number
   idEmpleado: number
+  nombre: string
+  apellido: string
+  ci: string
   tipoRelacion: string
   edad: number
   fechaNacimiento: string
@@ -305,6 +308,9 @@ export interface Pariente {
 
 export interface ParienteSaveDTO {
   idEmpleado: number
+  nombre: string
+  apellido: string
+  ci: string
   tipoRelacion: string
   edad: number
   fechaNacimiento: string
@@ -312,6 +318,9 @@ export interface ParienteSaveDTO {
 
 export interface ParienteFormState {
   idEmpleado: string
+  nombre: string
+  apellido: string
+  ci: string
   tipoRelacion: string
   edad: string
   fechaNacimiento: string

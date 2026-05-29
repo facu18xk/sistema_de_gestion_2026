@@ -54,6 +54,9 @@ export function ParienteForm({
 
   const [formData, setFormData] = useState<ParienteFormState>({
     idEmpleado: "",
+    nombre: "",
+    apellido: "",
+    ci: "",
     tipoRelacion: "",
     edad: "",
     fechaNacimiento: "",
@@ -95,6 +98,9 @@ export function ParienteForm({
     if (parienteEditado) {
       setFormData({
         idEmpleado: parienteEditado.idEmpleado.toString(),
+        nombre: parienteEditado.nombre ?? "",
+        apellido: parienteEditado.apellido ?? "",
+        ci: parienteEditado.ci ?? "",
         tipoRelacion: parienteEditado.tipoRelacion,
         edad: parienteEditado.edad.toString(),
         fechaNacimiento: parienteEditado.fechaNacimiento.substring(0, 10),
@@ -102,6 +108,9 @@ export function ParienteForm({
     } else {
       setFormData({
         idEmpleado: "",
+        nombre: "",
+        apellido: "",
+        ci: "",
         tipoRelacion: "",
         edad: "",
         fechaNacimiento: "",
@@ -115,6 +124,9 @@ export function ParienteForm({
     try {
       await onSubmit({
         idEmpleado: Number(formData.idEmpleado),
+        nombre: formData.nombre.trim(),
+        apellido: formData.apellido.trim(),
+        ci: formData.ci.trim(),
         tipoRelacion: formData.tipoRelacion,
         edad: Number(formData.edad),
         fechaNacimiento: formData.fechaNacimiento,
@@ -146,6 +158,37 @@ export function ParienteForm({
             onSelect={(empleado) =>
               updateField("idEmpleado", empleado?.idEmpleado.toString() || "")
             }
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="nombre">Nombre</Label>
+            <Input
+              id="nombre"
+              value={formData.nombre}
+              onChange={(e) => updateField("nombre", e.target.value)}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="apellido">Apellido</Label>
+            <Input
+              id="apellido"
+              value={formData.apellido}
+              onChange={(e) => updateField("apellido", e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="ci">CI</Label>
+          <Input
+            id="ci"
+            value={formData.ci}
+            onChange={(e) => updateField("ci", e.target.value)}
+            required
           />
         </div>
 

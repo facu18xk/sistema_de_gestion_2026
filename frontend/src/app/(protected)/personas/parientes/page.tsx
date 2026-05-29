@@ -174,13 +174,12 @@ export default function ParientesPage() {
           headerRow={
             <TableRow>
               <TableHead>Empleado</TableHead>
-
+              <TableHead>Nombre</TableHead>
+              <TableHead>Apellido</TableHead>
+              <TableHead>CI</TableHead>
               <TableHead>Tipo Relación</TableHead>
-
               <TableHead>Edad</TableHead>
-
               <TableHead>Fecha Nacimiento</TableHead>
-
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           }
@@ -188,7 +187,7 @@ export default function ParientesPage() {
           {parientes.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={8}
                 className="h-24 text-center text-muted-foreground"
               >
                 No hay parientes registrados.
@@ -200,7 +199,9 @@ export default function ParientesPage() {
                 <TableCell>
                   {p.empleado.nombres} {p.empleado.apellidos}
                 </TableCell>
-
+                <TableCell>{p.nombre}</TableCell>
+                <TableCell>{p.apellido}</TableCell>
+                <TableCell>{p.ci}</TableCell>
                 <TableCell>{p.tipoRelacion}</TableCell>
 
                 <TableCell>{p.edad}</TableCell>
