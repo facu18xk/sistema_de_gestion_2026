@@ -173,8 +173,7 @@ export default function ParientesPage() {
           onPageChange={(page) => setCurrentPage(page)}
           headerRow={
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Apellido</TableHead>
+              <TableHead>Nombre Completo</TableHead>
               <TableHead>CI</TableHead>
               <TableHead>Empleado</TableHead>
               <TableHead>Tipo Relación</TableHead>
@@ -196,8 +195,9 @@ export default function ParientesPage() {
           ) : (
             parientes.map((p) => (
               <TableRow key={p.idPariente}>
-                <TableCell>{p.nombre}</TableCell>
-                <TableCell>{p.apellido}</TableCell>
+                <TableCell>
+                  {p.nombre} {p.apellido}
+                </TableCell>
                 <TableCell>{p.ci}</TableCell>
                 <TableCell>
                   {p.empleado.nombres} {p.empleado.apellidos}
