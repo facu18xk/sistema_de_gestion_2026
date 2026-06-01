@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq; 
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 
 namespace api.Controllers;
 
@@ -64,7 +65,17 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
             NroComprobante = dto.NroComprobante,
             Timbrado = dto.Timbrado,
             Fecha = dto.Fecha,
-            Descripcion = dto.Descripcion
+            Descripcion = dto.Descripcion,
+            
+            FacturasComprasDetalles = dto.Detalles?.Select(d => new FacturasComprasDetalle
+            {
+                IdProducto = d.IdProducto,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = d.PrecioUnitario,
+                TotalBruto = d.TotalBruto,
+                TotalIva = d.TotalIva,
+                TotalNeto = d.TotalNeto
+            }).ToList() ?? new List<FacturasComprasDetalle>()
         };
     }
 

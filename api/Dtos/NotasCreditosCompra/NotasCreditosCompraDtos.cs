@@ -37,6 +37,8 @@ public class NotasCreditosCompraUpsertDto
     public DateTime FechaEmision { get; set; }
 
     public decimal Total { get; set; }
+
+    public IReadOnlyCollection<api.Dtos.NotasCreditosComprasDetalles.NotasCreditosComprasDetalleUpsertDto> Detalles { get; set; } = Array.Empty<api.Dtos.NotasCreditosComprasDetalles.NotasCreditosComprasDetalleUpsertDto>();
 }
 public class NotasCreditosComprasDetalleDto
 {

@@ -40,4 +40,6 @@ public class FacturasCompraUpsertDto
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
+
+    public IReadOnlyCollection<FacturasComprasDetalleUpsertDto> Detalles { get; set; } = Array.Empty<FacturasComprasDetalleUpsertDto>();
 }
