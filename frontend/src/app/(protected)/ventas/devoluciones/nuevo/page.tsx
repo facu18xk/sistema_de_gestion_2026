@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { esVigenteParaNotaCredito } from "@/utils/date-utils";
 
-function NuevaDevolucionContent() {
+function NuevaDevolucionPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idFacturaQuery = searchParams.get("facturaId");
@@ -81,7 +81,7 @@ function NuevaDevolucionContent() {
         } else {
           // Modo 2: Ingreso manual, cargar lista de facturas para el selector
           const resFacturas = await facturasAPI.getAll(1, 200); // Trae las últimas facturas emitidas
-          const facturasVigentes = resFacturas.items.filter((f) => {esVigenteParaNotaCredito(f.fechaPago)});
+          const facturasVigentes = resFacturas.items.filter((f) => esVigenteParaNotaCredito(f.fechaPago));
           //setListaFacturas(resFacturas.items);
           setListaFacturas(facturasVigentes);
         }
@@ -127,7 +127,7 @@ function NuevaDevolucionContent() {
       idMarca: 0,
       marca: "",
       idCategoria: 0,
-      categoria: ""
+      categoria: "",
     }));
   };
 
@@ -444,7 +444,7 @@ function NuevaDevolucionContent() {
 export default function NuevaDevolucionPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando módulos de devoluciones...</div>}>
-      <NuevaDevolucionContent />
+      <NuevaDevolucionPageContent />
     </Suspense>
   );
 }
