@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using api.Models;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace api.Migrations.DblosAmigos
 {
     /// <inheritdoc />
+    [DbContext(typeof(DblosAmigosContext))]
+    [Migration("20260601213000_AddNroComprobanteNotasCreditosVentas")]
     public partial class AddNroComprobanteNotasCreditosVentas : Migration
     {
         /// <inheritdoc />

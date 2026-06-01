@@ -137,7 +137,6 @@ public partial class DblosAmigosContext
             entity.Property(e => e.NumeroCheque).HasMaxLength(80).IsUnicode(false).HasColumnName("Numero_Cheque");
             entity.Property(e => e.Beneficiario).HasMaxLength(180).IsUnicode(false);
             entity.Property(e => e.FechaEmision).HasColumnType("timestamp without time zone").HasColumnName("Fecha_Emision");
-            entity.Property(e => e.FechaPago).HasColumnType("timestamp without time zone").HasColumnName("Fecha_Pago");
             entity.Property(e => e.Monto).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Estado).HasMaxLength(40).IsUnicode(false);
             entity.HasIndex(e => new { e.IdCuentaBancaria, e.NumeroCheque }).IsUnique().HasDatabaseName("IX_Cheques_Emitidos_Cuenta_Numero");

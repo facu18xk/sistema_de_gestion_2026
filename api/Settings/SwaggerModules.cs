@@ -74,19 +74,8 @@ public static class SwaggerModules
             ["ModelosAsientos"] = "contabilidad",
             ["ModelosAsientosDetalles"] = "contabilidad",
             ["PeriodosContables"] = "contabilidad",
-            ["ProcesosContables"] = "contabilidad"
-            ,
-            ["Bancos"] = "tesoreria",
-            ["CuentasBancarias"] = "tesoreria",
-            ["TiposCuentasBancarias"] = "tesoreria",
+            ["ProcesosContables"] = "contabilidad",
             ["MovimientosBancarios"] = "tesoreria",
-            ["TiposMovimientosBancarios"] = "tesoreria",
-            ["ChequesEmitidos"] = "tesoreria",
-            ["DepositosBancarios"] = "tesoreria",
-            ["TiposDepositosBancarios"] = "tesoreria",
-            ["DetallesDepositosBancarios"] = "tesoreria",
-            ["ChequesMismoBanco"] = "tesoreria",
-            ["ChequesTerceros"] = "tesoreria"
         };
 
     public static bool IncludesApi(string documentName, ApiDescription apiDescription)

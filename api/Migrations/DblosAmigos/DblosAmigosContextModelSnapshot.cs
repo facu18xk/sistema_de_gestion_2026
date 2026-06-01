@@ -302,10 +302,6 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("Fecha_Emision");
 
-                    b.Property<DateTime?>("FechaPago")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("Fecha_Pago");
-
                     b.Property<int>("IdCuentaBancaria")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Cuenta_Bancaria");

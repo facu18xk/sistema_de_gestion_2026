@@ -18,11 +18,11 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
     }
 
     [HttpPost("{id:int}/conciliar")]
-    public async Task<ActionResult<ChequeEmitidoDto>> Conciliar(int id, ConciliarChequeDto dto)
+    public async Task<ActionResult<ChequeEmitidoDto>> Conciliar(int id)
     {
         try
         {
-            var cheque = await _chequeEmitidoService.ConciliarAsync(id, dto.FechaPago);
+            var cheque = await _chequeEmitidoService.ConciliarAsync(id);
             return Ok(ToReadDto(cheque));
         }
         catch (KeyNotFoundException)
@@ -46,11 +46,9 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
             ?.OrdenesPagosComprasDetalles
             .Select(detalle => (int?)detalle.IdFacturaCompraNavigation.IdOrdenCompra)
             .FirstOrDefault(),
-        IdMovimientoBancario = entity.IdMovimientoBancario,
         NumeroCheque = entity.NumeroCheque,
         Beneficiario = entity.Beneficiario,
         FechaEmision = entity.FechaEmision,
-        FechaPago = entity.FechaPago,
         Monto = entity.Monto,
         Estado = entity.Estado
     };
@@ -59,11 +57,9 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
     {
         IdCuentaBancaria = dto.IdCuentaBancaria,
         IdOrdenMedioPagoCompra = dto.IdOrdenMedioPagoCompra,
-        IdMovimientoBancario = dto.IdMovimientoBancario,
         NumeroCheque = dto.NumeroCheque,
         Beneficiario = dto.Beneficiario,
         FechaEmision = dto.FechaEmision,
-        FechaPago = dto.FechaPago,
         Monto = dto.Monto,
         Estado = dto.Estado
     };
