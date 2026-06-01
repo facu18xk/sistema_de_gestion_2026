@@ -1,4 +1,5 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,10 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Cookies from 'js-cookie'
+import { authAPI } from "@/services/authAPI"
+import { saveSessionUser } from "@/lib/auth"
+import { notify } from "@/lib/notifications"
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -20,7 +25,6 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null) // Para mostrar errores de la API
     const router = useRouter();
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5066";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,29 +32,21 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const response = await fetch(`${apiBaseUrl}/api/Auth/iniciar`,{
-                method: "POST",
-                headers: {
-                    "Content-Type":"application/json",
-                },
-                body: JSON.stringify({email, password}),
-            })
+            const data = await authAPI.login(email, password); 
+            // 1. Guardar el token en una Cookie (expira en 1 día)
+            Cookies.set("token", data.token, { expires: 1, path: '/' });
+            // 2. Guardar los datos del usuario en localStorage (para mostrar el nombre en el Navbar)
+            saveSessionUser(data.user);
+            //Notificación de éxito
+            notify.success("¡Bienvenido!", "Has iniciado sesión correctamente.");
+            // 3. Redirigimos a /dashboard
+            router.push("/dashboard");
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                //Si el backend responde con 401, 400, 500, etc.
-                throw new Error(data.message || "Credenciales incorrectas");
-            }
-
-            // ÉXITO: Guardar el token (si el backend devuelve uno)
-            console.log("Login exitoso:", data)
-            localStorage.setItem("token", data.token) // O como se llame el campo en tu API
-
-            router.push("/dashboard")
-        } catch(err: unknown){
-            setError(err instanceof Error ? err.message : "Error inesperado");
-        } finally {
+          } catch (err: any) {
+            setError(err.response?.data?.message || "Error al iniciar sesión");
+            //Notificación de error
+            notify.error("Error de autenticación", "Usuario o contraseña incorrectos.");
+          } finally {
             setIsLoading(false);
         }
     }
