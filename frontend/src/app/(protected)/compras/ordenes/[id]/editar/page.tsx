@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Save, Trash2, ArrowLeft } from "lucide-react"
+import { Loader2, Save, ArrowLeft, Trash2, FileText } from "lucide-react"
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
 import { ordenesCompraDetallesAPI } from "@/services/ordenesCompraDetallesAPI"
 import { notify } from "@/lib/notifications"
@@ -14,242 +14,336 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FieldWrapper } from "@/components/FieldWrapper"
 import { OrdenCompraSaveDTO, OrdenCompraDetalleSaveDTO } from "@/types/types"
 
-export default function EditarOrdenPage({ params }: { params: Promise<{ id: string }> }) {
+interface ItemOrden {
+    idOrdenCompraDetalle: number
+    idProducto: number
+    descripcion: string
+    cantidad: number
+    // Campos opcionales en caso de que tu backend devuelva o necesite precios reflejados
+    precioUnitario?: number
+    total?: number
+}
+
+export default function EditarOrdenPage() {
     const router = useRouter()
-    const { id } = use(params)
-    const idOrden = Number(id)
+    const params = useParams()
+    const idOrden = params?.id ? Number(params.id) : null
 
-    const [isLoading, setIsLoading] = useState(true)
-    const [isSaving, setIsSaving] = useState(false)
+    const [isLoadingData, setIsLoadingData] = useState(true)
+    const [isProcesando, setIsProcesando] = useState(false)
 
-    // Estados para la cabecera y el array de detalles actual
-    const [cabecera, setCabecera] = useState<any>(null)
-    const [detalles, setDetalles] = useState<any[]>([])
-    const [detallesOriginalesIds, setDetallesOriginalesIds] = useState<number[]>([])
+    // Estados del formulario (Cabecera)
+    const [idPedidoCotizacion, setIdPedidoCotizacion] = useState<number>(0)
+    const [idProveedor, setIdProveedor] = useState<number>(0)
+    const [idEstado, setIdEstado] = useState<number>(1)
+    const [fecha, setFecha] = useState<string>("")
+    const [descripcion, setDescripcion] = useState<string>("")
+    const [proveedorNombre, setProveedorNombre] = useState<string>("")
+
+    // Estado de los ítems de la orden (Detalle)
+    const [items, setItems] = useState<ItemOrden[]>([])
 
     useEffect(() => {
-        const cargarOrdenCompleta = async () => {
+        if (!idOrden) {
+            notify.error("Error", "ID de orden de compra no válido.")
+            router.push("/compras/ordenes")
+            return
+        }
+
+        const cargarDatosOrden = async () => {
+            setIsLoadingData(true)
             try {
-                // 1. Traer datos de la cabecera
-                const resCabecera = await ordenesCompraAPI.getById(idOrden)
-                setCabecera(resCabecera)
+                // 1. Obtener la cabecera de la orden de compra
+                // Nota: Reemplazar por .get u obtener individual si tu API lo expone directamente, 
+                // de lo contrario usamos getAll y filtramos como en el listado maestro.
+                const resOrdenes = await ordenesCompraAPI.getAll(1, 1000)
+                const listaOrdenes = resOrdenes.items || resOrdenes || []
+                const ordenActual = listaOrdenes.find((o: any) => Number(o.idOrdenCompra || o.id) === idOrden)
 
-                // 2. Traer todos los detalles y filtrar los que pertenecen a esta orden
-                const resTodosDetalles = await ordenesCompraDetallesAPI.getAll(1, 2000)
-                const listaDetalles = resTodosDetalles.items || resTodosDetalles || []
-                const filtrados = listaDetalles.filter((d: any) => Number(d.idOrdenCompra) === idOrden)
+                if (!ordenActual) {
+                    notify.error("No encontrado", "No se encontró la orden de compra solicitada.")
+                    router.push("/compras/ordenes")
+                    return
+                }
 
-                setDetalles(filtrados)
-                // Guardamos los IDs originales para poder reventarlos con el DELETE masivo
-                setDetallesOriginalesIds(filtrados.map((d: any) => d.idOrdenCompraDetalle).filter(Boolean))
+                // Seteamos los datos de la cabecera
+                setIdPedidoCotizacion(ordenActual.idPedidoCotizacion)
+                setIdProveedor(ordenActual.idProveedor)
+                setIdEstado(ordenActual.idEstado || 1)
+                setFecha(ordenActual.fecha ? ordenActual.fecha.split("T")[0] : "")
+                setDescripcion(ordenActual.descripcion || "")
+                setProveedorNombre(ordenActual.proveedor?.razonSocial || ordenActual.razonSocial || `Proveedor #${ordenActual.idProveedor}`)
+
+                // 2. Obtener los detalles de la orden
+                const resDetalles = await ordenesCompraDetallesAPI.getAll(1, 2000)
+                const todosLosDetalles = resDetalles.items || resDetalles || []
+
+                // Filtrar los detalles que correspondan a esta orden
+                const detallesFiltrados = todosLosDetalles.filter(
+                    (d: any) => Number(d.idOrdenCompra) === idOrden
+                )
+
+                const itemsMapeados: ItemOrden[] = detallesFiltrados.map((d: any) => ({
+                    idOrdenCompraDetalle: d.idOrdenCompraDetalle || d.id || 0,
+                    idProducto: d.idProducto || d.productoId,
+                    descripcion: d.producto?.descripcion || d.descripcion || `Producto #${d.idProducto || d.productoId}`,
+                    cantidad: Number(d.cantidad || 0),
+                    precioUnitario: d.precioUnitario || 0,
+                    total: Number(d.cantidad || 0) * Number(d.precioUnitario || 0)
+                }))
+
+                setItems(itemsMapeados)
             } catch (error) {
-                notify.error("Error", "No se pudo recuperar la información de la orden.")
-                router.push("/compras/ordenes")
+                console.error(error)
+                notify.error("Error", "No se pudieron cargar los detalles de la orden de compra.")
             } finally {
-                setIsLoading(false)
+                setIsLoadingData(false)
             }
         }
-        cargarOrdenCompleta()
+
+        cargarDatosOrden()
     }, [idOrden, router])
 
     const handleCambiarCantidad = (idProducto: number, nuevaCantidad: number) => {
         if (nuevaCantidad < 0) return
-        setDetalles(prev =>
-            prev.map(d => (d.idProducto === idProducto ? { ...d, cantidad: nuevaCantidad } : d))
+
+        setItems(prev =>
+            prev.map(item => {
+                if (item.idProducto !== idProducto) return item
+                return {
+                    ...item,
+                    cantidad: nuevaCantidad,
+                    total: (item.precioUnitario || 0) * nuevaCantidad
+                }
+            })
         )
     }
 
     const handleEliminarItem = (idProducto: number) => {
-        setDetalles(prev => prev.filter(d => d.idProducto !== idProducto))
+        setItems(prev => prev.filter(item => item.idProducto !== idProducto))
     }
 
     const handleGuardarCambios = async () => {
-        if (detalles.length === 0) {
-            notify.error("Validación", "La orden no puede quedarse sin ningún producto.")
+        if (items.length === 0) {
+            notify.error("Validación", "La orden no puede quedar vacía. Elimine la orden si ya no la requiere.")
             return
         }
 
-        setIsSaving(true)
+        setIsProcesando(true)
         try {
-            // 1. Actualizar datos de la cabecera (descripcion, estado, etc.)
-            const payloadCabecera: Partial<OrdenCompraSaveDTO> = {
-                idPedidoCotizacion: cabecera.idPedidoCotizacion,
-                idProveedor: cabecera.idProveedor,
-                idEstado: Number(cabecera.idEstado), // Mantiene o cambia si alteraron el select
-                fecha: cabecera.fecha,
-                descripcion: cabecera.descripcion
-            }
-            await ordenesCompraAPI.update(idOrden, payloadCabecera)
-
-            // 2. Limpieza Masiva (DELETE de los detalles que estaban en la BD)
-            for (const idDetalleViejo of detallesOriginalesIds) {
-                await ordenesCompraDetallesAPI.delete(idDetalleViejo)
+            // 1. Armar payload de actualización para la cabecera
+            const cabeceraPayload: OrdenCompraSaveDTO = {
+                idPedidoCotizacion,
+                idProveedor,
+                idEstado,
+                fecha,
+                descripcion,
             }
 
-            // 3. Re-inserción (POST de las filas con las cantidades nuevas o vigentes)
-            for (const item of detalles) {
-                const payloadDetalle: OrdenCompraDetalleSaveDTO = {
-                    idOrdenCompraDetalle: 0, // 0 porque para la BD es un registro nuevo
-                    idOrdenCompra: idOrden,
+            // Actualizar cabecera de la orden
+            await ordenesCompraAPI.update(idOrden!, cabeceraPayload)
+
+            // 2. Actualizar los detalles
+            // El enfoque más limpio suele ser enviar a actualizar los registros mutados.
+            // Para acoplarnos a tu API.create de detalles, procesamos los ítems actuales:
+            const promesasDetalles = items.map((item) => {
+                const detallePayload: OrdenCompraDetalleSaveDTO = {
+                    idOrdenCompraDetalle: item.idOrdenCompraDetalle,
+                    idOrdenCompra: idOrden!,
                     idProducto: item.idProducto,
-                    cantidad: Number(item.cantidad)
+                    cantidad: item.cantidad
                 }
-                await ordenesCompraDetallesAPI.create(payloadDetalle)
-            }
 
-            notify.success("Orden Actualizada", "Se guardaron las modificaciones y se regeneraron los detalles con éxito.")
+                if (item.idOrdenCompraDetalle > 0) {
+                    // Si ya existía, usamos el update de detalles
+                    return ordenesCompraDetallesAPI.update(item.idOrdenCompraDetalle, detallePayload)
+                } else {
+                    // Si fuese un ítem nuevo incorporado en la edición
+                    return ordenesCompraDetallesAPI.create(detallePayload)
+                }
+            })
+
+            await Promise.all(promesasDetalles)
+
+            notify.success("Éxito", "La orden de compra ha sido actualizada correctamente.")
             router.push("/compras/ordenes")
-        } catch (error) {
-            console.error(error)
-            notify.error("Error de Guardado", "Hubo problemas al aplicar los cambios en el servidor.")
+        } catch (error: any) {
+            console.error("Error al actualizar la orden:", error)
+            const detalleError = error?.response?.data?.message || "Fallo interno al guardar los cambios de la orden."
+            notify.error("Error al guardar", detalleError)
         } finally {
-            setIsSaving(false)
+            setIsProcesando(false)
         }
     }
 
-    if (isLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        )
-    }
+    // Cálculo del total estimado de la orden en la UI (en caso de manejar precios mapeados)
+    const totalOrdenEstimado = items.reduce((acc, item) => acc + (item.total || 0), 0)
 
     return (
         <div className="bg-background">
             <PageBreadcrumb
                 steps={[
                     { label: "Compras" },
-                    { label: "Ordenes de Compra", href: "/compras/ordenes" },
+                    { label: "Órdenes de Compra", href: "/compras/ordenes" },
                     { label: `Editar Orden #${idOrden}` },
                 ]}
             />
 
-            <main className="container p-4">
-                <div className="flex items-center gap-3 mb-2">
-                    <Button variant="ghost" size="icon" onClick={() => router.push("/compras/ordenes")}>
-                        <ArrowLeft className="h-4 w-4" />
+            <main className="container mx-auto p-4 max-w-5xl">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold tracking-tight">Editar Orden de Compra #{idOrden}</h2>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push("/compras/ordenes")}
+                        disabled={isProcesando}
+                        className="flex gap-1 h-8 text-xs"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" /> Volver al Listado
                     </Button>
-                    <h2 className="text-2xl font-bold tracking-tight">Modificar Orden de Compra #{idOrden}</h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
-                    <Card className="md:col-span-2">
-                        <CardHeader className="py-2">
-                            <CardTitle className="text-sm">Datos de Cabecera</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <FieldWrapper label="Descripción / Concepto" id="descripcion">
-                                <Input
-                                    value={cabecera.descripcion || ""}
-                                    onChange={(e) => setCabecera({ ...cabecera, descripcion: e.target.value })}
-                                />
-                            </FieldWrapper>
+                {isLoadingData ? (
+                    <div className="flex flex-col items-center justify-center py-24 space-y-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-xs text-muted-foreground">Cargando datos de la orden y sus componentes...</p>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        {/* Tarjeta de Información General */}
+                        <Card className="shadow-xs">
+                            <CardHeader className="bg-muted/20 py-3">
+                                <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
+                                    <FileText className="h-4 w-4" /> Datos de Cabecera
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <FieldWrapper label="Proveedor (No Editable)" id="proveedor">
+                                    <Input value={proveedorNombre} disabled className="h-9 bg-muted/40 text-xs font-medium" />
+                                </FieldWrapper>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <FieldWrapper label="Proveedor (Lectura)" id="prov">
+                                <FieldWrapper label="Fecha de la Orden" id="fecha">
                                     <Input
-                                        value={typeof cabecera.proveedor === 'object' && cabecera.proveedor !== null
-                                            ? cabecera.proveedor.razonSocial
-                                            : (cabecera.proveedor || `ID: ${cabecera.idProveedor}`)}
-                                        disabled
+                                        type="date"
+                                        value={fecha}
+                                        onChange={(e) => setFecha(e.target.value)}
+                                        disabled={isProcesando}
+                                        className="h-9 text-xs"
                                     />
                                 </FieldWrapper>
 
-                                <FieldWrapper label="Estado del Documento" id="idEstado">
-                                    <select
-                                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
-                                        value={cabecera.idEstado}
-                                        onChange={(e) => setCabecera({ ...cabecera, idEstado: Number(e.target.value) })}
-                                    >
-                                        <option value={1}>Emitida / Pendiente</option>
-                                        <option value={3}>Facturado</option>
-                                        <option value={4}>Anulado</option>
-                                    </select>
+                                <FieldWrapper label="Descripción / Observación" id="descripcion">
+                                    <Input
+                                        value={descripcion}
+                                        onChange={(e) => setDescripcion(e.target.value)}
+                                        disabled={isProcesando}
+                                        className="h-9 text-xs"
+                                        placeholder="Ej. Entrega urgente en depósito principal..."
+                                    />
                                 </FieldWrapper>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    <Card>
-                        <CardHeader className="py-4">
-                            <CardTitle className="text-sm">Referencias de Origen</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-xs space-y-2 text-muted-foreground">
-                            <p>
-                                <strong className="text-foreground">Cotización Base:</strong> #{cabecera.idCotizacionCompra}
-                            </p>
-                            <p>
-                                <strong className="text-foreground">Pedido Original:</strong> #{cabecera.idPedidoCotizacion || "N/A"}
-                            </p>
-                            <p>
-                                <strong className="text-foreground">Fecha Emisión:</strong> {cabecera.fecha?.substring(0, 10)}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
+                        {/* Tarjeta del Detalle de Artículos */}
+                        <Card className="border-l-4 border-l-primary shadow-xs">
+                            <CardHeader className="bg-muted/10 py-3 flex flex-row items-center justify-between">
+                                <CardTitle className="text-sm font-bold text-primary">
+                                    Artículos Incluidos en la Orden
+                                </CardTitle>
+                                {totalOrdenEstimado > 0 && (
+                                    <div className="text-right">
+                                        <p className="text-xs font-bold text-primary">
+                                            Total: {totalOrdenEstimado.toLocaleString("es-PY")} Gs.
+                                        </p>
+                                    </div>
+                                )}
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Producto</TableHead>
+                                            <TableHead className="w-32 text-center">Cantidad</TableHead>
+                                            {items[0]?.precioUnitario !== undefined && items[0].precioUnitario > 0 && (
+                                                <>
+                                                    <TableHead className="text-right">Precio Unit.</TableHead>
+                                                    <TableHead className="text-right">Subtotal</TableHead>
+                                                </>
+                                            )}
+                                            <TableHead className="w-12"></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {items.map((item) => (
+                                            <TableRow key={item.idProducto} className="text-xs">
+                                                <TableCell className="font-medium">{item.descripcion}</TableCell>
+                                                <TableCell className="text-center">
+                                                    <Input
+                                                        type="number"
+                                                        className="h-7 w-20 mx-auto text-center text-xs p-1"
+                                                        value={item.cantidad}
+                                                        min={1}
+                                                        onChange={(e) => handleCambiarCantidad(item.idProducto, Number(e.target.value))}
+                                                        disabled={isProcesando}
+                                                    />
+                                                </TableCell>
+                                                {item.precioUnitario !== undefined && item.precioUnitario > 0 && (
+                                                    <>
+                                                        <TableCell className="text-right">
+                                                            {item.precioUnitario.toLocaleString("es-PY")} Gs.
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {(item.total || 0).toLocaleString("es-PY")} Gs.
+                                                        </TableCell>
+                                                    </>
+                                                )}
+                                                <TableCell className="text-center">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                                        onClick={() => handleEliminarItem(item.idProducto)}
+                                                        disabled={isProcesando}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
 
-                <Card>
-                    <CardHeader className="py-3 bg-muted/40 border-b">
-                        <CardTitle className="text-sm">Ítems de la Orden</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Producto</TableHead>
-                                    <TableHead className="w-40 text-center">Cantidad Solicitada</TableHead>
-                                    <TableHead className="w-20"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {detalles.map((item) => (
-                                    <TableRow key={item.idProducto} className="text-xs">
-                                        <TableCell className="font-medium">
-                                            {item.producto?.nombre || `Producto Nro #${item.idProducto}`}
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <Input
-                                                type="number"
-                                                className="h-8 w-24 mx-auto text-center text-xs"
-                                                value={item.cantidad}
-                                                min={1}
-                                                onChange={(e) => handleCambiarCantidad(item.idProducto, Number(e.target.value))}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                                                onClick={() => handleEliminarItem(item.idProducto)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-
-                <div className="flex justify-end gap-3 mt-6">
-                    <Button variant="outline" size="sm" onClick={() => router.push("/compras/ordenes")} disabled={isSaving}>
-                        Cancelación
-                    </Button>
-                    <Button size="sm" onClick={handleGuardarCambios} disabled={isSaving} className="flex gap-2">
-                        {isSaving ? (
-                            <>
-                                <Loader2 className="h-4 w-4 animate-spin" /> Reestructurando Detalles...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="h-4 w-4" /> Guardar Orden
-                            </>
-                        )}
-                    </Button>
-                </div>
+                        {/* Botonera de Acciones de Cierre */}
+                        <div className="flex justify-end gap-3 mt-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push("/compras/ordenes")}
+                                disabled={isProcesando}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleGuardarCambios}
+                                disabled={isProcesando}
+                                className="flex gap-2"
+                            >
+                                {isProcesando ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" /> Guardando Cambios...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="h-4 w-4" /> Guardar Orden de Compra
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     )

@@ -9,9 +9,9 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, buttonLabel, onButtonClick }: PageHeaderProps) {
     return (
-        <div className="flex justify-between items-center py-0">
-            <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-            <Button onClick={onButtonClick} size="sm" className="h-8 gap-2 cursor-pointer">
+        <div className="flex justify-between items-center mb-1">
+            <h1 className="text-xxl font-bold tracking-tight">{title}</h1>
+            <Button onClick={onButtonClick} size="sm" className="h-6 gap-2 cursor-pointer">
                 <Plus className="size-4" /> {buttonLabel}
             </Button>
         </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Eye, Trash2, Loader2, X } from "lucide-react";
+import { Plus, Pencil, Eye, Trash2, Loader2, X, FileText } from "lucide-react";
 import { cotizacionesAPI } from "@/services/cotizacionesAPI";
 import { proveedoresAPI } from "@/services/proveedoresAPI";
 import { FilterBar, FilterField } from "@/components/shared/filter-bar";
@@ -89,8 +89,6 @@ export default function CotizacionesPage() {
     cargarMaestros();
   }, []);
 
-  // Se eliminó el useEffect reactivo que guardaba en cada render
-  // Ahora guardamos selectivamente cuando cambia de página o filtros de forma explícita
   useEffect(() => {
     const stateToSave = { filters, pagina };
     sessionStorage.setItem("filters_cotizaciones", JSON.stringify(stateToSave));
@@ -99,8 +97,18 @@ export default function CotizacionesPage() {
   const cargarPagina = async (numPagina: number) => {
     setIsLoading(true);
     try {
-      const res = await cotizacionesAPI.getAll(numPagina, 10);
-      let registros = res.items || res || [];
+      const obtenerTodoRecursivo = async (p: number, acumulado: any[]): Promise<any[]> => {
+        const res = await cotizacionesAPI.getAll(p, 50);
+        const items = res.items || res || [];
+        const total = [...acumulado, ...items];
+
+        if (!res.totalPages || p >= res.totalPages || items.length === 0) {
+          return total;
+        }
+        return obtenerTodoRecursivo(p + 1, total);
+      };
+
+      let registros = await obtenerTodoRecursivo(1, []);
 
       if (filters.proveedor) {
         registros = registros.filter(
@@ -112,13 +120,26 @@ export default function CotizacionesPage() {
           c.idPedidoCompra && String(c.idPedidoCompra).includes(filters.pedidoAsociado)
         );
       }
+
       if (filters.estado) {
-        registros = registros.filter(
-          (c: any) =>
-            c.estado?.toLowerCase() === filters.estado.toLowerCase() ||
-            String(c.idEstado) === filters.estado
-        );
+        registros = registros.filter((c: any) => {
+          const idStr = String(c.idEstado || "").trim();
+          const estLower = String(c.estado || "").toLowerCase().trim();
+
+          if (filters.estado === "1") {
+            return idStr === "1" || estLower.includes("pend");
+          }
+          if (filters.estado === "2") {
+            return idStr === "2" || estLower.includes("aprob") || estLower.includes("proces");
+          }
+          if (filters.estado === "8") {
+            return idStr === "8" || estLower.includes("anul");
+          }
+
+          return idStr === filters.estado || estLower === filters.estado.toLowerCase();
+        });
       }
+
       if (filters.fechaDesde) {
         registros = registros.filter((c: any) => c.fecha && c.fecha >= filters.fechaDesde);
       }
@@ -126,8 +147,13 @@ export default function CotizacionesPage() {
         registros = registros.filter((c: any) => c.fecha && c.fecha <= filters.fechaHasta);
       }
 
-      setCotizaciones(registros);
-      setTotalPaginas(res.totalPages || 1);
+      const calculadoTotalPaginas = Math.ceil(registros.length / 10) || 1;
+      setTotalPaginas(calculadoTotalPaginas);
+
+      const indiceInicial = (numPagina - 1) * 10;
+      const indiceFinal = indiceInicial + 10;
+
+      setCotizaciones(registros.slice(indiceInicial, indiceFinal));
     } catch (error) {
       console.error("Error al recuperar cotizaciones:", error);
       notify.error("Error de carga", "No se pudo recuperar la lista del servidor.");
@@ -200,22 +226,50 @@ export default function CotizacionesPage() {
       type: "select",
       placeholder: "Todos los estados",
       options: [
-        { label: "Pendiente", value: "Pendiente" },
-        { label: "Aprobado", value: "Aprobado" },
-        { label: "Rechazado", value: "Rechazado" },
-        { label: "Con Orden de Compra", value: "Procesado" },
+        { label: "Pendiente", value: "1" },
+        { label: "Aprobado", value: "2" },
+        { label: "Anulado", value: "8" },
       ],
     },
   ];
 
   const tieneFiltrosActivos = Object.values(filters).some((val) => val !== "");
 
+  // Colores corregidos y adaptados
+  const getEstadoBadgeStyle = (estado: string, idEstado?: number) => {
+    const est = estado?.toLowerCase() || "";
+    const idStr = String(idEstado || "");
+
+    // 1: Pendiente (Amarillo / Ámbar)
+    if (idStr === "1" || est.includes("pend")) {
+      return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/50";
+    }
+    // 2: Aprobado / Procesado (Verde)
+    if (idStr === "2" || est.includes("aprob") || est.includes("proces")) {
+      return "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50";
+    }
+    // 8: Anulado (Rojo)
+    if (idStr === "8" || est.includes("anul")) {
+      return "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/50";
+    }
+
+    return "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300";
+  };
+
+  const getEstadoLiteral = (estado: string, idEstado?: number) => {
+    if (estado) return estado;
+    if (idEstado === 1) return "Pendiente";
+    if (idEstado === 2) return "Aprobado";
+    if (idEstado === 8) return "Anulado";
+    return `Estado ${idEstado}`;
+  };
+
   return (
     <div className="bg-background">
       <PageBreadcrumb steps={[{ label: "Compras" }, { label: "Cotizaciones" }]} />
 
-      <main className="container p-4">
-        <div className="flex justify-between items-center mb-3">
+      <main className="container p-3">
+        <div className="flex justify-between items-center mb-2">
           <h2 className="text-2xl font-bold tracking-tight">Listado de Cotizaciones</h2>
           <Link href="/compras/cotizaciones/nuevo">
             <Button size="sm" className="flex items-center gap-2">
@@ -225,7 +279,7 @@ export default function CotizacionesPage() {
           </Link>
         </div>
 
-        <div className="relative w-full mb-4">
+        <div className="relative w-full mb-3">
           <FilterBar
             fields={filterFields}
             filters={filters}
@@ -272,9 +326,12 @@ export default function CotizacionesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  /* CORREGIDO AQUÍ: Evaluando expresión limpia */
                   cotizaciones.map((c) => {
-                    const tieneOrden = c.idEstado === 3 || c.estado === "Procesado" || (c as any).tieneOrdenAsociada;
+                    const idEstadoNum = Number(c.idEstado);
+                    const tieneOrden = c.estado?.toLowerCase().includes("proces") || !!(c as any).tieneOrdenAsociada;
+
+                    const esModificable = idEstadoNum === 1 || c.estado?.toLowerCase().includes("pend");
+                    const mostrarBotonOrden = idEstadoNum === 2 || c.estado?.toLowerCase().includes("aprob") || tieneOrden;
 
                     return (
                       <TableRow key={c.idPedidoCotizacion} className="hover:bg-muted/40 transition-colors">
@@ -283,9 +340,11 @@ export default function CotizacionesPage() {
                         </TableCell>
                         <TableCell className="text-xs font-mono">
                           {c.idPedidoCompra ? (
-                            <span className="text-muted-foreground font-medium bg-muted px-1.5 py-0.5 rounded">
-                              {formatPedidoNro(c.idPedidoCompra)}
-                            </span>
+                            <Link href={`/compras/pedidos/${c.idPedidoCompra}/editar?view=true`}>
+                              <span className="text-primary hover:underline font-bold bg-muted px-1.5 py-0.5 rounded cursor-pointer transition-all">
+                                {formatPedidoNro(c.idPedidoCompra)}
+                              </span>
+                            </Link>
                           ) : "—"}
                         </TableCell>
                         <TableCell className="text-xs font-medium">
@@ -295,36 +354,55 @@ export default function CotizacionesPage() {
                           {c.fecha ? c.fecha.substring(0, 10) : "—"}
                         </TableCell>
                         <TableCell className="text-xs flex flex-col gap-1 items-start">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-wider">
-                            {c.estado || `Estado ${c.idEstado}`}
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(c.estado, c.idEstado)}`}>
+                            {getEstadoLiteral(c.estado, c.idEstado)}
                           </span>
                           {tieneOrden && (
-                            <span className="text-[9px] bg-emerald-500/10 text-emerald-600 font-extrabold px-1.5 rounded uppercase tracking-tight">
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400 font-extrabold px-1.5 rounded border border-emerald-200 dark:border-emerald-900/30 uppercase tracking-tight">
                               ✓ Orden Emitida
                             </span>
                           )}
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex justify-center gap-1">
+                            {mostrarBotonOrden && (
+                              <Link href={`/compras/ordenes?idPedidoCotizacion=${c.idPedidoCotizacion}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                                  title="Ver Órdenes Generadas"
+                                >
+                                  <FileText className="h-3.5 w-3.5" />
+                                </Button>
+                              </Link>
+                            )}
+
+                            {/* El Ojito pasa correctamente ?view=true */}
                             <Link href={`/compras/cotizaciones/${c.idPedidoCotizacion}/editar?view=true`}>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Inspeccionar">
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
                             </Link>
-                            <Link href={`/compras/cotizaciones/${c.idPedidoCotizacion}/editar`}>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" title="Editar">
-                                <Edit className="h-3.5 w-3.5" />
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleEliminar(c.idPedidoCotizacion)}
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+
+                            {esModificable && (
+                              <>
+                                <Link href={`/compras/cotizaciones/${c.idPedidoCotizacion}/editar`}>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" title="Editar">
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                  onClick={() => handleEliminar(c.idPedidoCotizacion)}
+                                  title="Eliminar"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
