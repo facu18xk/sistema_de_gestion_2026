@@ -40,5 +40,7 @@ export const API_CONFIG = {
     DEPOSITOS_BANCARIOS: "/api/DepositosBancarios",
     TIPOS_DEPOSITOS_BANCARIOS: "/api/TiposDepositosBancarios",
     TIPOS_MOVIMIENTOS_BANCARIOS: "/api/TiposMovimientosBancarios",
+    STOCK: "/api/StocksDepositos",
+    NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
   },
 } as const;

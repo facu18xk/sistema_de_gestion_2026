@@ -212,6 +212,23 @@ export interface PreciosVentas {
     fechaHasta: string;
 }
 
+//Timbrado
+export interface Timbrado {
+    idTimbrado: number;
+    numeroTimbrado: string;
+    fechaInicio: string;
+    fechaFinal: string;
+    ruc: string;
+    establecimiento: string;
+    puntoExpedicion: string;
+    numeroInicial: number;
+    numeroFinal: number;
+    ultimoNumeroUsado: number;
+    tipoComprobante: string;
+    activo: boolean;
+}
+
+//Ventas/Facturación
 export interface FacturaVentaItem {
     idProducto: number;
     producto: string;
@@ -248,8 +265,6 @@ export interface FacturaVentaCompleto {
 export interface FacturaVentaCompletoSave {
     idPresupuesto: number;
     idCliente: number;
-    nroComprobante: string;
-    idTimbrado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -272,6 +287,69 @@ export interface FacturaVentaCabecera {
     idMedioPagoCompra: number;
     medioPagoCompra: string;
     fechaPago: string;
+}
+
+//Stock/Depositos
+export interface StockDeposito {
+    idDeposito: number;
+    idProducto: number;
+    cantidad: number;
+    deposito: string;
+    producto: string;
+}
+
+export interface StockDepositoSave {
+    idDeposito: number;
+    idProducto: number;
+    cantidad: number;
+}
+
+//Ventas/Devoluciones
+export interface NotaCreditoVentaItem {
+    idNotaCreditoVentaDetalle: number;
+    idNotaCreditoVenta: number;
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoVentaItemSave {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface NotaCreditoVenta {
+    idNotaCreditoVenta: number;
+    idFacturaVenta: number;
+    facturaVenta: string;
+    idNotaDevolucionVenta: number;
+    notaDevolucionVenta: string;
+    idTimbrado: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoVentaItem[];
+}
+
+export interface NotaCreditoVentaSave {
+    idFacturaVenta: number;
+    idTimbrado: number;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoVentaItemSave[];
+}
+
+export interface NotaCreditoVentaDetalle {
+    idNotaCreditoVentaDetalle: number;
+    idNotaCreditoVenta: number;
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
 }
 
 export interface OrdenVenta {
@@ -614,7 +692,6 @@ export interface CotizacionItemForm {
     descuento: number;
 }
 
-<<<<<<< HEAD
 export interface CotizacionFormState {
     solicitudCotizacionId: string
     proveedorId: string
@@ -637,7 +714,6 @@ export type EstadoProcesoContable =
     | "Cerrada"
     | "Inhabilitado"
     | "Inhabilitada"
-=======
 // Banco y Tesorería
 export interface Banco {
     idBanco: number;
@@ -813,4 +889,3 @@ export interface DepositoBancarioSaveDTO {
     chequesTercero?: ChequeTerceroLineSave[];
     chequesMismoBanco?: ChequeMismoBancoLineSave[];
 }
->>>>>>> origin/feature/inicio

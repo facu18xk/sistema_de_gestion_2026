@@ -1,8 +1,9 @@
 "use client"
 
 import { Cliente, ClienteSaveDTO, Pais } from "@/types/types"
-import { useState, useEffect } from "react"
-import { Pencil, Trash2, Loader2 } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { Pencil, Trash2, Loader2, Search, X } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ClienteForm } from "@/components/ventas/clientes-form"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -25,6 +26,16 @@ import { ubicacionesAPI } from "@/services/ubicacionesAPI"
 import { notify } from "@/lib/notifications"
 import { formatPhone, maskPhoneInput } from "@/utils/phone-format"
 import { formatCI, formatRUC, maskCIInput, maskRUCInput } from "@/utils/cedula-format"
+
+const columnWidths = {
+  nombre: "w-[150px]",
+  apellido: "w-[150px]",
+  ciRuc: "w-[120px]",
+  correo: "w-[220px]",
+  telefono: "w-[120px]",
+  stock: "w-[80px]",
+  acciones: "w-[80px]",
+};
 
 /*const resPaginada = {
   "items": [
@@ -136,21 +147,25 @@ export default function ProveedoresPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
-  const [clientes, setClientes] = useState<Cliente[]>([])
+  //const [clientes, setClientes] = useState<Cliente[]>([])
+  const [todosLosClientes, setTodosLosClientes] = useState<Cliente[]>([])
   const [clienteAEditar, setClienteAEditar] = useState<Cliente | null>(null)
   const [clienteAEliminar, setClienteAEliminar] = useState<Cliente | null>(null)
   const [paises, setPaises] = useState<Pais[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
+  //const [totalPages, setTotalPages] = useState(1)
   const [itemsPerPage] = useState(10)
+  const [searchTerm, setSearchTerm] = useState("")
 
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const resPaginada = await clientesAPI.getAll(currentPage, itemsPerPage);
-      setClientes(resPaginada.items);
+      const resPaginada = await clientesAPI.getAll(currentPage, 100);
+      //setClientes(resPaginada.items);
+      setTodosLosClientes(resPaginada.items);
+      console.log("aqui")
       //console.log(resPaginada);
-      setTotalPages(resPaginada.totalPages);
+      //setTotalPages(resPaginada.totalPages);
     } catch (error) {
       console.error("Error al cargar datos de clientes:", error);
       notify.error("Error de conexión", "No se pudo obtener la lista de clientes.")
@@ -169,10 +184,33 @@ export default function ProveedoresPage() {
     }
   }
 
-  useEffect(() => { cargarPaises() }, []);
-  useEffect(() => { cargarPagina() }, [currentPage]);
+  useEffect(() => { cargarPagina(), cargarPaises() }, []);
+  //useEffect(() => { cargarPagina() }, [currentPage]);
 
-  // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
+  //FILTRO DE BÚSQUEDA
+  const clientesFiltrados = useMemo(() => {
+      if (!searchTerm.trim()) return todosLosClientes;
+      
+      const query = searchTerm.toLowerCase().trim();
+      return todosLosClientes.filter(c => 
+        c.nombres.toLowerCase().includes(query) || 
+        c.apellidos.toLowerCase().includes(query) || 
+        (c.ci && formatCI(c.ci).toString().includes(query)) ||
+        (c.ruc && formatRUC(c.ruc).toString().includes(query))
+      );
+    }, [searchTerm, todosLosClientes]);
+
+    const totalPages = Math.ceil(clientesFiltrados.length / itemsPerPage) || 1;
+
+    const clientesVisiblesEnPagina = useMemo(() => {
+      const primerItemIndex = (currentPage - 1) * itemsPerPage;
+      const ultimoItemIndex = primerItemIndex + itemsPerPage;
+      return clientesFiltrados.slice(primerItemIndex, ultimoItemIndex);
+    }, [currentPage, clientesFiltrados]);
+
+    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+
+  //ACCIONES (CREAR / EDITAR / ELIMINAR)
   const prepareDataForForm = (rawClient: any) => {
     return {
       ...rawClient,
@@ -251,12 +289,37 @@ export default function ProveedoresPage() {
 
   return (
     <>
+      {/*  PAGEBREADCRUMB */}
       <PageBreadcrumb steps={[{ label: "Ventas", href: "#" }, { label: "Clientes" }]} />
+      {/* BOTÓN ADD */}
       <PageHeader
         title="Listado de Clientes"
         buttonLabel="Nuevo Cliente"
         onButtonClick={handleCrearNuevo}
       />
+      {/* INPUT DEL BUSCADOR LOCAL */}
+      <div className="my-4 flex items-center max-w-md relative">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre, apellido o CI/RUC..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-1 top-1 h-7 w-7 hover:bg-transparent text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      {/*ALERT DIALOG*/}
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -279,7 +342,7 @@ export default function ProveedoresPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
+      {/*TABLA*/}
       {isLoading ? (
         <div className="flex justify-center p-10"><Loader2 className="animate-spin text-primary" /></div>
       ) : (
@@ -287,30 +350,28 @@ export default function ProveedoresPage() {
           caption="Lista de clientes."
           headerRow={
             <TableRow>
-              <TableHead>Nombres</TableHead>
-              <TableHead>Apellidos</TableHead>
-              <TableHead>CI/RUC</TableHead>
-              <TableHead>Correo</TableHead>
-              <TableHead>Teléfono</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className={`${columnWidths.nombre} text-foreground`}>Nombres</TableHead>
+              <TableHead className={`${columnWidths.apellido}`}>Apellidos</TableHead>
+              <TableHead className={`${columnWidths.ciRuc} font-mono text-sm`}>CI/RUC</TableHead>
+              <TableHead className={`${columnWidths.correo}`}>Correo</TableHead>
+              <TableHead className={`${columnWidths.telefono} text-sm`}>Teléfono</TableHead>
+              <TableHead className={`${columnWidths.acciones} text-right space-x-1`}>Acciones</TableHead>
             </TableRow>
           }
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         >
-          {clientes.map((c) => (
+          {clientesVisiblesEnPagina.map((c) => (
             <TableRow key={c.idCliente}>
-              <TableCell className="text-foreground">{c.nombres}</TableCell>
-              <TableCell>{c.apellidos}</TableCell>
-              <TableCell className="font-mono text-sm">{formatRUC(c.ruc) || formatCI(c.ci) || "Sin especificar"}</TableCell>
-              <TableCell>
-                <span className="text-sm">{c.correo || "Sin correo"}</span>
-              </TableCell>
-              <TableCell className="text-sm">
+              <TableCell className={`${columnWidths.nombre} text-foreground`}>{c.nombres}</TableCell>
+              <TableCell className={`${columnWidths.apellido}`}>{c.apellidos}</TableCell>
+              <TableCell className={`${columnWidths.ciRuc} font-mono text-sm`}>{formatRUC(c.ruc) || formatCI(c.ci) || "Sin especificar"}</TableCell>
+              <TableCell className={`${columnWidths.correo}`}>{c.correo || "Sin correo"}</TableCell>
+              <TableCell className={`${columnWidths.telefono} text-sm`}>
                 {formatPhone(c.telefono) || "Sin teléfono"}
               </TableCell>
-              <TableCell className="text-right space-x-1">
+              <TableCell className={`${columnWidths.acciones} text-right space-x-1`}>
                 <Button variant="ghost" size="icon" onClick={() => handleEditar(c)} className="cursor-pointer">
                   <Pencil className="size-3.5" />
                 </Button>
@@ -325,9 +386,16 @@ export default function ProveedoresPage() {
               </TableCell>
             </TableRow>
           ))}
+          {clientesVisiblesEnPagina.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={6} className="py-10 text-center text-muted-foreground text-sm">
+                No hay clientes que coincidan con la búsqueda.
+              </TableCell>
+            </TableRow>
+          )}
         </DataTable>
       )}
-
+      {/*SHEET LATERAL*/}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
           <SheetHeader className=" border-b pt-4">
