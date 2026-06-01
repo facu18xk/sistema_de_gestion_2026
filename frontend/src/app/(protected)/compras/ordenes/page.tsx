@@ -18,20 +18,24 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { FilterBar, FilterField } from "@/components/shared/filter-bar"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation" // Importamos useSearchParams para la navegación cruzada
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
 import { proveedoresAPI } from "@/services/proveedoresAPI"
+import { cotizacionesAPI } from "@/services/cotizacionesAPI" // Importamos APIs para calcular montos
+import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { OrdenCompraDTO, Proveedor } from "@/types/types"
 import { notify } from "@/lib/notifications"
 
 export default function OrdenesPage() {
     const router = useRouter()
+    const searchParams = useSearchParams() // Hook para capturar el nro de cotización por URL
 
     const [isLoading, setIsLoading] = useState(true)
     const [isAlertOpen, setIsAlertOpen] = useState(false)
     const [allOrdenes, setAllOrdenes] = useState<OrdenCompraDTO[]>([])
     const [proveedores, setProveedores] = useState<Proveedor[]>()
     const [ordenAEliminar, setOrdenAEliminar] = useState<OrdenCompraDTO | null>(null)
+    const [montosCotizaciones, setMontosCotizaciones] = useState<Record<number, number>>({}) // Guarda los montos totales calculados
 
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
@@ -40,21 +44,31 @@ export default function OrdenesPage() {
         proveedor: "",
         estado: "",
         fechaDesde: "",
-        fechaHasta: ""
+        fechaHasta: "",
+        idCotizacion: "" // Agregamos el campo de filtro para el Nro de Cotización externa
     })
 
+    // Sincronización y lectura de filtros (SessionStorage o Parámetros URL)
     useEffect(() => {
-        const savedFilters = sessionStorage.getItem("filters_ordenes");
-        if (savedFilters) {
-            try {
-                const parsed = JSON.parse(savedFilters);
-                if (parsed.filters) setFilters(parsed.filters);
-                if (parsed.pagina) setCurrentPage(parsed.pagina);
-            } catch (e) {
-                console.error("Error recuperando filtros de órdenes", e);
+        const idCotizacionParam = searchParams.get("idCotizacion")
+
+        if (idCotizacionParam) {
+            // Si viene desde la URL (ej. clic en ver órdenes de una cotización), tiene prioridad absoluta
+            setFilters(prev => ({ ...prev, idCotizacion: idCotizacionParam }))
+            setCurrentPage(1)
+        } else {
+            const savedFilters = sessionStorage.getItem("filters_ordenes");
+            if (savedFilters) {
+                try {
+                    const parsed = JSON.parse(savedFilters);
+                    if (parsed.filters) setFilters(parsed.filters);
+                    if (parsed.pagina) setCurrentPage(parsed.pagina);
+                } catch (e) {
+                    console.error("Error recuperando filtros de órdenes", e);
+                }
             }
         }
-    }, []);
+    }, [searchParams]);
 
     const guardarSnapshotFiltros = () => {
         const stateToSave = { filters, pagina: currentPage };
@@ -62,6 +76,7 @@ export default function OrdenesPage() {
     }
 
     const camposFiltro: FilterField[] = [
+        { id: "idCotizacion", label: "Nro. Cotización", type: "text", placeholder: "Ej: 5" }, // Agregado en barra de filtros
         {
             id: "proveedor",
             label: "Proveedor",
@@ -96,15 +111,20 @@ export default function OrdenesPage() {
         return `CP-${String(numero).padStart(4, "0")}`
     }
 
+    const formatearMoneda = (valor: number) => {
+        return new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG" }).format(valor)
+    }
+
     const handleFilterChange = (id: string, value: string) => {
         setFilters(prev => ({ ...prev, [id]: value }))
         setCurrentPage(1)
     }
 
     const handleLimpiarFiltros = () => {
-        setFilters({ proveedor: "", estado: "", fechaDesde: "", fechaHasta: "" });
+        setFilters({ proveedor: "", estado: "", fechaDesde: "", fechaHasta: "", idCotizacion: "" });
         setCurrentPage(1);
         sessionStorage.removeItem("filters_ordenes");
+        router.replace("/compras/ordenes") // Limpia los query params de la URL para evitar re-filtrados fantasmas
     };
 
     const getEstadoStyle = (estado: string) => {
@@ -131,11 +151,29 @@ export default function OrdenesPage() {
                 return obtenerTodoRecursivo(p + 1, total);
             };
 
-            const [itemsOrdenes, resProveedores] = await Promise.all([
+            const [itemsOrdenes, resProveedores, resTodosDetalles] = await Promise.all([
                 obtenerTodoRecursivo(1, []),
-                proveedoresAPI.getAll(1, 300)
+                proveedoresAPI.getAll(1, 300),
+                cotizacionesDetallesAPI.getAll(1, 1000) // Traemos los ítems de cotización para procesar los montos totales
             ])
 
+            // Agrupación y cálculo analítico del monto de cada cotización en base a sus líneas de ítems
+            const listaDetalles = resTodosDetalles.items || resTodosDetalles || [];
+            const mapeoMontos: Record<number, number> = {};
+
+            listaDetalles.forEach((det: any) => {
+                const idCot = Number(det.idPedidoCotizacion || det.cotizacionCompraId);
+                if (idCot) {
+                    const cantidad = Number(det.cantidad) || 0;
+                    const precio = Number(det.precioProducto || det.precioUnitario) || 0;
+                    const descuento = Number(det.descuento) || 0;
+                    const subtotalItem = cantidad * precio - descuento;
+
+                    mapeoMontos[idCot] = (mapeoMontos[idCot] || 0) + subtotalItem;
+                }
+            });
+
+            setMontosCotizaciones(mapeoMontos);
             setAllOrdenes(itemsOrdenes)
             setProveedores(resProveedores.items || resProveedores || [])
         } catch (error) {
@@ -154,12 +192,13 @@ export default function OrdenesPage() {
         return allOrdenes.filter((o) => {
             const cumpleProveedor = filters.proveedor ? String(o.idProveedor) === filters.proveedor : true
             const cumpleEstado = filters.estado ? o.estado?.toLowerCase() === filters.estado.toLowerCase() : true
+            const cumpleCotizacion = filters.idCotizacion ? String(o.idPedidoCotizacion) === filters.idCotizacion : true
 
             const fechaOrden = o.fecha ? o.fecha.substring(0, 10) : ""
             const cumpleDesde = filters.fechaDesde ? fechaOrden >= filters.fechaDesde : true
             const cumpleHasta = filters.fechaHasta ? fechaOrden <= filters.fechaHasta : true
 
-            return cumpleProveedor && cumpleEstado && cumpleDesde && cumpleHasta
+            return cumpleProveedor && cumpleEstado && cumpleCotizacion && cumpleDesde && cumpleHasta
         })
     }, [allOrdenes, filters])
 
@@ -267,11 +306,13 @@ export default function OrdenesPage() {
                     caption="Historial analítico de órdenes de compra emitidas."
                     headerRow={
                         <TableRow>
+                            {/* Ordenamiento de cabeceras solicitado: Fecha, Nro Orden, Nro Cotización, Estado, Monto, Acciones */}
+                            <TableHead className="w-36">Fecha</TableHead>
                             <TableHead className="w-32">Nro Orden</TableHead>
                             <TableHead className="w-32">Cotización</TableHead>
                             <TableHead>Proveedor</TableHead>
-                            <TableHead className="w-36">Fecha</TableHead>
                             <TableHead className="w-36">Estado</TableHead>
+                            <TableHead className="text-right w-36">Monto Total</TableHead>
                             <TableHead className="text-right w-36">Acciones</TableHead>
                         </TableRow>
                     }
@@ -282,29 +323,44 @@ export default function OrdenesPage() {
                     {ordenesPaginadas.map((o) => {
                         const esModificable = o.estado === "Pendiente"
                         const permiteFacturas = o.estado === "Emitido" || o.estado === "Completado"
+                        const montoCotizacion = o.idPedidoCotizacion ? (montosCotizaciones[Number(o.idPedidoCotizacion)] || 0) : 0
 
                         return (
                             <TableRow key={o.idOrdenCompra} className="hover:bg-muted/40 transition-colors">
+                                <TableCell className="text-xs text-muted-foreground font-medium">
+                                    {o.fecha ? o.fecha.substring(0, 10) : "—"}
+                                </TableCell>
                                 <TableCell className="font-mono text-xs font-bold text-primary">
                                     {formatearNumeroOrden(o.idOrdenCompra)}
                                 </TableCell>
                                 <TableCell className="text-xs font-mono">
                                     {o.idPedidoCotizacion ? (
-                                        <span className="text-muted-foreground font-medium bg-muted px-1.5 rounded">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                guardarSnapshotFiltros();
+                                                router.push(`/compras/cotizaciones/${o.idPedidoCotizacion}/editar?mode=ver`);
+                                            }}
+                                            className="text-blue-600 dark:text-blue-400 font-bold hover:underline bg-blue-50/50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/30 text-left cursor-pointer"
+                                        >
                                             {formatearNumeroCotizacion(o.idPedidoCotizacion)}
+                                        </button>
+                                    ) : (
+                                        <span className="text-muted-foreground text-[11px] italic bg-muted px-1.5 py-0.5 rounded">
+                                            Sin Cotización
                                         </span>
-                                    ) : "Directa / Sin Cotización"}
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-xs font-medium">
                                     {o.proveedor || "No asignado"}
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
-                                    {o.fecha ? o.fecha.substring(0, 10) : "—"}
                                 </TableCell>
                                 <TableCell>
                                     <span className={`inline-flex items-center px-2.5 rounded-full text-xs font-bold border uppercase tracking-wide text-[10px] ${getEstadoStyle(o.estado)}`}>
                                         {o.estado || "Desconocido"}
                                     </span>
+                                </TableCell>
+                                <TableCell className="text-right font-mono text-xs font-semibold text-foreground">
+                                    {o.idPedidoCotizacion ? formatearMoneda(montoCotizacion) : "—"}
                                 </TableCell>
                                 <TableCell className="text-right space-x-1">
                                     {permiteFacturas && (
