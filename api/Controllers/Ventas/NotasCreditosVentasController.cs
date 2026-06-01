@@ -29,6 +29,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = dto.IdEstado,
             IdTimbrado = dto.IdTimbrado,
+            NroComprobante = dto.NroComprobante,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Items = dto.Items
@@ -49,6 +50,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = dto.IdEstado,
             IdTimbrado = dto.IdTimbrado,
+            NroComprobante = dto.NroComprobante,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Items = dto.Items
@@ -108,6 +110,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             NotaDevolucionVenta = entity.IdNotaDevolucionVentaNavigation?.Motivo ?? string.Empty,
             IdTimbrado = entity.IdTimbrado,
             Timbrado = entity.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
+            NroComprobante = entity.NroComprobante,
             Motivo = entity.Motivo,
             FechaEmision = entity.FechaEmision,
             Total = entity.Total,
@@ -132,6 +135,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             IdEstado = dto.IdEstado,
             IdNotaDevolucionVenta = dto.IdNotaDevolucionVenta,
             IdTimbrado = dto.IdTimbrado,
+            NroComprobante = dto.NroComprobante ?? string.Empty,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Total = dto.Total

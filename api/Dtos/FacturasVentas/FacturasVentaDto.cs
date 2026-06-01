@@ -14,6 +14,10 @@ public class FacturasVentaDto
 
     public string NroComprobante { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public int IdTimbrado { get; set; }
 
     public string Timbrado { get; set; } = string.Empty;
@@ -36,6 +40,12 @@ public class FacturasVentaUpsertDto
     public int IdPresupuesto { get; set; }
 
     public int IdCliente { get; set; }
+
+    public string? NroComprobante { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public int IdTimbrado { get; set; }
 
     public DateTime Fecha { get; set; }
 

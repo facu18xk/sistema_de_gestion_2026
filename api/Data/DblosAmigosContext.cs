@@ -344,6 +344,7 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdMedioPagoCompra).HasColumnName("Id_Medio_Pago_Compra");
             entity.Property(e => e.IdPresupuesto).HasColumnName("Id_Presupuesto");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
             entity.Property(e => e.NroComprobante)
                 .HasMaxLength(100)
@@ -365,6 +366,11 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
 
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany()
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Facturas_Ventas_Estados");
+
             entity.HasOne(d => d.IdTimbradoNavigation).WithMany(p => p.FacturasVenta)
                 .HasForeignKey(d => d.IdTimbrado)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -378,6 +384,9 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Facturas_Ventas_Detalles");
 
             entity.Property(e => e.IdFacturaVentaDetalle).HasColumnName("Id_Factura_Venta_Detalle");
+            entity.Property(e => e.CantidadDevuelta)
+                .HasDefaultValue(0)
+                .HasColumnName("Cantidad_Devuelta");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
             entity.Property(e => e.PrecioUnitario)
@@ -494,6 +503,10 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdNotaDevolucionVenta).HasColumnName("Id_Nota_Devolucion_Venta");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
+            entity.Property(e => e.NroComprobante)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Nro_Comprobante");
             entity.Property(e => e.Motivo)
                 .HasMaxLength(100)
                 .IsUnicode(false);

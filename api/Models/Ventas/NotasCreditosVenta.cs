@@ -15,6 +15,8 @@ public partial class NotasCreditosVenta
 
     public int IdTimbrado { get; set; }
 
+    public string NroComprobante { get; set; } = null!;
+
     public string Motivo { get; set; } = null!;
 
     public DateTime FechaEmision { get; set; }

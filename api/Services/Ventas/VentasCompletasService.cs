@@ -9,6 +9,9 @@ namespace api.Services;
 
 public class VentasCompletasService
 {
+    private const int EstadoEmitido = 7;
+    private const int EstadoAnulado = 8;
+    private const int EstadoFacturado = 9;
     private readonly DblosAmigosContext _context;
     private readonly SalesPriceResolver _salesPriceResolver;
     private readonly TimbradoNumberingService _timbradoNumberingService;
@@ -224,7 +227,8 @@ public class VentasCompletasService
 
     public async Task<FacturasVenta> CreateFacturaVentaAsync(FacturaVentaCompletaCreateDto dto)
     {
-        var products = await ValidateItemsAsync(dto.Items);
+        var idEstado = NormalizeFacturaVentaEstado(dto.IdEstado);
+        var products = await ValidateItemsAsync(dto.Items, validateStock: idEstado == EstadoEmitido);
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -232,6 +236,9 @@ public class VentasCompletasService
         {
             IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
+            NroComprobante = dto.NroComprobante ?? string.Empty,
+            IdEstado = idEstado,
+            IdTimbrado = dto.IdTimbrado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,
@@ -254,6 +261,7 @@ public class VentasCompletasService
                 IdFacturaVenta = facturaVenta.IdFacturaVenta,
                 IdProducto = item.IdProducto,
                 Cantidad = item.Cantidad,
+                CantidadDevuelta = 0,
                 PrecioUnitario = precioUnitario,
                 TotalBruto = totalBruto,
                 TotalIva = totalIva,
@@ -261,7 +269,12 @@ public class VentasCompletasService
             });
         }
 
-        await DecreaseStockAsync(dto.Items);
+        if (idEstado == EstadoEmitido)
+        {
+            await DecreaseStockAsync(dto.Items);
+            await MarkPresupuestoFacturadoAsync(dto.IdPresupuesto);
+        }
+
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
@@ -272,6 +285,7 @@ public class VentasCompletasService
 
     public async Task<NotasCreditosVenta> CreateNotaCreditoVentaAsync(NotaCreditoVentaCompletaCreateDto dto)
     {
+        var idEstado = NormalizeNotaCreditoVentaEstado(dto.IdEstado);
         var facturaVenta = await _context.FacturasVentas
             .Include(entity => entity.FacturasVentasDetalles)
                 .ThenInclude(detalle => detalle.IdProductoNavigation)
@@ -285,55 +299,29 @@ public class VentasCompletasService
         ValidateNotaCreditoFecha(facturaVenta, dto.FechaEmision);
         ValidateNotaCreditoItems(dto.Items);
 
-        var requestedByProduct = dto.Items
-            .GroupBy(item => item.IdProducto)
-            .ToDictionary(group => group.Key, group => group.Sum(item => item.Cantidad));
+        var requestedByProduct = GroupItemsByProduct(dto.Items);
 
         var facturaByProduct = facturaVenta.FacturasVentasDetalles
             .GroupBy(detalle => detalle.IdProducto)
             .ToDictionary(group => group.Key, group => group.ToList());
 
-        var creditedByProduct = await _context.NotasCreditosVentasDetalles
-            .Where(detalle => detalle.IdNotaCreditoVentaNavigation.IdFacturaVenta == facturaVenta.IdFacturaVenta)
-            .GroupBy(detalle => detalle.IdProducto)
-            .Select(group => new
-            {
-                IdProducto = group.Key,
-                Cantidad = group.Sum(detalle => detalle.Cantidad)
-            })
-            .ToDictionaryAsync(item => item.IdProducto, item => item.Cantidad);
-
-        foreach (var (idProducto, requestedQuantity) in requestedByProduct)
-        {
-            if (!facturaByProduct.TryGetValue(idProducto, out var facturaDetalles))
-            {
-                throw new InvalidOperationException($"El producto {idProducto} no pertenece a la factura indicada.");
-            }
-
-            var invoicedQuantity = facturaDetalles.Sum(detalle => detalle.Cantidad);
-            var creditedQuantity = creditedByProduct.GetValueOrDefault(idProducto);
-            var availableQuantity = invoicedQuantity - creditedQuantity;
-
-            if (requestedQuantity > availableQuantity)
-            {
-                throw new InvalidOperationException(
-                    $"La cantidad a devolver del producto {idProducto} supera lo facturado pendiente. Disponible: {availableQuantity}, solicitado: {requestedQuantity}.");
-            }
-        }
+        ValidateNotaCreditoDisponible(facturaByProduct, requestedByProduct);
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
         var notaCredito = new NotasCreditosVenta
         {
             IdFacturaVenta = dto.IdFacturaVenta,
-            IdEstado = dto.IdEstado,
+            IdEstado = idEstado,
             IdNotaDevolucionVenta = null,
             IdTimbrado = dto.IdTimbrado,
+            NroComprobante = dto.NroComprobante ?? string.Empty,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Total = 0
         };
 
+        await _timbradoNumberingService.ApplyNextNotaCreditoVentaNumberAsync(notaCredito);
         _context.NotasCreditosVentas.Add(notaCredito);
         await _context.SaveChangesAsync();
 
@@ -359,7 +347,11 @@ public class VentasCompletasService
         }
 
         notaCredito.Total = total;
-        await IncreaseStockAsync(dto.Items);
+
+        if (idEstado == EstadoEmitido)
+        {
+            await ApplyNotaCreditoEmitidaAsync(facturaByProduct, requestedByProduct);
+        }
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -371,6 +363,7 @@ public class VentasCompletasService
 
     public async Task<NotasCreditosVenta> UpdateNotaCreditoVentaAsync(int id, NotaCreditoVentaCompletaCreateDto dto)
     {
+        var idEstado = NormalizeNotaCreditoVentaEstado(dto.IdEstado);
         var notaCredito = await _context.NotasCreditosVentas
             .Include(entity => entity.NotasCreditosVentasDetalles)
             .FirstOrDefaultAsync(entity => entity.IdNotaCreditoVenta == id);
@@ -380,7 +373,19 @@ public class VentasCompletasService
             throw new KeyNotFoundException($"No existe la nota de credito de venta {id}.");
         }
 
-        var facturaVenta = await _context.FacturasVentas
+        var previousFacturaVenta = await _context.FacturasVentas
+            .Include(entity => entity.FacturasVentasDetalles)
+                .ThenInclude(detalle => detalle.IdProductoNavigation)
+            .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == notaCredito.IdFacturaVenta);
+
+        if (previousFacturaVenta is null)
+        {
+            throw new KeyNotFoundException($"No existe la factura de venta {notaCredito.IdFacturaVenta}.");
+        }
+
+        var facturaVenta = notaCredito.IdFacturaVenta == dto.IdFacturaVenta
+            ? previousFacturaVenta
+            : await _context.FacturasVentas
             .Include(entity => entity.FacturasVentasDetalles)
                 .ThenInclude(detalle => detalle.IdProductoNavigation)
             .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == dto.IdFacturaVenta);
@@ -393,43 +398,11 @@ public class VentasCompletasService
         ValidateNotaCreditoFecha(facturaVenta, dto.FechaEmision);
         ValidateNotaCreditoItems(dto.Items);
 
-        var requestedByProduct = dto.Items
-            .GroupBy(item => item.IdProducto)
-            .ToDictionary(group => group.Key, group => group.Sum(item => item.Cantidad));
+        var requestedByProduct = GroupItemsByProduct(dto.Items);
 
         var facturaByProduct = facturaVenta.FacturasVentasDetalles
             .GroupBy(detalle => detalle.IdProducto)
             .ToDictionary(group => group.Key, group => group.ToList());
-
-        var creditedByProduct = await _context.NotasCreditosVentasDetalles
-            .Where(detalle =>
-                detalle.IdNotaCreditoVentaNavigation.IdFacturaVenta == facturaVenta.IdFacturaVenta &&
-                detalle.IdNotaCreditoVenta != id)
-            .GroupBy(detalle => detalle.IdProducto)
-            .Select(group => new
-            {
-                IdProducto = group.Key,
-                Cantidad = group.Sum(detalle => detalle.Cantidad)
-            })
-            .ToDictionaryAsync(item => item.IdProducto, item => item.Cantidad);
-
-        foreach (var (idProducto, requestedQuantity) in requestedByProduct)
-        {
-            if (!facturaByProduct.TryGetValue(idProducto, out var facturaDetalles))
-            {
-                throw new InvalidOperationException($"El producto {idProducto} no pertenece a la factura indicada.");
-            }
-
-            var invoicedQuantity = facturaDetalles.Sum(detalle => detalle.Cantidad);
-            var creditedQuantity = creditedByProduct.GetValueOrDefault(idProducto);
-            var availableQuantity = invoicedQuantity - creditedQuantity;
-
-            if (requestedQuantity > availableQuantity)
-            {
-                throw new InvalidOperationException(
-                    $"La cantidad a devolver del producto {idProducto} supera lo facturado pendiente. Disponible: {availableQuantity}, solicitado: {requestedQuantity}.");
-            }
-        }
 
         var previousByProduct = notaCredito.NotasCreditosVentasDetalles
             .GroupBy(detalle => detalle.IdProducto)
@@ -437,10 +410,31 @@ public class VentasCompletasService
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
+        if (notaCredito.IdEstado == EstadoEmitido)
+        {
+            await RevertNotaCreditoEmitidaAsync(previousFacturaVenta.FacturasVentasDetalles, previousByProduct);
+        }
+
+        if (idEstado == EstadoEmitido)
+        {
+            ValidateNotaCreditoDisponible(facturaByProduct, requestedByProduct);
+        }
+
         notaCredito.IdFacturaVenta = dto.IdFacturaVenta;
-        notaCredito.IdEstado = dto.IdEstado;
+        notaCredito.IdEstado = idEstado;
         notaCredito.IdNotaDevolucionVenta = null;
-        notaCredito.IdTimbrado = dto.IdTimbrado;
+        if (!string.IsNullOrWhiteSpace(dto.NroComprobante))
+        {
+            notaCredito.NroComprobante = dto.NroComprobante.Trim();
+            if (dto.IdTimbrado > 0)
+            {
+                notaCredito.IdTimbrado = dto.IdTimbrado;
+            }
+        }
+        else if (dto.IdTimbrado > 0)
+        {
+            notaCredito.IdTimbrado = dto.IdTimbrado;
+        }
         notaCredito.Motivo = dto.Motivo;
         notaCredito.FechaEmision = dto.FechaEmision;
 
@@ -467,38 +461,9 @@ public class VentasCompletasService
 
         notaCredito.Total = total;
 
-        var allProductIds = previousByProduct.Keys
-            .Concat(requestedByProduct.Keys)
-            .Distinct()
-            .ToArray();
-
-        var stockIncreases = new List<VentaItemCreateDto>();
-        var stockDecreases = new List<VentaItemCreateDto>();
-
-        foreach (var idProducto in allProductIds)
+        if (idEstado == EstadoEmitido)
         {
-            var previousQuantity = previousByProduct.GetValueOrDefault(idProducto);
-            var requestedQuantity = requestedByProduct.GetValueOrDefault(idProducto);
-            var difference = requestedQuantity - previousQuantity;
-
-            if (difference > 0)
-            {
-                stockIncreases.Add(new VentaItemCreateDto { IdProducto = idProducto, Cantidad = difference });
-            }
-            else if (difference < 0)
-            {
-                stockDecreases.Add(new VentaItemCreateDto { IdProducto = idProducto, Cantidad = -difference });
-            }
-        }
-
-        if (stockIncreases.Count > 0)
-        {
-            await IncreaseStockAsync(stockIncreases);
-        }
-
-        if (stockDecreases.Count > 0)
-        {
-            await DecreaseStockAsync(stockDecreases);
+            await ApplyNotaCreditoEmitidaAsync(facturaByProduct, requestedByProduct);
         }
 
         await _context.SaveChangesAsync();
@@ -542,7 +507,9 @@ public class VentasCompletasService
         return facturaVenta is null ? null : ToFacturaVentaCompletaDto(facturaVenta);
     }
 
-    private async Task<Dictionary<int, Producto>> ValidateItemsAsync(IReadOnlyCollection<VentaItemCreateDto> items)
+    private async Task<Dictionary<int, Producto>> ValidateItemsAsync(
+        IReadOnlyCollection<VentaItemCreateDto> items,
+        bool validateStock = true)
     {
         if (items.Count == 0)
         {
@@ -566,27 +533,28 @@ public class VentasCompletasService
             throw new InvalidOperationException($"No existen los productos: {string.Join(", ", missingProductIds)}.");
         }
 
-        var requestedByProduct = items
-            .GroupBy(item => item.IdProducto)
-            .ToDictionary(group => group.Key, group => group.Sum(item => item.Cantidad));
+        var requestedByProduct = GroupItemsByProduct(items);
 
-        var stockByProduct = await _context.StocksDepositos
-            .Where(stock => productIds.Contains(stock.IdProducto))
-            .GroupBy(stock => stock.IdProducto)
-            .Select(group => new
-            {
-                IdProducto = group.Key,
-                Cantidad = group.Sum(stock => stock.Cantidad)
-            })
-            .ToDictionaryAsync(stock => stock.IdProducto, stock => stock.Cantidad);
-
-        foreach (var (idProducto, requestedQuantity) in requestedByProduct)
+        if (validateStock)
         {
-            var currentStock = stockByProduct.GetValueOrDefault(idProducto);
-            if (currentStock < requestedQuantity)
+            var stockByProduct = await _context.StocksDepositos
+                .Where(stock => productIds.Contains(stock.IdProducto))
+                .GroupBy(stock => stock.IdProducto)
+                .Select(group => new
+                {
+                    IdProducto = group.Key,
+                    Cantidad = group.Sum(stock => stock.Cantidad)
+                })
+                .ToDictionaryAsync(stock => stock.IdProducto, stock => stock.Cantidad);
+
+            foreach (var (idProducto, requestedQuantity) in requestedByProduct)
             {
-                throw new InvalidOperationException(
-                    $"Stock insuficiente para el producto {idProducto}. Disponible: {currentStock}, solicitado: {requestedQuantity}.");
+                var currentStock = stockByProduct.GetValueOrDefault(idProducto);
+                if (currentStock < requestedQuantity)
+                {
+                    throw new InvalidOperationException(
+                        $"Stock insuficiente para el producto {idProducto}. Disponible: {currentStock}, solicitado: {requestedQuantity}.");
+                }
             }
         }
 
@@ -618,6 +586,129 @@ public class VentasCompletasService
         {
             throw new InvalidOperationException($"La cantidad del producto {invalidQuantity.IdProducto} debe ser mayor a cero.");
         }
+    }
+
+    private static Dictionary<int, int> GroupItemsByProduct(IReadOnlyCollection<VentaItemCreateDto> items)
+    {
+        return items
+            .GroupBy(item => item.IdProducto)
+            .ToDictionary(group => group.Key, group => group.Sum(item => item.Cantidad));
+    }
+
+    private static void ValidateNotaCreditoDisponible(
+        IReadOnlyDictionary<int, List<FacturasVentasDetalle>> facturaByProduct,
+        IReadOnlyDictionary<int, int> requestedByProduct)
+    {
+        foreach (var (idProducto, requestedQuantity) in requestedByProduct)
+        {
+            if (!facturaByProduct.TryGetValue(idProducto, out var facturaDetalles))
+            {
+                throw new InvalidOperationException($"El producto {idProducto} no pertenece a la factura indicada.");
+            }
+
+            var availableQuantity = facturaDetalles.Sum(detalle => detalle.Cantidad - detalle.CantidadDevuelta);
+
+            if (requestedQuantity > availableQuantity)
+            {
+                throw new InvalidOperationException(
+                    $"La cantidad a devolver del producto {idProducto} supera lo facturado pendiente. Disponible: {availableQuantity}, solicitado: {requestedQuantity}.");
+            }
+        }
+    }
+
+    private async Task ApplyNotaCreditoEmitidaAsync(
+        IReadOnlyDictionary<int, List<FacturasVentasDetalle>> facturaByProduct,
+        IReadOnlyDictionary<int, int> quantitiesByProduct)
+    {
+        foreach (var (idProducto, quantity) in quantitiesByProduct)
+        {
+            if (!facturaByProduct.TryGetValue(idProducto, out var detalles))
+            {
+                throw new InvalidOperationException($"El producto {idProducto} no pertenece a la factura indicada.");
+            }
+
+            ApplyCantidadDevuelta(detalles, idProducto, quantity);
+        }
+
+        await IncreaseStockAsync(ToVentaItems(quantitiesByProduct));
+    }
+
+    private async Task RevertNotaCreditoEmitidaAsync(
+        IEnumerable<FacturasVentasDetalle> facturaDetalles,
+        IReadOnlyDictionary<int, int> quantitiesByProduct)
+    {
+        var facturaByProduct = facturaDetalles
+            .GroupBy(detalle => detalle.IdProducto)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        foreach (var (idProducto, quantity) in quantitiesByProduct)
+        {
+            if (!facturaByProduct.TryGetValue(idProducto, out var detalles))
+            {
+                throw new InvalidOperationException($"El producto {idProducto} no pertenece a la factura indicada.");
+            }
+
+            RevertCantidadDevuelta(detalles, idProducto, quantity);
+        }
+
+        await DecreaseStockAsync(ToVentaItems(quantitiesByProduct));
+    }
+
+    private static void ApplyCantidadDevuelta(
+        IReadOnlyCollection<FacturasVentasDetalle> detalles,
+        int idProducto,
+        int quantity)
+    {
+        var remaining = quantity;
+        foreach (var detalle in detalles.OrderBy(detalle => detalle.IdFacturaVentaDetalle))
+        {
+            if (remaining == 0)
+            {
+                break;
+            }
+
+            var available = detalle.Cantidad - detalle.CantidadDevuelta;
+            var quantityToApply = Math.Min(available, remaining);
+            detalle.CantidadDevuelta += quantityToApply;
+            remaining -= quantityToApply;
+        }
+
+        if (remaining > 0)
+        {
+            throw new InvalidOperationException($"La cantidad a devolver del producto {idProducto} supera lo facturado pendiente.");
+        }
+    }
+
+    private static void RevertCantidadDevuelta(
+        IReadOnlyCollection<FacturasVentasDetalle> detalles,
+        int idProducto,
+        int quantity)
+    {
+        var remaining = quantity;
+        foreach (var detalle in detalles.OrderByDescending(detalle => detalle.IdFacturaVentaDetalle))
+        {
+            if (remaining == 0)
+            {
+                break;
+            }
+
+            var quantityToRevert = Math.Min(detalle.CantidadDevuelta, remaining);
+            detalle.CantidadDevuelta -= quantityToRevert;
+            remaining -= quantityToRevert;
+        }
+
+        if (remaining > 0)
+        {
+            throw new InvalidOperationException($"La cantidad devuelta del producto {idProducto} no puede quedar negativa.");
+        }
+    }
+
+    private static VentaItemCreateDto[] ToVentaItems(IReadOnlyDictionary<int, int> quantitiesByProduct)
+    {
+        return quantitiesByProduct
+            .Where(item => item.Value > 0)
+            .Select(item => new VentaItemCreateDto { IdProducto = item.Key, Cantidad = item.Value })
+            .ToArray();
     }
 
     private async Task DecreaseStockAsync(IReadOnlyCollection<VentaItemCreateDto> items)
@@ -691,6 +782,25 @@ public class VentasCompletasService
         }
     }
 
+    private async Task MarkPresupuestoFacturadoAsync(int idPresupuesto)
+    {
+        var presupuesto = await _context.Presupuestos.FindAsync(idPresupuesto);
+        if (presupuesto is not null)
+        {
+            presupuesto.IdEstado = EstadoFacturado;
+        }
+    }
+
+    private static int NormalizeFacturaVentaEstado(int idEstado)
+    {
+        return idEstado == 0 ? EstadoEmitido : idEstado;
+    }
+
+    private static int NormalizeNotaCreditoVentaEstado(int idEstado)
+    {
+        return idEstado == 0 ? EstadoEmitido : idEstado;
+    }
+
     private async Task<Presupuesto?> GetPresupuestoAsync(int id)
     {
         return await BuildPresupuestosCompletosQuery()
@@ -757,6 +867,7 @@ public class VentasCompletasService
             .Include(entity => entity.IdPresupuestoNavigation)
             .Include(entity => entity.IdClienteNavigation)
                 .ThenInclude(cliente => cliente.IdPersonaNavigation)
+            .Include(entity => entity.IdEstadoNavigation)
             .Include(entity => entity.IdMedioPagoCompraNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.FacturasVentasDetalles)
@@ -810,6 +921,8 @@ public class VentasCompletasService
             IdCliente = facturaVenta.IdCliente,
             Cliente = FormatCliente(facturaVenta.IdClienteNavigation),
             NroComprobante = facturaVenta.NroComprobante,
+            IdEstado = facturaVenta.IdEstado,
+            Estado = facturaVenta.IdEstadoNavigation?.Nombre ?? string.Empty,
             IdTimbrado = facturaVenta.IdTimbrado,
             Timbrado = facturaVenta.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
             TimbradoRuc = facturaVenta.IdTimbradoNavigation?.Ruc ?? string.Empty,
@@ -823,10 +936,7 @@ public class VentasCompletasService
                 IdProducto = detalle.IdProducto,
                 Producto = detalle.IdProductoNavigation?.Descripcion ?? string.Empty,
                 Cantidad = detalle.Cantidad,
-                CantidadDevuelta = facturaVenta.NotasCreditosVenta
-                    .SelectMany(nc => nc.NotasCreditosVentasDetalles)
-                    .Where(ncvd => ncvd.IdProducto == detalle.IdProducto)
-                    .Sum(ncvd => ncvd.Cantidad),
+                CantidadDevuelta = detalle.CantidadDevuelta,
                 PrecioUnitario = detalle.PrecioUnitario,
                 TotalBruto = detalle.TotalBruto,
                 TotalIva = detalle.TotalIva,

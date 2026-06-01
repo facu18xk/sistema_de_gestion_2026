@@ -23,10 +23,7 @@ public class FacturasVentasDetallesController : CrudControllerBase<FacturasVenta
             IdProducto = entity.IdProducto,
             Producto = entity.IdProductoNavigation?.Descripcion ?? string.Empty,
             Cantidad = entity.Cantidad,
-            CantidadDevuelta = entity.IdFacturaVentaNavigation?.NotasCreditosVenta
-                .SelectMany(nc => nc.NotasCreditosVentasDetalles)
-                .Where(ncvd => ncvd.IdProducto == entity.IdProducto)
-                .Sum(ncvd => ncvd.Cantidad) ?? 0,
+            CantidadDevuelta = entity.CantidadDevuelta,
             PrecioUnitario = entity.PrecioUnitario,
             TotalBruto = entity.TotalBruto,
             TotalIva = entity.TotalIva,
@@ -41,6 +38,7 @@ public class FacturasVentasDetallesController : CrudControllerBase<FacturasVenta
             IdFacturaVenta = dto.IdFacturaVenta,
             IdProducto = dto.IdProducto,
             Cantidad = dto.Cantidad,
+            CantidadDevuelta = dto.CantidadDevuelta,
             PrecioUnitario = dto.PrecioUnitario,
             TotalBruto = dto.TotalBruto,
             TotalIva = dto.TotalIva,

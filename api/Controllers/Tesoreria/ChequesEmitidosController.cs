@@ -41,6 +41,11 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
         IdCuentaBancaria = entity.IdCuentaBancaria,
         CuentaBancaria = entity.IdCuentaBancariaNavigation?.NumeroCuenta ?? string.Empty,
         IdOrdenMedioPagoCompra = entity.IdOrdenMedioPagoCompra,
+        IdOrdenCompra = entity.IdOrdenMedioPagoCompraNavigation
+            ?.IdOrdenPagoCompraNavigation
+            ?.OrdenesPagosComprasDetalles
+            .Select(detalle => (int?)detalle.IdFacturaCompraNavigation.IdOrdenCompra)
+            .FirstOrDefault(),
         IdMovimientoBancario = entity.IdMovimientoBancario,
         NumeroCheque = entity.NumeroCheque,
         Beneficiario = entity.Beneficiario,

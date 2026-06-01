@@ -23,6 +23,8 @@ public class NotasCreditosVentaDto
 
     public string Timbrado { get; set; } = string.Empty;
 
+    public string NroComprobante { get; set; } = string.Empty;
+
     public string Motivo { get; set; } = string.Empty;
 
     public DateTime FechaEmision { get; set; }
@@ -41,6 +43,8 @@ public class NotasCreditosVentaUpsertDto
     public int? IdNotaDevolucionVenta { get; set; }
 
     public int IdTimbrado { get; set; }
+
+    public string? NroComprobante { get; set; }
 
     public string Motivo { get; set; } = string.Empty;
 

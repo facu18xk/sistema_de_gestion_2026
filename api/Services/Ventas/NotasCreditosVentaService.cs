@@ -36,7 +36,14 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
         existingEntity.IdFacturaVenta = incomingEntity.IdFacturaVenta;
         existingEntity.IdEstado = incomingEntity.IdEstado;
         existingEntity.IdNotaDevolucionVenta = incomingEntity.IdNotaDevolucionVenta;
-        existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
+        if (!string.IsNullOrWhiteSpace(incomingEntity.NroComprobante))
+        {
+            existingEntity.NroComprobante = incomingEntity.NroComprobante.Trim();
+        }
+        if (incomingEntity.IdTimbrado > 0)
+        {
+            existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
+        }
         existingEntity.Motivo = incomingEntity.Motivo;
         existingEntity.FechaEmision = incomingEntity.FechaEmision;
         existingEntity.Total = incomingEntity.Total;

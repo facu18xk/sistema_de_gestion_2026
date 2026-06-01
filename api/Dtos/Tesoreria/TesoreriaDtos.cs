@@ -97,6 +97,7 @@ public class ChequeEmitidoDto
     public int IdCuentaBancaria { get; set; }
     public string CuentaBancaria { get; set; } = string.Empty;
     public int? IdOrdenMedioPagoCompra { get; set; }
+    public int? IdOrdenCompra { get; set; }
     public int? IdMovimientoBancario { get; set; }
     public string NumeroCheque { get; set; } = string.Empty;
     public string Beneficiario { get; set; } = string.Empty;

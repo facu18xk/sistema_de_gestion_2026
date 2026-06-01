@@ -63,6 +63,10 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
     {
         return _context.ChequesEmitidos
             .Include(item => item.IdCuentaBancariaNavigation)
+            .Include(item => item.IdOrdenMedioPagoCompraNavigation)
+                .ThenInclude(ordenMedioPago => ordenMedioPago!.IdOrdenPagoCompraNavigation)
+                    .ThenInclude(ordenPago => ordenPago.OrdenesPagosComprasDetalles)
+                        .ThenInclude(detalle => detalle.IdFacturaCompraNavigation)
             .OrderByDescending(item => item.FechaEmision)
             .ThenByDescending(item => item.IdChequeEmitido);
     }

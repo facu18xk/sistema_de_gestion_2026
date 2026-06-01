@@ -81,6 +81,12 @@ public class FacturaVentaCompletaCreateDto
 
     public int IdCliente { get; set; }
 
+    public string? NroComprobante { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public int IdTimbrado { get; set; }
+
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
@@ -125,6 +131,10 @@ public class FacturaVentaCompletaDto
 
     public string NroComprobante { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public int IdTimbrado { get; set; }
 
     public string Timbrado { get; set; } = string.Empty;
@@ -151,6 +161,8 @@ public class NotaCreditoVentaCompletaCreateDto
     public int IdEstado { get; set; }
 
     public int IdTimbrado { get; set; }
+
+    public string? NroComprobante { get; set; }
 
     public string Motivo { get; set; } = string.Empty;
 

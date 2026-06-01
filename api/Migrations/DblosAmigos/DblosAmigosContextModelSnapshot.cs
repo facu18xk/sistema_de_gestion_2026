@@ -1012,6 +1012,10 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Presupuesto");
 
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Estado");
+
                     b.Property<int>("IdTimbrado")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Timbrado");
@@ -1026,6 +1030,8 @@ namespace api.Migrations.DblosAmigos
                     b.HasKey("IdFacturaVenta");
 
                     b.HasIndex("IdCliente");
+
+                    b.HasIndex("IdEstado");
 
                     b.HasIndex("IdMedioPagoCompra");
 
@@ -1047,6 +1053,12 @@ namespace api.Migrations.DblosAmigos
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("integer");
+
+                    b.Property<int>("CantidadDevuelta")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("Cantidad_Devuelta");
 
                     b.Property<int>("IdFacturaVenta")
                         .HasColumnType("integer")
@@ -1403,6 +1415,13 @@ namespace api.Migrations.DblosAmigos
                         .HasMaxLength(100)
                         .IsUnicode(false)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NroComprobante")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("Nro_Comprobante");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(10, 2)");
@@ -2989,6 +3008,12 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
 
+                    b.HasOne("api.Models.Estado", "IdEstadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .IsRequired()
+                        .HasConstraintName("FK_Facturas_Ventas_Estados");
+
                     b.HasOne("api.Models.Timbrado", "IdTimbradoNavigation")
                         .WithMany("FacturasVenta")
                         .HasForeignKey("IdTimbrado")
@@ -2996,6 +3021,8 @@ namespace api.Migrations.DblosAmigos
                         .HasConstraintName("FK_Facturas_Ventas_Timbrados");
 
                     b.Navigation("IdClienteNavigation");
+
+                    b.Navigation("IdEstadoNavigation");
 
                     b.Navigation("IdMedioPagoCompraNavigation");
 

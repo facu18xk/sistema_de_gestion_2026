@@ -13,6 +13,8 @@ public partial class FacturasVenta
 
     public string NroComprobante { get; set; } = null!;
 
+    public int IdEstado { get; set; }
+
     public int IdTimbrado { get; set; }
 
     public DateTime Fecha { get; set; }
@@ -30,6 +32,8 @@ public partial class FacturasVenta
     public virtual MediosPagosCompra IdMedioPagoCompraNavigation { get; set; } = null!;
 
     public virtual Presupuesto IdPresupuestoNavigation { get; set; } = null!;
+
+    public virtual Estado IdEstadoNavigation { get; set; } = null!;
 
     public virtual Timbrado IdTimbradoNavigation { get; set; } = null!;
 
