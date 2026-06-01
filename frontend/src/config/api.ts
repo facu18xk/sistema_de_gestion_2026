@@ -23,7 +23,11 @@ export const API_CONFIG = {
     EMPLEADOS: "/api/Empleados",
     PARIENTES: "/api/Parientes",
     PERIODOS_CONTABLES: "/api/PeriodosContables",
+    CUENTAS_CONTABLES: "/api/CuentasContables",
+    ASIENTOS: "/api/Asientos",
+    ASIENTOS_COMPLETO: "/api/Asientos/completo",
     INVOICES: "/api/FacturasVentas",
+<<<<<<< HEAD
     TIMBRADO: "/api/OrdenesVentas",
     BANCOS: "/api/Bancos",
     CUENTAS_BANCARIAS: "/api/CuentasBancarias",
@@ -36,5 +40,11 @@ export const API_CONFIG = {
     DEPOSITOS_BANCARIOS: "/api/DepositosBancarios",
     TIPOS_DEPOSITOS_BANCARIOS: "/api/TiposDepositosBancarios",
     TIPOS_MOVIMIENTOS_BANCARIOS: "/api/TiposMovimientosBancarios",
+=======
+    ORDENES_VENTAS: "/api/OrdenesVentas",
+    MEDIOS_PAGO: "/api/MediosPagosCompras",
+    STOCK: "/api/StocksDepositos",
+    NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
+>>>>>>> cd41e1c8fb34dd0b0d9e1b78738d45b61c2795ab
   },
 } as const;

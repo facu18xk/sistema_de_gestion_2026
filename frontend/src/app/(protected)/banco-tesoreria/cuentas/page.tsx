@@ -42,9 +42,13 @@ export default function CuentasBancariasPage() {
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [bancos, setBancos] = useState<Banco[]>([]);
   const [tiposCuenta, setTiposCuenta] = useState<TipoCuentaBancaria[]>([]);
-  const [cuentasContables, setCuentasContables] = useState<CuentaContable[]>([]);
+  const [cuentasContables, setCuentasContables] = useState<CuentaContable[]>(
+    [],
+  );
 
-  const [cuentaAEditar, setCuentaAEditar] = useState<CuentaBancaria | null>(null);
+  const [cuentaAEditar, setCuentaAEditar] = useState<CuentaBancaria | null>(
+    null,
+  );
   const [cuentaAEliminar, setCuentaAEliminar] = useState<CuentaBancaria | null>(
     null,
   );
@@ -133,10 +137,7 @@ export default function CuentasBancariasPage() {
   const handleFormSubmit = async (data: CuentaBancariaSaveDTO) => {
     try {
       if (cuentaAEditar) {
-        await cuentasBancariasAPI.update(
-          cuentaAEditar.idCuentaBancaria,
-          data,
-        );
+        await cuentasBancariasAPI.update(cuentaAEditar.idCuentaBancaria, data);
         notify.success("Actualizada", "Cuenta bancaria actualizada.");
       } else {
         await cuentasBancariasAPI.create(data);
@@ -235,7 +236,7 @@ export default function CuentasBancariasPage() {
                 <TableCell className="text-right font-medium">
                   {formatMoney(c.saldo, c.moneda)}
                 </TableCell>
-                <TableCell className="text-right text-muted-foreground">
+                <TableCell className="text-right font-medium">
                   {formatMoney(c.saldoDisponible, c.moneda)}
                 </TableCell>
                 <TableCell>
@@ -279,7 +280,9 @@ export default function CuentasBancariasPage() {
       <FormSheet
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        title={cuentaAEditar ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}
+        title={
+          cuentaAEditar ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"
+        }
         contentClassName="px-6 sm:max-w-[560px] overflow-y-auto"
       >
         <CuentaBancariaForm

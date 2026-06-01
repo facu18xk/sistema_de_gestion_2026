@@ -27,6 +27,7 @@ import { notify } from "@/lib/notifications";
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
+<<<<<<< HEAD
   {
     title: "Ventas",
     items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
@@ -52,7 +53,46 @@ const modulos = [
   { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
   { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
   { title: "Contabilidad", items: ["Proceso Contable", "Periodo Contable"] },
+=======
+    {
+        title: "Ventas",
+        items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
+    },
+    {
+        title: "Compras",
+        items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
+    },
+    { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
+    { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
+    { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
+    {
+        title: "Contabilidad",
+        items: [
+            "Proceso Contable",
+            "Periodo Contable",
+            "Asientos",
+            "Plan de Cuentas",
+        ],
+    },
+>>>>>>> cd41e1c8fb34dd0b0d9e1b78738d45b61c2795ab
 ];
+
+const routeByItem: Record<string, string> = {
+    Clientes: "/ventas/clientes",
+    Presupuestos: "/ventas/presupuestos",
+    Facturación: "/ventas/facturacion",
+    Devoluciones: "/ventas/devoluciones",
+    Proveedores: "/compras/proveedores",
+    Pedidos: "/compras/pedidos",
+    Cotizaciones: "/compras/cotizaciones",
+    Productos: "/stock/productos",
+    Empleados: "/personas/empleados",
+    Parientes: "/personas/parientes",
+    "Proceso Contable": "/contabilidad/proceso-contable",
+    "Periodo Contable": "/contabilidad/periodo-contable",
+    Asientos: "/contabilidad/asientos",
+    "Plan de Cuentas": "/contabilidad/plan-cuentas",
+};
 
 export default function Navbar() {
   const [userName, setUserName] = useState("Usuario");
@@ -103,6 +143,7 @@ export default function Navbar() {
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
+<<<<<<< HEAD
               {modulos.map((modulo) => (
                 <NavigationMenuItem key={modulo.title}>
                   <NavigationMenuTrigger className="cursor-pointer">
@@ -170,6 +211,48 @@ export default function Navbar() {
                                                                           : "#"
                               }
                               className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+=======
+                            {modulos.map((modulo) => (
+                                <NavigationMenuItem key={modulo.title}>
+                                    <NavigationMenuTrigger className="cursor-pointer">
+                                        {modulo.title}
+                                    </NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <ul className="cursor-pointer grid w-[200px] gap-2 p-4">
+                                            {modulo.items.map((item) => (
+                                                <li key={item}>
+                                                    <NavigationMenuLink asChild>
+                                                        <Link
+                                                            href={routeByItem[item] ?? "#"}
+                                                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                                                        >
+                                                            <div className="text-sm font-medium leading-none">
+                                                                {item}
+                                                            </div>
+                                                        </Link>
+                                                    </NavigationMenuLink>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                            ))}
+                        </NavigationMenuList>
+                    </NavigationMenu>
+                </div>
+
+                {/* DERECHA: Perfil y Logout */}
+                <div className="flex items-center gap-4">
+                    <div className="text-right hidden sm:block">
+                        <p className="text-sm font-medium leading-none">{userName}</p>
+                        <p className="text-xs text-muted-foreground">Administrador</p>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                className="mr-6 relative h-10 w-10 rounded-full cursor-pointer"
+>>>>>>> cd41e1c8fb34dd0b0d9e1b78738d45b61c2795ab
                             >
                               <div className="text-sm font-medium leading-none">
                                 {item}

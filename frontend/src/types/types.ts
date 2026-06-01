@@ -33,7 +33,7 @@ export interface ProductoDTO {
     precioUnitario: number;
     esServicio: boolean;
     porcentajeIva: number;
-    cantidadTotal: number; // Stock sumado de todos los depósitos
+    cantidadTotal: number;
     idMarca: number;
     marca: string;
     idCategoria: number;
@@ -212,19 +212,48 @@ export interface PreciosVentas {
     fechaHasta: string;
 }
 
+//Timbrado
+export interface Timbrado {
+    idTimbrado: number;
+    numeroTimbrado: string;
+    fechaInicio: string;
+    fechaFinal: string;
+    ruc: string;
+    establecimiento: string;
+    puntoExpedicion: string;
+    numeroInicial: number;
+    numeroFinal: number;
+    ultimoNumeroUsado: number;
+    tipoComprobante: string;
+    activo: boolean;
+}
+
+//Ventas/Facturación
 export interface FacturaVentaItem {
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaVentaItemSave {
     idProducto: number;
     cantidad: number;
 }
 
 export interface FacturaVentaCompleto {
     idFacturaVenta: number;
-    idOrdenVenta: number;
-    ordenVentaDescripcion: string;
+    idPresupuesto: number;
+    presupuestoDescripcion: string;
     idCliente: number;
     cliente: string;
     nroComprobante: string;
     idTimbrado: number;
+    timbrado: string;
+    timbradoRuc: string;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -234,30 +263,93 @@ export interface FacturaVentaCompleto {
 }
 
 export interface FacturaVentaCompletoSave {
-    idOrdenVenta: number;
+    idPresupuesto: number;
     idCliente: number;
-    nroComprobante: string;
-    idTimbrado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
     fechaPago: string;
-    items: FacturaVentaItem[];
+    items: FacturaVentaItemSave[];
 }
 
 export interface FacturaVentaCabecera {
     idFacturaVenta: number;
-    idOrdenVenta: number;
-    ordenVentaDescripcion: string;
+    idPresupuesto: number;
+    presupuestoDescripcion: string;
     idCliente: number;
     cliente: string;
     nroComprobante: string;
     idTimbrado: number;
+    timbrado: string;
+    timbradoRuc: string;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
     medioPagoCompra: string;
     fechaPago: string;
+}
+
+//Stock/Depositos
+export interface StockDeposito {
+    idDeposito: number;
+    idProducto: number;
+    cantidad: number;
+    deposito: string;
+    producto: string;
+}
+
+export interface StockDepositoSave {
+    idDeposito: number;
+    idProducto: number;
+    cantidad: number;
+}
+
+//Ventas/Devoluciones
+export interface NotaCreditoVentaItem {
+    idNotaCreditoVentaDetalle: number;
+    idNotaCreditoVenta: number;
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoVentaItemSave {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface NotaCreditoVenta {
+    idNotaCreditoVenta: number;
+    idFacturaVenta: number;
+    facturaVenta: string;
+    idNotaDevolucionVenta: number;
+    notaDevolucionVenta: string;
+    idTimbrado: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoVentaItem[];
+}
+
+export interface NotaCreditoVentaSave {
+    idFacturaVenta: number;
+    idTimbrado: number;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoVentaItemSave[];
+}
+
+export interface NotaCreditoVentaDetalle {
+    idNotaCreditoVentaDetalle: number;
+    idNotaCreditoVenta: number;
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
 }
 
 export interface OrdenVenta {
@@ -270,6 +362,11 @@ export interface OrdenVenta {
     estado: string;
     fecha: string;
     descripcion: string;
+}
+
+export interface MedioPago {
+    idMedioPagoCompra: number;
+    nombre: string;
 }
 
 export interface ProveedorCategoriaDTO {
@@ -362,104 +459,228 @@ export interface PedidoDetalleSaveDTO {
 }
 
 export interface ProcesoContableDTO {
-  idProcesoContable: number
-  periodoAnho: number
-  descripcion: string
-  cantNiveles: number
-  cantDigitosNivel: number
-  moneda: string
-  estado: string
-  
-  tienePeriodos?: boolean;
+    idProcesoContable: number
+    periodoAnho: number
+    descripcion: string
+    cantNiveles: number
+    cantDigitosNivel: number
+    moneda: string
+    estado: string
+
+    tienePeriodos?: boolean;
 }
 
 export interface ProcesoContableSaveDTO {
-  periodoAnho: number
-  descripcion: string
-  cantNiveles: number
-  cantDigitosNivel: number
-  moneda: string
+    periodoAnho: number
+    descripcion: string
+    cantNiveles: number
+    cantDigitosNivel: number
+    moneda: string
 }
 
 export interface PeriodoContableDTO {
-  idPeriodoContable: number
-  idProcesoContable: number
-  procesoContable: string
-  anho: number
-  mes: number
-  fechaInicio: string
-  fechaFin: string
-  estado: string
+    idPeriodoContable: number
+    idProcesoContable: number
+    procesoContable: string
+    anho: number
+    mes: number
+    fechaInicio: string
+    fechaFin: string
+    estado: string
 }
 
 export interface PeriodoContableSaveDTO {
-  idProcesoContable: number
-  anho: number
-  mes: number
-  fechaInicio: string
-  fechaFin: string
-  estado: string
+    idProcesoContable: number
+    anho: number
+    mes: number
+    fechaInicio: string
+    fechaFin: string
+    estado: string
+}
+
+export type TipoCuentaContable =
+    | "Activo"
+    | "Pasivo"
+    | "Patrimonio"
+    | "Ingreso"
+    | "Gasto"
+
+export type TipoMovimientoAsiento = "Debe" | "Haber"
+
+export interface CuentaContableDTO {
+    idCuentaContable: number
+    idProcesoContable: number
+    idCuentaPadre?: number | null
+    numeroCuenta?: string
+    codigo?: string
+    nombre: string
+    tipoCuenta: TipoCuentaContable | string
+    esAsentable: boolean
+    activa: boolean
+    cuentaPadre?: string | null
+}
+
+export interface AsientoDetalleDTO {
+    idAsientoDetalle?: number
+    idAsiento?: number
+    item: number
+    idCuentaContable: number
+    cuentaContable?: string
+    numeroAsiento?: number
+    descripcionItem?: string | null
+    tipoMovimiento: TipoMovimientoAsiento
+    monto: number
+}
+
+export interface AsientoDTO {
+    idAsiento: number
+    idPeriodoContable?: number | null
+    periodoContable?: string | null
+    idModulo?: number | null
+    modulo?: string | null
+    numeroAsiento: number
+    fecha: string
+    descripcion?: string | null
+    estado: string
+    automatico: boolean
+    referenciaOrigen?: string | null
+    idOrigen?: number | null
+    createdAt?: string | null
+    fechaMayorizacion?: string | null
+}
+
+export interface AsientoCompletoPayloadDTO {
+    idModulo: number | null
+    fecha: string
+    descripcion?: string | null
+    automatico: boolean
+    estado: string
+    referenciaOrigen?: string | null
+    idOrigen?: number | null
+    createdAt?: string | null
+    fechaMayorizacion?: string | null
+    detalles: AsientoDetalleDTO[]
+}
+
+export interface AsientoCompletoDTO {
+    asiento: AsientoDTO
+    detalles: AsientoDetalleDTO[]
 }
 
 export interface Empleado {
-  idEmpleado: number
-  ci: string
-  ruc: string
-  fechaIngreso: string
-  idDireccion: number
-  direccion: Direccion
-  nombres: string
-  apellidos: string
-  correo: string
-  telefono: string
+    idEmpleado: number
+    ci: string
+    ruc: string
+    fechaIngreso: string
+    idDireccion: number
+    direccion: Direccion
+    nombres: string
+    apellidos: string
+    correo: string
+    telefono: string
 }
 
 export interface EmpleadoSaveDTO {
-  ci: string
-  ruc: string
-  fechaIngreso: string
-  direccion: {
-    calle1: string
-    calle2: string | null
-    descripcion: string | null
-    idPais: number
-    idCiudad: number
-  }
-  nombres: string
-  apellidos: string
-  correo: string
-  telefono: string
+    ci: string
+    ruc: string
+    fechaIngreso: string
+    direccion: {
+        calle1: string
+        calle2: string | null
+        descripcion: string | null
+        idPais: number
+        idCiudad: number
+    }
+    nombres: string
+    apellidos: string
+    correo: string
+    telefono: string
 }
 
 export interface EmpleadoFormState {
-  ci: string
-  ruc: string
-  fechaIngreso: string
-  nombres: string
-  apellidos: string
-  correo: string
-  telefono: string
+    ci: string
+    ruc: string
+    fechaIngreso: string
+    nombres: string
+    apellidos: string
+    correo: string
+    telefono: string
 
-  idPais: string
-  idCiudad: string
+    idPais: string
+    idCiudad: string
 
-  calle1: string
-  calle2: string
-  descripcionDireccion: string
+    calle1: string
+    calle2: string
+    descripcionDireccion: string
 }
 
 export interface Pariente {
-  idPariente: number
-  idEmpleado: number
-  tipoRelacion: string
-  edad: number
-  fechaNacimiento: string
-
-  empleado: {
+    idPariente: number
     idEmpleado: number
-    nombres: string
-    apellidos: string
-  }
+    tipoRelacion: string
+    edad: number
+    fechaNacimiento: string
+
+    empleado: {
+        idEmpleado: number
+        nombres: string
+        apellidos: string
+    }
+}
+
+export interface ParienteSaveDTO {
+    idEmpleado: number
+    tipoRelacion: string
+    edad: number
+    fechaNacimiento: string
+}
+
+export interface ParienteFormState {
+    idEmpleado: string
+    tipoRelacion: string
+    edad: string
+    fechaNacimiento: string
+}
+
+export interface CotizacionDTO {
+    idPedidoCotizacion: number
+    idPedidoCompra: number
+    idEstado: number
+    idProveedor: number
+    numeroPedido: number
+    fecha: string
+    validaHasta?: string | null
+    estado?: string
+    proveedor?: Proveedor
+}
+
+export interface CotizacionSaveDTO {
+    idPedidoCompra: number
+    idEstado: number
+    idProveedor: number
+    numeroPedido: number
+    fecha: string
+}
+
+export interface CotizacionDetalleDTO {
+    idPedidoCotizacionDetalle: number
+    idPedidoCotizacion: number
+    idProducto: number
+    idCategoria: number
+    descripcion: string
+    cantidad: number
+    precioProducto: number
+    descuento: number
+}
+
+export interface CotizacionDetalleSaveDTO {
+    idPedidoCotizacion: number
+    idProducto: number
+    idCategoria: number
+    descripcion: string
+    cantidad: number
+    precioProducto: number
+    descuento: number
 }
 
 export interface CotizacionItemForm {

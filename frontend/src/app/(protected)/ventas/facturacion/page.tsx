@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Pencil, Trash2, Loader2, ReceiptText, FileText, TimerOff, Eye } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { Pencil, Trash2, Loader2, ReceiptText, FileText, TimerOff, Eye, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,33 +26,47 @@ import { Estado, FacturaVentaCabecera, PresupuestoCabecera, PresupuestoCompleto 
 import { notify } from "@/lib/notifications"
 import { esPresupuestoVigente } from "@/utils/date-utils"
 import { formatearNumeroFactura } from "@/utils/factura-format"
+import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format"
 
-export default function PedidosPage() {
+const columnWidths = {
+  factura: "w-[80px]",
+  presupuesto: "w-[80px]",
+  cliente: "w-[150px]",
+  fecha: "w-[100px]",
+  estado: "w-[100px]",
+  acciones: "w-[80px]",
+};
+
+export default function FacturasPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [estados, setEstados] = useState<Estado[]>([]);
-  const [facturas, setFacturas] = useState<FacturaVentaCabecera[]>([]);
+  //const [facturas, setFacturas] = useState<FacturaVentaCabecera[]>([]);
+  const [todasLasFacturas, setTodasLasFacturas] = useState<FacturaVentaCabecera[]>([]);
   const [facturaAEliminar, setFacturaAEliminar] = useState<FacturaVentaCabecera | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  //const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("")
 
   //const now = new Date().toISOString().slice(0, 19);
   const now = new Date();
   console.log(now);
 
   //Datos locales
-  const resPaginada = {
+  /*const resPaginada = {
     "items": [
         {
             "idFacturaVenta": 1,
-            "idOrdenVenta": 1,
-            "ordenVentaDescripcion": "Factura de Venta 1",
+            "idPresupuesto": 1,
+            "presupuestoDescripcion": "Factura de Venta 1",
             "idCliente": 1,
             "cliente": "Cliente 1",
             "nroComprobante": "-- Sin especificar --",
             "idTimbrado": 1,
+            "timbrado": "",
+            "timbradoRuc": "",
             "fecha": "2026-05-22",
             "descripcion": "Descripcion 1",
             "idMedioPagoCompra": 1,
@@ -60,12 +75,14 @@ export default function PedidosPage() {
         },
         {
             "idFacturaVenta": 2,
-            "idOrdenVenta": 2,
-            "ordenVentaDescripcion": "Factura de Venta 2",
+            "idPresupuesto": 2,
+            "presupuestoDescripcion": "Factura de Venta 2",
             "idCliente": 2,
             "cliente": "Cliente 2",
             "nroComprobante": "-- Sin especificar --",
             "idTimbrado": 2,
+            "timbrado": "",
+            "timbradoRuc": "",
             "fecha": "2026-05-22",
             "descripcion": "Descripcion 2",
             "idMedioPagoCompra": 1,
@@ -74,12 +91,14 @@ export default function PedidosPage() {
         },
         {
             "idFacturaVenta": 3,
-            "idOrdenVenta": 3,
-            "ordenVentaDescripcion": "Factura de Venta 3",
+            "idPresupuesto": 3,
+            "presupuestoDescripcion": "Factura de Venta 3",
             "idCliente": 3,
             "cliente": "Cliente 3",
             "nroComprobante": "-- Sin especificar --",
             "idTimbrado": 3,
+            "timbrado": "",
+            "timbradoRuc": "",
             "fecha": "2026-05-22",
             "descripcion": "Descripcion 3",
             "idMedioPagoCompra": 2,
@@ -93,15 +112,16 @@ export default function PedidosPage() {
     "totalPages": 1,
     "hasPreviousPage": false,
     "hasNextPage": false
-  }
+  }*/
 
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      //const resPaginada = await facturasAPI.getAll(currentPage, itemsPerPage);
-      setFacturas(resPaginada.items);
-      setTotalPages(resPaginada.totalPages);
+      const resPaginada = await facturasAPI.getAll(currentPage, 200);
+      //setFacturas(resPaginada.items);
+      setTodasLasFacturas(resPaginada.items);
+      //setTotalPages(resPaginada.totalPages);
     } catch (error) {
       console.error("Error al cargar facturas:", error)
       notify.error("Error de conexión", "No se pudo obtener la lista de facturas.")
@@ -121,29 +141,30 @@ export default function PedidosPage() {
     }
   }
 
-  useEffect(() => { cargarPagina() }, [currentPage]);
-  useEffect(() => { cargarEstados() }, []);
+  //useEffect(() => { cargarPagina() }, [currentPage]);
+  useEffect(() => { cargarPagina(), cargarEstados() }, []);
 
-  // 2. ACCIONES
-  const handleEditar = (p: FacturaVentaCabecera) => {
-    router.push(`/ventas/facturacion/${p.idFacturaVenta}`);
-  }
+  //FILTRO DE BÚSQUEDA
+  const facturasFiltradas = useMemo(() => {
+    if (!searchTerm.trim()) return todasLasFacturas;
+    
+    const query = searchTerm.toLowerCase().trim();
+    return todasLasFacturas.filter(p => 
+      formatearNumeroFactura(p.idFacturaVenta).toLowerCase().toString().includes(query) ||
+      formatearNumeroPresupuesto(p.idPresupuesto).toLowerCase().toString().includes(query) ||
+      p.cliente.toLowerCase().includes(query)
+    );
+  }, [searchTerm, todasLasFacturas]);
 
-  const confirmarEliminacion = async () => {
-    if (facturaAEliminar) {
-      try {
-        //await facturasAPI.delete(facturaAEliminar.idFacturaVenta)
-        notify.success("Eliminado", "La factura fue eliminada correctamente.")
-        await cargarPagina()
-      } catch (error) {
-        console.error("Error al eliminar factura:", error)
-        notify.error("Error al eliminar", "La factura podría tener registros asociados.")
-      } finally {
-        setIsAlertOpen(false)
-        setFacturaAEliminar(null)
-      }
-    }
-  }
+  const totalPages = Math.ceil(facturasFiltradas.length / itemsPerPage) || 1;
+
+  const facturasVisiblesEnPagina = useMemo(() => {
+    const primerItemIndex = (currentPage - 1) * itemsPerPage;
+    const ultimoItemIndex = primerItemIndex + itemsPerPage;
+    return facturasFiltradas.slice(primerItemIndex, ultimoItemIndex);
+  }, [currentPage, facturasFiltradas]);
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
   return (
     <>
@@ -155,31 +176,28 @@ export default function PedidosPage() {
         buttonLabel="Nueva Factura"
         onButtonClick={() => router.push('/ventas/facturacion/nuevo')}
       />
-      {/*ALERT DIALOG*/}
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Eliminarás permanentemente la factura{" "}
-              <span className="font-bold text-foreground">
-                "{facturaAEliminar ? formatearNumeroFactura(facturaAEliminar.idFacturaVenta) : ""}"
-              </span>{" "}
-              y se quitará del servidor.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmarEliminacion}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+      {/* INPUT DEL BUSCADOR LOCAL */}
+      <div className="my-4 flex items-center max-w-md relative">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por factura, presupuesto o cliente..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-1 top-1 h-7 w-7 hover:bg-transparent text-muted-foreground hover:text-foreground"
             >
-              Eliminar Factura
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
       {/*TABLA*/}
       {isLoading ? (
         <div className="flex justify-center p-10">
@@ -190,62 +208,55 @@ export default function PedidosPage() {
           caption="Lista de facturas de venta."
           headerRow={
             <TableRow>
-              <TableHead>Factura</TableHead>
-              <TableHead>Presupuesto</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Fecha Emisión/Pago</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className={`${columnWidths.factura}`}>Factura</TableHead>
+              <TableHead className={`${columnWidths.presupuesto}`}>Presupuesto</TableHead>
+              <TableHead className={`${columnWidths.cliente} font-medium`}>Cliente</TableHead>
+              <TableHead className={`${columnWidths.fecha}`}>Fecha Emisión/Pago</TableHead>
+              <TableHead className={`${columnWidths.estado}`}>Estado</TableHead>
+              <TableHead className={`${columnWidths.acciones} text-right`}>Acciones</TableHead>
             </TableRow>
           }
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         >
-          {facturas.map((f) => {
+          {facturasFiltradas.map((f) => {
           //const vigente = esPresupuestoVigente(p.fechaVencimiento);
           //const estadoActual = estados.find((e) => e.idEstado == p.idEstado)?.nombre;
-          const estadoActual = "Pendiente"
-          //const estadoExpirado = estados.find((e) => e.idEstado === 5)?.nombre;
-          const nombreCliente = facturas.find((c) => c.idCliente == f.idCliente)?.cliente;
+          const estadoActual: string = "Emitido"
+          const estadoExpirado = "Expirado"
+          const nombreCliente = todasLasFacturas.find((c) => c.idCliente == f.idCliente)?.cliente;
           return (
             <TableRow key={f.idFacturaVenta}>
-              <TableCell>{formatearNumeroFactura(f.idFacturaVenta)}</TableCell>
-              <TableCell>{formatearNumeroFactura(f.idFacturaVenta)}</TableCell>
-              <TableCell className="font-medium">{nombreCliente}</TableCell>
-              <TableCell>{new Date(f.fecha).toLocaleDateString()}</TableCell>
-              <TableCell>{
-                estadoActual === 'Aprobado' ? <Badge variant="aprobado">{estadoActual}</Badge>
-                : estadoActual === 'Pendiente' ? <Badge variant="pendiente">{estadoActual}</Badge>
-                : estadoActual === 'Rechazado' ? <Badge variant="rechazado">{estadoActual}</Badge>
-                : <Badge variant="destructive">{estadoExpirado}</Badge>
+              <TableCell className={`${columnWidths.factura}`}>{formatearNumeroFactura(f.idFacturaVenta)}</TableCell>
+              <TableCell className={`${columnWidths.presupuesto}`}>{formatearNumeroPresupuesto(f.idPresupuesto)}</TableCell>
+              <TableCell className={`${columnWidths.cliente} font-medium`}>{nombreCliente}</TableCell>
+              <TableCell className={`${columnWidths.fecha}`}>{new Date(f.fecha).toLocaleDateString()}</TableCell>
+              <TableCell className={`${columnWidths.estado}`}>{
+                estadoActual === 'Emitido' ? <Badge variant="aprobado">{estadoActual}</Badge> : 
+                <Badge variant="destructive">{estadoExpirado}</Badge>
                 
                 }</TableCell>
-              <TableCell className="text-right">
+              <TableCell className={`${columnWidths.acciones} text-right`}>
                 <Button
                   variant="ghost"
                   size="icon"
-                  title="Editar Factura"
-                  onClick={() => handleEditar(f)}
+                  title="Ver Factura"
+                  onClick={() => router.push(`/ventas/facturacion/${f.idFacturaVenta}`)}
                 >
                   <Eye className="size-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={estadoActual !== 'Pendiente'}
-                  title="Eliminar Factura"
-                  onClick={() => {
-                    setFacturaAEliminar(f)
-                    setIsAlertOpen(true)
-                  }}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </TableCell>
             </TableRow>
           )
         })}
+        {facturasVisiblesEnPagina.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={6} className="py-10 text-center text-muted-foreground text-sm">
+              No hay facturas que coincidan con la búsqueda.
+            </TableCell>
+          </TableRow>
+        )}
         </DataTable>
       )}
     </>

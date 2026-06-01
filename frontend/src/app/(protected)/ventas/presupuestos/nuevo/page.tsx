@@ -346,13 +346,13 @@ export default function NuevoPresupuestoPage() {
               className="h-8 bg-white mt-1 text-xs px-2 text-[13px]"
             />
           </div>
-          <div className="flex flex-col justify-end pb-0.5 md:items-end">
+          {/*<div className="flex flex-col justify-end pb-0.5 md:items-end">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 block md:hidden">Estado</span>
             <span className="inline-flex items-center justify-center rounded-full bg-yellow-50 px-2.5 py-1 text-[13px] font-medium text-yellow-800 border border-yellow-200/60 shadow-sm w-full sm:w-auto">
               <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1.5 animate-pulse" />
               Borrador / Pendiente
             </span>
-          </div>
+          </div>*/}
         </div>
       </div>
       {/* SELECTOR DE PRODUCTOS */}
@@ -364,7 +364,7 @@ export default function NuevoPresupuestoPage() {
         precios={listaPrecios}
       />
       <div className="mt-3 flex justify-end">
-        <Button variant="default" className="h-8 gap-2 cursor-pointer" onClick={() => setIsProductoModalOpen(true)}>
+        <Button variant="default" className="h-8 gap-2 cursor-pointer" onClick={() => setIsProductoModalOpen(true)} disabled={!clienteSel}>
           <Plus/> Agregar
         </Button>
       </div>
@@ -442,7 +442,7 @@ export default function NuevoPresupuestoPage() {
               {/* CARRITO VACÍO */}
               {itemsCarrito.length === 0 && (
                 <TableRow>
-                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => setIsProductoModalOpen(true)}>
+                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(clienteSel){setIsProductoModalOpen(true)}}}>
                   No hay productos seleccionados. Use el botón "+ Agregar" para comenzar.
                 </TableCell>
                 </TableRow>
