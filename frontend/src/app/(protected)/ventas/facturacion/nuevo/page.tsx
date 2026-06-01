@@ -34,7 +34,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { formatearFecha } from "@/utils/date-utils";
 
-export default function NuevaFacturaPage() {
+function NuevaFacturaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
@@ -490,5 +490,13 @@ export default function NuevaFacturaPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function NuevaFacturaPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando módulo de facturación...</div>}>
+      <NuevaFacturaContent />
+    </Suspense>
   );
 }
