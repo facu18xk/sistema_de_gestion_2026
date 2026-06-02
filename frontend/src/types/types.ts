@@ -692,28 +692,6 @@ export interface CotizacionItemForm {
     descuento: number;
 }
 
-export interface CotizacionFormState {
-    solicitudCotizacionId: string
-    proveedorId: string
-    fecha: string
-    validaHasta: string
-    idEstado: number
-    numeroPedido: number
-    items: CotizacionItemForm[]
-}
-
-
-export type EstadoProcesoContable =
-    | "Habilitado"
-    | "Abierto"
-    | "Activo"
-    | "Activa"
-    | "Registrado"
-    | "Registrada"
-    | "Cerrado"
-    | "Cerrada"
-    | "Inhabilitado"
-    | "Inhabilitada"
 // Banco y Tesorería
 export interface Banco {
     idBanco: number;
@@ -799,20 +777,6 @@ export interface MovimientoBancarioSaveDTO {
     monto: number;
     concepto: string;
     referencia: string;
-}
-
-export interface ChequeEmitido {
-    idChequeEmitido: number;
-    idCuentaBancaria: number;
-    cuentaBancaria: string;
-    idOrdenMedioPagoCompra: number;
-    idMovimientoBancario: number;
-    numeroCheque: string;
-    beneficiario: string;
-    fechaEmision: string;
-    fechaPago: string | null;
-    monto: number;
-    estado: string;
 }
 
 export interface ChequeEmitidoSaveDTO {

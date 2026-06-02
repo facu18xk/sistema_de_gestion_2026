@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -24,9 +22,10 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-
+import Cookies from "js-cookie";
 import { notify } from "@/lib/notifications";
 
+//Para listar los diferentes módulos en el navbar
 const modulos = [
   {
     title: "Ventas",
@@ -37,24 +36,7 @@ const modulos = [
     items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
   },
   {
-    title: "Stock",
-    items: ["Productos", "Depósitos", "Movimientos"],
-  },
-  {
-    title: "RRHH",
-    items: ["Empleados", "Parientes", "Nómina", "Asistencia"],
-  },
-  {
-    title: "Contabilidad",
-    items: [
-      "Proceso Contable",
-      "Periodo Contable",
-      "Asientos",
-      "Plan de Cuentas",
-    ],
-  },
-  {
-    title: "Tesorería y Bancos",
+    title: "Banco y Tesorería",
     items: [
       "Bancos",
       "Cuentas bancarias",
@@ -67,6 +49,17 @@ const modulos = [
       "Reportes",
     ],
   },
+  { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
+  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
+  {
+    title: "Contabilidad",
+    items: [
+      "Proceso Contable",
+      "Periodo Contable",
+      "Asientos",
+      "Plan de Cuentas",
+    ],
+  },
 ];
 
 const routeByItem: Record<string, string> = {
@@ -74,27 +67,16 @@ const routeByItem: Record<string, string> = {
   Presupuestos: "/ventas/presupuestos",
   Facturación: "/ventas/facturacion",
   Devoluciones: "/ventas/devoluciones",
-
   Proveedores: "/compras/proveedores",
   Pedidos: "/compras/pedidos",
   Cotizaciones: "/compras/cotizaciones",
-  Órdenes: "/compras/ordenes",
-  Pagos: "/compras/pagos",
-
   Productos: "/stock/productos",
-  Depósitos: "/stock/depositos",
-  Movimientos: "/stock/movimientos",
-
   Empleados: "/personas/empleados",
   Parientes: "/personas/parientes",
-  Nómina: "/personas/nomina",
-  Asistencia: "/personas/asistencia",
-
   "Proceso Contable": "/contabilidad/proceso-contable",
   "Periodo Contable": "/contabilidad/periodo-contable",
   Asientos: "/contabilidad/asientos",
   "Plan de Cuentas": "/contabilidad/plan-cuentas",
-
   Bancos: "/banco-tesoreria/bancos",
   "Cuentas bancarias": "/banco-tesoreria/cuentas",
   "Movimientos bancarios": "/banco-tesoreria/movimientos",
@@ -106,63 +88,45 @@ const routeByItem: Record<string, string> = {
   Reportes: "/banco-tesoreria/reportes",
 };
 
-type StoredUser = {
-  firstName?: string;
-  lastName?: string;
-};
-
 export default function Navbar() {
   const [userName, setUserName] = useState("Usuario");
   const router = useRouter();
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
-
-    if (!userData) return;
-
-    try {
-      const user: StoredUser = JSON.parse(userData);
-      const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
-
-      if (fullName) {
-        setUserName(fullName);
-      }
-    } catch {
-      localStorage.removeItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserName(`${user.firstName} ${user.lastName}`);
     }
   }, []);
 
   const handleLogout = () => {
-    Cookies.remove("token", { path: "/" });
+    //1. Eliminar la cookie del token
+    Cookies.remove("token", { path: "/" }); //Obs: mismo path que al momento de crear la cookie
+    //2. Limpiar datos del usuario en el navegador
     localStorage.removeItem("user");
-
-    notify.warning("¡Sesión cerrada!");
-
+    //localStorage.clear() -> si se quiere borrar todo
+    //3. Redirigir al login
     router.push("/login");
+    //4. Opcional: Forzar un refresco para limpiar estados de React
     router.refresh();
+    notify.warning("¡Sesión cerrada!");
   };
 
-  const avatarFallback = userName
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
-    <nav className="fixed top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* IZQUIERDA: Logo y navegación */}
+        {/* IZQUIERDA: Logo y Selects */}
         <div className="flex items-center gap-6">
           <Link
             href="/dashboard"
-            className="shrink-0 text-xl font-bold text-primary"
+            className="font-bold text-xl text-primary shrink-0"
           >
             McQueen Tires
           </Link>
 
-          <NavigationMenu viewport={false} className="relative hidden lg:flex">
+          {/* Selects de Módulos (Estilo Native Select con Tailwind) */}
+          <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink
@@ -178,17 +142,18 @@ export default function Navbar() {
                   <NavigationMenuTrigger className="cursor-pointer">
                     {modulo.title}
                   </NavigationMenuTrigger>
-
                   <NavigationMenuContent>
-                    <ul className="grid w-[220px] gap-2 p-4">
+                    <ul className="cursor-pointer grid w-[200px] gap-2 p-4">
                       {modulo.items.map((item) => (
                         <li key={item}>
                           <NavigationMenuLink asChild>
                             <Link
                               href={routeByItem[item] ?? "#"}
-                              className="block select-none rounded-md p-3 text-sm leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
-                              {item}
+                              <div className="text-sm font-medium leading-none">
+                                {item}
+                              </div>
                             </Link>
                           </NavigationMenuLink>
                         </li>
@@ -201,43 +166,33 @@ export default function Navbar() {
           </NavigationMenu>
         </div>
 
-        {/* DERECHA: Perfil y logout */}
+        {/* DERECHA: Perfil y Logout */}
         <div className="flex items-center gap-4">
-          <div className="hidden text-right sm:block">
+          <div className="text-right hidden sm:block">
             <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs text-muted-foreground">Administrador</p>
           </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-10 w-10 cursor-pointer rounded-full"
+                className="mr-6 relative h-10 w-10 rounded-full cursor-pointer"
               >
                 <Avatar className="h-10 w-10 border">
                   <AvatarImage
                     src="https://github.com/shadcn.png"
                     alt="Usuario"
                   />
-                  <AvatarFallback>{avatarFallback || "U"}</AvatarFallback>
+                  <AvatarFallback>JP</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-
-              <DropdownMenuItem asChild>
-                <Link href="/perfil">Perfil</Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem asChild>
-                <Link href="/configuracion">Configuración</Link>
-              </DropdownMenuItem>
-
+              <DropdownMenuItem>Perfil</DropdownMenuItem>
+              <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
-
               <DropdownMenuItem
                 className="text-destructive focus:bg-destructive focus:text-white"
                 onClick={handleLogout}

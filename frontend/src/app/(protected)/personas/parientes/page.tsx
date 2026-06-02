@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, Pencil, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,7 @@ import { FormSheet } from "@/components/shared/form-sheet";
 import { ParienteForm } from "@/components/personas/parientes-form";
 import { empleadosAPI } from "@/services/empleadosAPI";
 import { parientesAPI } from "@/services/parientesAPI";
+import { formatearFecha } from "@/utils/date-utils";
 import { Empleado, Pariente, ParienteSaveDTO } from "@/types/types";
 import { notify } from "@/lib/notifications";
 
@@ -30,14 +32,14 @@ export default function ParientesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
-  const [parientes, setParientes] = useState<Pariente[]>([]);
+  const [todosLosParientes, setTodosLosParientes] = useState<Pariente[]>([]);
   const [parienteAEditar, setParienteAEditar] = useState<Pariente | null>(null);
   const [parienteAEliminar, setParienteAEliminar] = useState<Pariente | null>(
     null,
   );
 
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
 
   const cargarPagina = async () => {
@@ -45,13 +47,12 @@ export default function ParientesPage() {
 
     try {
       const [resParientes, resEmpleados] = await Promise.all([
-        parientesAPI.getAll(currentPage, itemsPerPage),
+        parientesAPI.getAll(1, 300),
 
         empleadosAPI.getAll(1, 999),
       ]);
 
-      setParientes(resParientes.items);
-      setTotalPages(resParientes.totalPages);
+      setTodosLosParientes(resParientes.items);
       setEmpleados(resEmpleados.items);
     } catch (error) {
       console.error("Error al cargar parientes:", error);
@@ -64,7 +65,40 @@ export default function ParientesPage() {
 
   useEffect(() => {
     cargarPagina();
-  }, [currentPage]);
+  }, []);
+
+  const parientesFiltrados = useMemo(() => {
+    if (!searchTerm.trim()) return todosLosParientes;
+
+    const query = searchTerm.toLowerCase().trim();
+    return todosLosParientes.filter((p) => {
+      const empleado =
+        `${p.empleado?.nombres ?? ""} ${p.empleado?.apellidos ?? ""}`
+          .toLowerCase()
+          .trim();
+      const tipo = (p.tipoRelacion ?? "").toLowerCase();
+      const edad = String(p.edad ?? "").toLowerCase();
+      const fecha = (p.fechaNacimiento ?? "").toLowerCase();
+      return (
+        empleado.includes(query) ||
+        tipo.includes(query) ||
+        edad.includes(query) ||
+        fecha.includes(query)
+      );
+    });
+  }, [searchTerm, todosLosParientes]);
+
+  const totalPages = Math.ceil(parientesFiltrados.length / itemsPerPage) || 1;
+
+  const parientesVisiblesEnPagina = useMemo(() => {
+    const primerItemIndex = (currentPage - 1) * itemsPerPage;
+    const ultimoItemIndex = primerItemIndex + itemsPerPage;
+    return parientesFiltrados.slice(primerItemIndex, ultimoItemIndex);
+  }, [currentPage, itemsPerPage, parientesFiltrados]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleCrearNuevo = () => {
     setParienteAEditar(null);
@@ -138,6 +172,28 @@ export default function ParientesPage() {
         onButtonClick={handleCrearNuevo}
       />
 
+      <div className="my-4 flex items-center max-w-md relative">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por empleado, relación, edad o fecha..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-1 top-1 h-7 w-7 hover:bg-transparent text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -173,7 +229,9 @@ export default function ParientesPage() {
           onPageChange={(page) => setCurrentPage(page)}
           headerRow={
             <TableRow>
-              <TableHead>Empleado</TableHead>
+              <TableHead>Nombre</TableHead>
+
+              <TableHead>Apellido</TableHead>
 
               <TableHead>Tipo Relación</TableHead>
 
@@ -185,53 +243,54 @@ export default function ParientesPage() {
             </TableRow>
           }
         >
-          {parientes.length === 0 ? (
+          {parientesVisiblesEnPagina.map((p) => (
+            <TableRow key={p.idPariente}>
+              <TableCell>{p.empleado.nombres}</TableCell>
+              <TableCell> {p.empleado.apellidos}</TableCell>
+
+              <TableCell>{p.tipoRelacion}</TableCell>
+
+              <TableCell>{p.edad}</TableCell>
+
+              <TableCell>{formatearFecha(p.fechaNacimiento)}</TableCell>
+
+              <TableCell className="text-right space-x-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="cursor-pointer"
+                  onClick={() => handleEditar(p)}
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setParienteAEliminar(p);
+
+                    setIsAlertOpen(true);
+                  }}
+                >
+                  <Trash2 className="size-3.5 text-destructive" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+
+          {parientesVisiblesEnPagina.length === 0 && (
             <TableRow>
               <TableCell
                 colSpan={5}
-                className="h-24 text-center text-muted-foreground"
+                className="py-10 text-center text-muted-foreground text-sm"
               >
-                No hay parientes registrados.
+                {searchTerm.trim()
+                  ? "No hay parientes que coincidan con la búsqueda."
+                  : "No hay parientes registrados."}
               </TableCell>
             </TableRow>
-          ) : (
-            parientes.map((p) => (
-              <TableRow key={p.idPariente}>
-                <TableCell>
-                  {p.empleado.nombres} {p.empleado.apellidos}
-                </TableCell>
-
-                <TableCell>{p.tipoRelacion}</TableCell>
-
-                <TableCell>{p.edad}</TableCell>
-
-                <TableCell>{p.fechaNacimiento}</TableCell>
-
-                <TableCell className="text-right space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="cursor-pointer"
-                    onClick={() => handleEditar(p)}
-                  >
-                    <Pencil className="size-3.5" />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setParienteAEliminar(p);
-
-                      setIsAlertOpen(true);
-                    }}
-                  >
-                    <Trash2 className="size-3.5 text-destructive" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
           )}
         </DataTable>
       )}

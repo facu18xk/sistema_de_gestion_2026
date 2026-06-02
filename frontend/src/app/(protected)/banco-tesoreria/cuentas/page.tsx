@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,15 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { FormSheet } from "@/components/shared/form-sheet";
 import { CuentaBancariaForm } from "@/components/banco-tesoreria/cuenta-bancaria-form";
+import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
+import { textoCoincide } from "@/lib/list-filters";
 import { bancosAPI } from "@/services/bancosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { tiposCuentasBancariasAPI } from "@/services/tiposCuentasBancariasAPI";
 import { cuentasContablesAPI } from "@/services/cuentasContablesAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { notify } from "@/lib/notifications";
+import { Badge } from "@/components/ui/badge";
 import type {
   Banco,
   CuentaBancaria,
@@ -39,18 +42,22 @@ export default function CuentasBancariasPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
+  const [todasLasCuentas, setTodasLasCuentas] = useState<CuentaBancaria[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [bancos, setBancos] = useState<Banco[]>([]);
   const [tiposCuenta, setTiposCuenta] = useState<TipoCuentaBancaria[]>([]);
-  const [cuentasContables, setCuentasContables] = useState<CuentaContable[]>([]);
+  const [cuentasContables, setCuentasContables] = useState<CuentaContable[]>(
+    [],
+  );
 
-  const [cuentaAEditar, setCuentaAEditar] = useState<CuentaBancaria | null>(null);
+  const [cuentaAEditar, setCuentaAEditar] = useState<CuentaBancaria | null>(
+    null,
+  );
   const [cuentaAEliminar, setCuentaAEliminar] = useState<CuentaBancaria | null>(
     null,
   );
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
 
   const cargarCatalogos = async () => {
@@ -75,9 +82,8 @@ export default function CuentasBancariasPage() {
   const cargarPagina = async () => {
     setIsLoading(true);
     try {
-      const res = await cuentasBancariasAPI.getAll(currentPage, itemsPerPage);
-      setCuentas(res.items);
-      setTotalPages(res.totalPages);
+      const res = await cuentasBancariasAPI.getAll(1, 500);
+      setTodasLasCuentas(res.items);
     } catch (error) {
       console.error("Error al cargar cuentas bancarias:", error);
       notify.error(
@@ -91,11 +97,32 @@ export default function CuentasBancariasPage() {
 
   useEffect(() => {
     cargarCatalogos();
+    cargarPagina();
   }, []);
 
   useEffect(() => {
-    cargarPagina();
-  }, [currentPage]);
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const cuentasFiltradas = useMemo(() => {
+    return todasLasCuentas.filter((c) =>
+      textoCoincide(
+        searchTerm,
+        c.banco,
+        c.tipoCuentaBancaria,
+        c.numeroCuenta,
+        c.cuentaContable,
+        c.moneda,
+      ),
+    );
+  }, [todasLasCuentas, searchTerm]);
+
+  const totalPages = Math.ceil(cuentasFiltradas.length / itemsPerPage) || 1;
+
+  const cuentas = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return cuentasFiltradas.slice(start, start + itemsPerPage);
+  }, [cuentasFiltradas, currentPage, itemsPerPage]);
 
   const handleCrearNuevo = () => {
     if (bancos.filter((b) => b.activo).length === 0) {
@@ -133,10 +160,7 @@ export default function CuentasBancariasPage() {
   const handleFormSubmit = async (data: CuentaBancariaSaveDTO) => {
     try {
       if (cuentaAEditar) {
-        await cuentasBancariasAPI.update(
-          cuentaAEditar.idCuentaBancaria,
-          data,
-        );
+        await cuentasBancariasAPI.update(cuentaAEditar.idCuentaBancaria, data);
         notify.success("Actualizada", "Cuenta bancaria actualizada.");
       } else {
         await cuentasBancariasAPI.create(data);
@@ -163,6 +187,12 @@ export default function CuentasBancariasPage() {
         title="Listado de cuentas bancarias"
         buttonLabel="Nueva cuenta"
         onButtonClick={handleCrearNuevo}
+      />
+
+      <TesoreriaFiltrosListado
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por banco, número, tipo o cuenta contable..."
       />
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
@@ -235,19 +265,13 @@ export default function CuentasBancariasPage() {
                 <TableCell className="text-right font-medium">
                   {formatMoney(c.saldo, c.moneda)}
                 </TableCell>
-                <TableCell className="text-right text-muted-foreground">
+                <TableCell className="text-right font-medium">
                   {formatMoney(c.saldoDisponible, c.moneda)}
                 </TableCell>
                 <TableCell>
-                  <span
-                    className={
-                      c.activa
-                        ? "text-sm font-medium text-emerald-600"
-                        : "text-sm text-muted-foreground"
-                    }
-                  >
-                    {c.activa ? "Activa" : "Inactiva"}
-                  </span>
+                  <Badge variant={c.activa ? "activo" : "destructive"}>
+                    {c.activa ? "Activo" : "Inactivo"}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
@@ -279,7 +303,9 @@ export default function CuentasBancariasPage() {
       <FormSheet
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        title={cuentaAEditar ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}
+        title={
+          cuentaAEditar ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"
+        }
         contentClassName="px-6 sm:max-w-[560px] overflow-y-auto"
       >
         <CuentaBancariaForm

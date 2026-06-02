@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +27,7 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { FormSheet } from "@/components/shared/form-sheet";
+import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
 import { MovimientoBancarioForm } from "@/components/banco-tesoreria/movimiento-bancario-form";
 import { movimientosBancariosAPI } from "@/services/movimientosBancariosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
@@ -26,6 +35,7 @@ import { tiposMovimientosBancariosAPI } from "@/services/tiposMovimientosBancari
 import { estadosAPI } from "@/services/estadosAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
+import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
 import { notify } from "@/lib/notifications";
 import type {
   CuentaBancaria,
@@ -35,16 +45,16 @@ import type {
   TipoMovimientoBancario,
 } from "@/types/types";
 
+const defaultRango = rangoFechaPorDefecto();
+
 export default function MovimientosBancariosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const [movimientos, setMovimientos] = useState<MovimientoBancario[]>([]);
+  const [todosLosMovimientos, setTodosLosMovimientos] = useState<MovimientoBancario[]>([]);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
-  const [tiposMovimiento, setTiposMovimiento] = useState<TipoMovimientoBancario[]>(
-    [],
-  );
+  const [tiposMovimiento, setTiposMovimiento] = useState<TipoMovimientoBancario[]>([]);
   const [estados, setEstados] = useState<Estado[]>([]);
 
   const [movimientoAEditar, setMovimientoAEditar] =
@@ -53,8 +63,12 @@ export default function MovimientosBancariosPage() {
     useState<MovimientoBancario | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [fechaDesde, setFechaDesde] = useState(defaultRango.desde);
+  const [fechaHasta, setFechaHasta] = useState(defaultRango.hasta);
+  const [idCuentaFiltro, setIdCuentaFiltro] = useState("all");
 
   const cargarCatalogos = async () => {
     try {
@@ -74,12 +88,8 @@ export default function MovimientosBancariosPage() {
   const cargarPagina = async () => {
     setIsLoading(true);
     try {
-      const res = await movimientosBancariosAPI.getAll(
-        currentPage,
-        itemsPerPage,
-      );
-      setMovimientos(res.items);
-      setTotalPages(res.totalPages);
+      const res = await movimientosBancariosAPI.getAll(1, 500);
+      setTodosLosMovimientos(res.items);
     } catch (error) {
       console.error("Error al cargar movimientos:", error);
       notify.error(
@@ -93,11 +103,36 @@ export default function MovimientosBancariosPage() {
 
   useEffect(() => {
     cargarCatalogos();
+    cargarPagina();
   }, []);
 
   useEffect(() => {
-    cargarPagina();
-  }, [currentPage]);
+    setCurrentPage(1);
+  }, [searchTerm, fechaDesde, fechaHasta, idCuentaFiltro]);
+
+  const movimientosFiltrados = useMemo(() => {
+    return todosLosMovimientos.filter((m) => {
+      if (idCuentaFiltro !== "all" && m.idCuentaBancaria !== Number(idCuentaFiltro)) {
+        return false;
+      }
+      if (!enRangoFecha(m.fecha, fechaDesde, fechaHasta)) return false;
+      return textoCoincide(
+        searchTerm,
+        m.concepto,
+        m.referencia,
+        m.cuentaBancaria,
+        m.tipoMovimientoBancario,
+        m.estado,
+      );
+    });
+  }, [todosLosMovimientos, searchTerm, fechaDesde, fechaHasta, idCuentaFiltro]);
+
+  const totalPages = Math.ceil(movimientosFiltrados.length / itemsPerPage) || 1;
+
+  const movimientos = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return movimientosFiltrados.slice(start, start + itemsPerPage);
+  }, [movimientosFiltrados, currentPage, itemsPerPage]);
 
   const monedaPorCuenta = (idCuenta: number) =>
     cuentas.find((c) => c.idCuentaBancaria === idCuenta)?.moneda ?? "PYG";
@@ -182,6 +217,37 @@ export default function MovimientosBancariosPage() {
         onButtonClick={handleCrearNuevo}
       />
 
+      <TesoreriaFiltrosListado
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por concepto, referencia, cuenta o tipo..."
+        showDateRange
+        fechaDesde={fechaDesde}
+        fechaHasta={fechaHasta}
+        onFechaDesdeChange={setFechaDesde}
+        onFechaHastaChange={setFechaHasta}
+      >
+        <div className="grid gap-1 min-w-[200px]">
+          <Label className="text-xs text-muted-foreground">Cuenta</Label>
+          <Select value={idCuentaFiltro} onValueChange={setIdCuentaFiltro}>
+            <SelectTrigger className="h-9 bg-white">
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las cuentas</SelectItem>
+              {cuentas.map((c) => (
+                <SelectItem
+                  key={c.idCuentaBancaria}
+                  value={String(c.idCuentaBancaria)}
+                >
+                  {c.banco} — {c.numeroCuenta}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </TesoreriaFiltrosListado>
+
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -244,7 +310,7 @@ export default function MovimientosBancariosPage() {
                 </TableCell>
                 <TableCell>{m.tipoMovimientoBancario}</TableCell>
                 <TableCell>{m.concepto}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-right font-medium">
                   {m.referencia || "—"}
                 </TableCell>
                 <TableCell className="text-right font-medium">
