@@ -22,6 +22,7 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
     {
         var cheque = await Set
             .Include(item => item.IdCuentaBancariaNavigation)
+            .Include(item => item.IdMovimientoBancarioNavigation)
             .FirstOrDefaultAsync(item => item.IdChequeEmitido == id);
 
         if (cheque is null)
@@ -29,13 +30,17 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
             throw new KeyNotFoundException($"No existe el cheque emitido con ID {id}");
         }
 
-        if (cheque.FechaPago is not null || TesoreriaText.Normalize(cheque.Estado) == "pagado")
+        if (TesoreriaText.Normalize(cheque.Estado) == "pagado")
         {
             throw new InvalidOperationException("El cheque ya fue conciliado.");
         }
 
-        cheque.FechaPago = fechaPago;
         cheque.Estado = "Pagado";
+        if (cheque.IdMovimientoBancarioNavigation is not null)
+        {
+            cheque.IdMovimientoBancarioNavigation.Fecha = fechaPago;
+        }
+
         cheque.IdCuentaBancariaNavigation.SaldoDisponible -= cheque.Monto;
         await _context.SaveChangesAsync();
         return cheque;
@@ -43,7 +48,7 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
 
     protected override void UpdateEntity(ChequeEmitido existingEntity, ChequeEmitido incomingEntity)
     {
-        if (existingEntity.FechaPago is not null)
+        if (TesoreriaText.Normalize(existingEntity.Estado) == "pagado")
         {
             throw new InvalidOperationException("No se puede modificar un cheque conciliado.");
         }
@@ -54,7 +59,6 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
         existingEntity.NumeroCheque = incomingEntity.NumeroCheque;
         existingEntity.Beneficiario = incomingEntity.Beneficiario;
         existingEntity.FechaEmision = incomingEntity.FechaEmision;
-        existingEntity.FechaPago = incomingEntity.FechaPago;
         existingEntity.Monto = incomingEntity.Monto;
         existingEntity.Estado = incomingEntity.Estado;
     }

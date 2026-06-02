@@ -28,7 +28,6 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         {
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = dto.IdEstado,
-            IdTimbrado = dto.IdTimbrado,
             NroComprobante = dto.NroComprobante,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
@@ -45,7 +44,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     [HttpPut("{id:int}")]
     public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpsertDto dto)
     {
-        return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaCreateDto
+        return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaUpdateDto
         {
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = dto.IdEstado,
@@ -58,7 +57,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     }
 
     [HttpPut("completo/{id:int}")]
-    public async Task<ActionResult<NotasCreditosVentaDto>> UpdateCompleto(int id, NotaCreditoVentaCompletaCreateDto dto)
+    public async Task<ActionResult<NotasCreditosVentaDto>> UpdateCompleto(int id, NotaCreditoVentaCompletaUpdateDto dto)
     {
         return await UpdateFromCompletaDto(id, dto);
     }
@@ -80,7 +79,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         }
     }
 
-    private async Task<ActionResult<NotasCreditosVentaDto>> UpdateFromCompletaDto(int id, NotaCreditoVentaCompletaCreateDto dto)
+    private async Task<ActionResult<NotasCreditosVentaDto>> UpdateFromCompletaDto(int id, NotaCreditoVentaCompletaUpdateDto dto)
     {
         try
         {

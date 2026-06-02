@@ -85,8 +85,6 @@ public class FacturaVentaCompletaCreateDto
 
     public int IdEstado { get; set; }
 
-    public int IdTimbrado { get; set; }
-
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
@@ -155,6 +153,21 @@ public class FacturaVentaCompletaDto
 }
 
 public class NotaCreditoVentaCompletaCreateDto
+{
+    public int IdFacturaVenta { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public string? NroComprobante { get; set; }
+
+    public string Motivo { get; set; } = string.Empty;
+
+    public DateTime FechaEmision { get; set; }
+
+    public IReadOnlyCollection<VentaItemCreateDto> Items { get; set; } = Array.Empty<VentaItemCreateDto>();
+}
+
+public class NotaCreditoVentaCompletaUpdateDto
 {
     public int IdFacturaVenta { get; set; }
 

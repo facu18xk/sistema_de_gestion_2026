@@ -238,7 +238,6 @@ public class VentasCompletasService
             IdCliente = dto.IdCliente,
             NroComprobante = dto.NroComprobante ?? string.Empty,
             IdEstado = idEstado,
-            IdTimbrado = dto.IdTimbrado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,
@@ -314,7 +313,6 @@ public class VentasCompletasService
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = idEstado,
             IdNotaDevolucionVenta = null,
-            IdTimbrado = dto.IdTimbrado,
             NroComprobante = dto.NroComprobante ?? string.Empty,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
@@ -361,7 +359,7 @@ public class VentasCompletasService
         return await GetNotaCreditoVentaAsync(notaCredito.IdNotaCreditoVenta) ?? notaCredito;
     }
 
-    public async Task<NotasCreditosVenta> UpdateNotaCreditoVentaAsync(int id, NotaCreditoVentaCompletaCreateDto dto)
+    public async Task<NotasCreditosVenta> UpdateNotaCreditoVentaAsync(int id, NotaCreditoVentaCompletaUpdateDto dto)
     {
         var idEstado = NormalizeNotaCreditoVentaEstado(dto.IdEstado);
         var notaCredito = await _context.NotasCreditosVentas

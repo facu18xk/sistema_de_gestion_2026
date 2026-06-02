@@ -45,7 +45,6 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
         NumeroCheque = entity.NumeroCheque,
         Beneficiario = entity.Beneficiario,
         FechaEmision = entity.FechaEmision,
-        FechaPago = entity.FechaPago,
         Monto = entity.Monto,
         Estado = entity.Estado
     };
@@ -58,7 +57,6 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
         NumeroCheque = dto.NumeroCheque,
         Beneficiario = dto.Beneficiario,
         FechaEmision = dto.FechaEmision,
-        FechaPago = dto.FechaPago,
         Monto = dto.Monto,
         Estado = dto.Estado
     };
