@@ -74,6 +74,14 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
 
         if (previousEstado != EstadoAnulado && existingEntity.IdEstado == EstadoAnulado)
         {
+            var hasNotasCredito = await _context.NotasCreditosVentas
+                .AnyAsync(notaCredito => notaCredito.IdFacturaVenta == id);
+
+            if (hasNotasCredito)
+            {
+                throw new InvalidOperationException("No se puede anular la factura porque tiene notas de crédito asociadas.");
+            }
+
             var stockToRestore = existingEntity.FacturasVentasDetalles
                 .Select(detalle => new VentaItemCreateDto
                 {
