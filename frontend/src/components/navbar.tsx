@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,38 +14,55 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-  } from "@/components/ui/navigation-menu"
-  
-  const modulos = [
-    { title: "Ventas", items: ["Facturación", "Clientes", "Reportes"] },
-    { title: "Compras", items: ["Proveedores", "Órdenes", "Pagos"] },
-    { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
-    { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
-    { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
-  ]
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import Cookies from 'js-cookie'
+import { notify } from "@/lib/notifications"
+
+//Para listar los diferentes módulos en el navbar
+const modulos = [
+  { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
+  { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Facturas", "Pagos", "Notas de Devolución"] },
+  { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
+  { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
+  { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
+]
 
 export default function Navbar() {
-  const router = useRouter()
+  const [userName, setUserName] = useState("Usuario");
+  const router = useRouter();
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserName(`${user.firstName} ${user.lastName}`);
+    }
+  }, []);
 
   const handleLogout = () => {
-    // Aquí iría la lógica para limpiar el token
+    //1. Eliminar la cookie del token
+    Cookies.remove("token", { path: '/' }) //Obs: mismo path que al momento de crear la cookie
+    //2. Limpiar datos del usuario en el navegador
+    localStorage.removeItem("user")
+    //localStorage.clear() -> si se quiere borrar todo
+    //3. Redirigir al login
     router.push("/login")
+    //4. Opcional: Forzar un refresco para limpiar estados de React
+    router.refresh()
+    notify.warning("¡Sesión cerrada!");
   }
-
-  // Lista de módulos para los Selects
-  //const modulos = ["Inicio", "Ventas", "Compras", "Banco y Tesorería", "Stock", "RRHH"]
 
   return (
     <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        
+
         {/* IZQUIERDA: Logo y Selects */}
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="font-bold text-xl text-primary shrink-0">
@@ -54,13 +72,10 @@ export default function Navbar() {
           {/* Selects de Módulos (Estilo Native Select con Tailwind) */}
           <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
-              
               <NavigationMenuItem>
-                <Link href="/dashboard" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Inicio
-                  </NavigationMenuLink>
-                </Link>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
+                  <Link href="/dashboard">Inicio</Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
 
               {modulos.map((modulo) => (
@@ -71,9 +86,23 @@ export default function Navbar() {
                       {modulo.items.map((item) => (
                         <li key={item}>
                           <NavigationMenuLink asChild>
-                            <a className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                            <Link
+                              href={item === "Productos" ? "/stock/productos" :
+                                item == "Proveedores" ? "/compras/proveedores" :
+                                  item === "Clientes" ? "/ventas/clientes" :
+                                    item === "Empleados" ? "/personas/empleados" :
+                                      item === "Pedidos" ? "/compras/pedidos" :
+                                        item === "Cotizaciones" ? "/compras/cotizaciones" :
+                                          item === "Órdenes" ? "/compras/ordenes" :
+                                            item === "Facturas" ? "/compras/facturas" :
+                                              item === "Pagos" ? "/compras/pagos" :
+                                                item === "Notas de Devolución" ? "/compras/notas-de-devolucion" :
+                                                  "#"
+                              }
+                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                            >
                               <div className="text-sm font-medium leading-none">{item}</div>
-                            </a>
+                            </Link>
                           </NavigationMenuLink>
                         </li>
                       ))}
@@ -81,7 +110,7 @@ export default function Navbar() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ))}
-              
+
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -89,12 +118,12 @@ export default function Navbar() {
         {/* DERECHA: Perfil y Logout */}
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium leading-none">Juan Pérez</p>
+            <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs text-muted-foreground">Administrador</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="mr-6 relative h-10 w-10 rounded-full">
+              <Button variant="ghost" className="mr-6 relative h-10 w-10 rounded-full cursor-pointer">
                 <Avatar className="h-10 w-10 border">
                   <AvatarImage src="https://github.com/shadcn.png" alt="Usuario" />
                   <AvatarFallback>JP</AvatarFallback>
@@ -107,8 +136,8 @@ export default function Navbar() {
               <DropdownMenuItem>Perfil</DropdownMenuItem>
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+              <DropdownMenuItem
+                className="text-destructive focus:bg-destructive"
                 onClick={handleLogout}
               >
                 Cerrar Sesión
@@ -119,5 +148,5 @@ export default function Navbar() {
 
       </div>
     </nav>
-  )
+  );
 }
