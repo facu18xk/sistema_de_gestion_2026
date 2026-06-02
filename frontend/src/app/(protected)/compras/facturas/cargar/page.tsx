@@ -5,14 +5,13 @@ import { useRouter } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Save, ArrowLeft, Check, ChevronsUpDown } from "lucide-react"
+import { Loader2, Save, ArrowLeft, Check, ChevronsUpDown, ExternalLink } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
-import { facturasCompraDetallesAPI } from "@/services/facturasCompraDetallesAPI"
 import { OrdenCompraDTO, CotizacionDetalleDTO } from "@/types/types"
 import { FacturaCompraSaveDTO } from "@/types/types"
 import { notify } from "@/lib/notifications"
@@ -23,6 +22,7 @@ interface ItemFacturaForm {
     idProducto: number
     descripcion: string
     cantidadPedida: number
+    cantidadFacturadaPrevia: number // Control de acumulados anteriores
     cantidadRecibidaAhora: number
     precioUnitario: number
     descuento: number
@@ -49,7 +49,8 @@ export default function CargarFacturaPage() {
             try {
                 const res = await ordenesCompraAPI.getAll(1, 100)
                 const lista: OrdenCompraDTO[] = res.items || res || []
-                setOrdenes(lista.filter((o) => o.estado !== "Facturado"))
+                // Filtrar órdenes que no estén completamente liquidadas/completadas
+                setOrdenes(lista.filter((o) => o.estado !== "Completado" && o.estado !== "Facturado"))
             } catch (err) {
                 notify.error("Error", "No se pudieron obtener las órdenes de compra.")
             } finally {
@@ -60,17 +61,10 @@ export default function CargarFacturaPage() {
     }, [])
 
     const formatNroComprobante = (value: string) => {
-        // Deja solo los dígitos numéricos
         const nums = value.replace(/\D/g, "")
-
         const digits = nums.slice(0, 13)
-
-        if (digits.length <= 3) {
-            return digits
-        }
-        if (digits.length <= 6) {
-            return `${digits.slice(0, 3)}-${digits.slice(3)}`
-        }
+        if (digits.length <= 3) return digits
+        if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`
         return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
     }
 
@@ -92,13 +86,21 @@ export default function CargarFacturaPage() {
 
             const idCotizacionGanadora = ordenDoc.idPedidoCotizacion
 
-            const [resOrdenCompleta, resTodasLasCotizaciones] = await Promise.all([
+            // Traemos los detalles de la OC, cotizaciones e historial de facturas para calcular remanentes
+            const [resOrdenCompleta, resTodasLasCotizaciones, resTodasLasFacturas] = await Promise.all([
                 ordenesCompraAPI.getById(idOC),
-                cotizacionesDetallesAPI.getAll(1, 500)
+                cotizacionesDetallesAPI.getAll(1, 500),
+                FacturasCompraAPI.getAll(1, 1000)
             ])
 
             const detallesOC: any[] = resOrdenCompleta.detalles || []
             const todasLasCotizaciones: any = resTodasLasCotizaciones.items || resTodasLasCotizaciones || []
+            const todasLasFacturas: any[] = resTodasLasFacturas.items || resTodasLasFacturas || []
+
+            // Filtrar facturas vigentes vinculadas a esta misma OC
+            const facturasPreviasAsociadas = todasLasFacturas.filter(
+                (f: any) => String(f.idOrdenCompra) === String(idOC) && f.estado !== "Anulado"
+            )
 
             const detallesCotizFiltrados: CotizacionDetalleDTO[] = todasLasCotizaciones.filter(
                 (c: CotizacionDetalleDTO) => c.idPedidoCotizacion === idCotizacionGanadora
@@ -109,26 +111,36 @@ export default function CargarFacturaPage() {
                     (c) => c.idProducto === detOC.idProducto
                 )
 
-                const coincindex = !!coincidenciaCotizacion;
                 const precioUnitario = coincidenciaCotizacion ? coincidenciaCotizacion.precioProducto : 0
-                const descuento = coincidenciaCotizacion ? ((coincidenciaCotizacion as any).descuento || 0) : 0;
-                const cantidad = detOC.cantidad || 0
+                const descuentoTotalOC = coincidenciaCotizacion ? ((coincidenciaCotizacion as any).descuento || 0) : 0
+                const cantidadPedida = detOC.cantidad || 0
 
-                const totalBruto = cantidad * precioUnitario
-                const netoSinDescuento = totalBruto - descuento
-                const totalIva = Math.round(netoSinDescuento / 11)
-                const totalNeto = netoSinDescuento
+                // Cálculo de lo ya facturado en el pasado para este producto específico
+                const cantidadFacturadaPrevia = facturasPreviasAsociadas.reduce((acc, f) => {
+                    const de = f.detalles?.find((d: any) => d.idProducto === detOC.idProducto)
+                    return acc + (de ? de.cantidad : 0)
+                }, 0)
+
+                // El remanente sugerido para recibir ahora de forma predeterminada
+                const cantidadRestante = Math.max(0, cantidadPedida - cantidadFacturadaPrevia)
+
+                const totalBruto = cantidadRestante * precioUnitario
+                // Proporcional del descuento basado en lo que queda por facturar
+                const descuentoProporcional = cantidadPedida > 0 ? (descuentoTotalOC / cantidadPedida) * cantidadRestante : 0
+                const totalNeto = totalBruto - descuentoProporcional
+                const totalIva = Math.round(totalNeto / 11)
 
                 return {
                     idProducto: detOC.idProducto,
                     descripcion: detOC.producto?.descripcion || detOC.descripcion || `Producto #${detOC.idProducto}`,
-                    cantidadPedida: cantidad,
-                    cantidadRecibidaAhora: cantidad,
-                    precioUnitario: precioUnitario,
-                    descuento: descuento,
-                    totalBruto: totalBruto,
-                    totalIva: totalIva,
-                    totalNeto: totalNeto
+                    cantidadPedida,
+                    cantidadFacturadaPrevia,
+                    cantidadRecibidaAhora: cantidadRestante,
+                    precioUnitario,
+                    descuento: descuentoProporcional,
+                    totalBruto,
+                    totalIva,
+                    totalNeto
                 }
             })
 
@@ -136,7 +148,7 @@ export default function CargarFacturaPage() {
             setDescripcion(`Facturación de la OC #${idOC}`)
         } catch (err) {
             console.error(err)
-            notify.error("Error de Cruce", "Fallo al procesar el listado y sus cotizaciones.")
+            notify.error("Error de Cruce", "Fallo al procesar las facturas previas y las cotizaciones.")
         }
     }
 
@@ -144,10 +156,13 @@ export default function CargarFacturaPage() {
         setItemsFactura(prev => prev.map((item, i) => {
             if (i !== index) return item
 
-
             const cant = Math.max(0, nuevaCant)
             const totalBruto = cant * item.precioUnitario
-            const descuentoProporcional = item.cantidadPedida > 0 ? (item.descuento / item.cantidadPedida) * cant : 0
+
+            // Recalcular descuento e IVA proporcional
+            const descuentoOriginalTotal = item.cantidadPedida > 0 ? (item.descuento / (item.cantidadRecibidaAhora || 1)) * item.cantidadRecibidaAhora : 0
+            const descuentoProporcional = item.cantidadPedida > 0 ? (descuentoOriginalTotal / item.cantidadPedida) * cant : 0
+
             const totalNeto = totalBruto - descuentoProporcional
             const totalIva = Math.round(totalNeto / 11)
 
@@ -173,15 +188,18 @@ export default function CargarFacturaPage() {
             return notify.error("Formato Inválido", "El número de comprobante debe tener el formato completo: 001-001-0000001")
         }
 
-        const itemExcedido = itemsFactura.find(item => item.cantidadRecibidaAhora > item.cantidadPedida)
+        // VALIDACIÓN: Verificar por cada detalle que no exceda la orden de compra entregable
+        const itemExcedido = itemsFactura.find(
+            item => item.cantidadRecibidaAhora > (item.cantidadPedida - item.cantidadFacturadaPrevia)
+        )
         if (itemExcedido) {
+            const disponibleMax = itemExcedido.cantidadPedida - itemExcedido.cantidadFacturadaPrevia
             return notify.error(
                 "Cantidad Excedida",
-                `El producto "${itemExcedido.descripcion}" supera la cantidad disponible en la Orden de Compra (${itemExcedido.cantidadPedida}).`
+                `El producto "${itemExcedido.descripcion}" supera el remanente disponible de la Orden (${disponibleMax} unidades).`
             )
         }
 
-        // VALIDACIÓN: Evitar guardar facturas vacías en 0 unidades
         const totalItemsFacturados = itemsFactura.reduce((acc, item) => acc + item.cantidadRecibidaAhora, 0)
         if (totalItemsFacturados === 0) {
             return notify.error("Operación Inválida", "La factura debe contener al menos 1 producto con cantidad mayor a 0.")
@@ -191,58 +209,55 @@ export default function CargarFacturaPage() {
         try {
             const ordenDoc = ordenes.find(o => String(o.idOrdenCompra) === String(idOrdenSeleccionada))
             const idProveedorFinal = ordenDoc ? ordenDoc.idProveedor : 0
-
             const fechaFormateada = new Date(fecha + 'T00:00:00').toISOString().split('T')[0]
 
+            // Construcción del Payload Único Transaccional (Cabecera + Detalles + Estado inicial)
             const facturaPayload: FacturaCompraSaveDTO = {
                 idOrdenCompra: Number(idOrdenSeleccionada),
                 idProveedor: idProveedorFinal,
                 nroComprobante: nroComprobante,
                 timbrado: timbrado,
                 fecha: fechaFormateada,
-                descripcion: descripcion
+                descripcion: descripcion,
+                estado: "Pendiente", // Al crearse inicia en "Pendiente" y permite modificaciones
+                detalles: itemsFactura
+                    .filter(item => item.cantidadRecibidaAhora > 0)
+                    .map(item => ({
+                        idProducto: item.idProducto,
+                        cantidad: item.cantidadRecibidaAhora,
+                        precioUnitario: item.precioUnitario,
+                        totalBruto: item.totalBruto,
+                        totalIva: item.totalIva,
+                        totalNeto: item.totalNeto
+                    }))
             }
 
-            // 1. Mandamos la cabecera
-            const nuevaFactura: any = await FacturasCompraAPI.create(facturaPayload)
-            const idFacturaGenerada = nuevaFactura?.idFacturaCompra || nuevaFactura?.id
+            // 1. Envío unificado al backend
+            await FacturasCompraAPI.create(facturaPayload)
 
-            if (!idFacturaGenerada) {
-                throw new Error("El backend no retornó un ID válido para la cabecera de la factura.")
-            }
+            // 2. Cálculo lógico del nuevo estado de la Orden de Compra
+            let totalPedidoGlobal = 0
+            let totalFacturadoGlobal = 0
 
-            // Filtrar para registrar solo ítems cuya cantidad cargada sea mayor a cero (Facturación parcial compatible)
-            const itemsFiltradosParaGuardar = itemsFactura.filter(item => item.cantidadRecibidaAhora > 0)
-
-            // 2. Guardamos el lote de detalles filtrados
-            const promesasDetalles = itemsFiltradosParaGuardar.map(item => {
-                return facturasCompraDetallesAPI.createDetalle({
-                    idFacturaCompra: idFacturaGenerada,
-                    idProducto: item.idProducto,
-                    cantidad: item.cantidadRecibidaAhora,
-                    precioUnitario: item.precioUnitario,
-                    totalBruto: item.totalBruto,
-                    totalIva: item.totalIva,
-                    totalNeto: item.totalNeto
-                })
+            itemsFactura.forEach(item => {
+                totalPedidoGlobal += item.cantidadPedida
+                totalFacturadoGlobal += (item.cantidadFacturadaPrevia + item.cantidadRecibidaAhora)
             })
 
-            await Promise.all(promesasDetalles)
+            // Condición: Si cubre todo es "Completado", sino pasa a o se mantiene en "Emitido"
+            const nuevoEstadoOrden = totalFacturadoGlobal >= totalPedidoGlobal ? "Completado" : "Emitido"
 
-            // 3. Modificación del estado de la Orden de Compra basado en la cantidad global pendiente
             try {
-                const totalPendiente = itemsFactura.reduce((acc, i) => acc + (i.cantidadPedida - i.cantidadRecibidaAhora), 0)
-                const nuevoEstado = totalPendiente === 0 ? "Facturado" : "Pendiente de Entrega"
-                await ordenesCompraAPI.updateEstado(idOrdenSeleccionada, { estado: nuevoEstado })
+                await ordenesCompraAPI.updateEstado(idOrdenSeleccionada, { estado: nuevoEstadoOrden })
             } catch (stateError) {
                 console.warn("La factura se guardó pero la OC no pudo cambiar su estado:", stateError)
             }
 
-            notify.success("Operación Exitosa", "Factura asentada e ingresada al Stock de forma correcta.")
+            notify.success("Operación Exitosa", `Factura asentada correctamente. Orden de compra actualizada a: ${nuevoEstadoOrden}.`)
             router.push("/compras/facturas")
         } catch (err) {
             console.error(err)
-            notify.error("Error", "Ocurrió un error al procesar el cierre de la factura.")
+            notify.error("Error", "Ocurrió un error al procesar el cierre integrado de la factura.")
         } finally {
             setIsProcesando(false)
         }
@@ -262,7 +277,7 @@ export default function CargarFacturaPage() {
                     </Button>
                 </div>
 
-                <div className="flex flex-row flex-wrap md:flex-nowrap gap-4 items-end mb-6 border p-4 rounded-lg bg-card w-full">
+                <div className="flex flex-row flex-wrap md:flex-nowrap gap-4 items-end mb-4 border p-4 rounded-lg bg-card w-full">
                     <div className="flex-1 min-w-[280px]">
                         <FieldWrapper label="Orden de Compra Origen" id="soOC">
                             <Popover open={openCombo} onOpenChange={setOpenCombo}>
@@ -285,7 +300,7 @@ export default function CargarFacturaPage() {
                                         const target = value.toLowerCase()
                                         const term = search.toLowerCase()
                                         return target.includes(term) ? 1 : 0
-                                    }}>
+                                    }} >
                                         <CommandInput placeholder="Ingresa Nro. OC, Nombre o RUC..." className="h-8 text-xs" />
                                         <CommandList>
                                             <CommandEmpty className="p-2 text-xs text-muted-foreground text-center">
@@ -366,6 +381,7 @@ export default function CargarFacturaPage() {
                     </div>
                 </div>
 
+
                 {idOrdenSeleccionada && (
                     <div className="rounded-lg border bg-card shadow-sm overflow-hidden w-full">
                         <Table className="w-full">
@@ -373,6 +389,7 @@ export default function CargarFacturaPage() {
                                 <TableRow>
                                     <TableHead>Producto / Descripción</TableHead>
                                     <TableHead className="w-24 text-center">Cant. OC</TableHead>
+                                    <TableHead className="w-24 text-center">Facturado Previo</TableHead>
                                     <TableHead className="w-28 text-center">Cant. A Facturar</TableHead>
                                     <TableHead className="w-32 text-right">Precio Unit.</TableHead>
                                     <TableHead className="w-24 text-right">Descuento</TableHead>
@@ -381,7 +398,9 @@ export default function CargarFacturaPage() {
                             </TableHeader>
                             <TableBody>
                                 {itemsFactura.map((item, index) => {
-                                    const esInvalido = item.cantidadRecibidaAhora > item.cantidadPedida
+                                    const disponibleMax = item.cantidadPedida - item.cantidadFacturadaPrevia
+                                    const esInvalido = item.cantidadRecibidaAhora > disponibleMax
+
                                     return (
                                         <TableRow
                                             key={item.idProducto}
@@ -392,6 +411,9 @@ export default function CargarFacturaPage() {
                                             </TableCell>
                                             <TableCell className="text-xs text-center text-muted-foreground font-semibold">
                                                 {item.cantidadPedida}
+                                            </TableCell>
+                                            <TableCell className="text-xs text-center text-muted-foreground">
+                                                {item.cantidadFacturadaPrevia}
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <Input
@@ -409,7 +431,7 @@ export default function CargarFacturaPage() {
                                                 {item.precioUnitario.toLocaleString("es-PY")} Gs.
                                             </TableCell>
                                             <TableCell className="text-xs text-right font-mono text-destructive">
-                                                {item.descuento > 0 ? `-${item.descuento.toLocaleString("es-PY")}` : "0"}
+                                                {item.descuento > 0 ? `-${Math.round(item.descuento).toLocaleString("es-PY")}` : "0"}
                                             </TableCell>
                                             <TableCell className="text-xs text-right font-bold font-mono text-foreground">
                                                 {item.totalNeto.toLocaleString("es-PY")} Gs.
@@ -440,9 +462,9 @@ export default function CargarFacturaPage() {
                             className="gap-2"
                         >
                             {isProcesando ? (
-                                <><Loader2 className="h-4 w-4 animate-spin" /> Procesando Stock...</>
+                                <><Loader2 className="h-4 w-4 animate-spin" /> Procesando Lote...</>
                             ) : (
-                                <><Save className="h-4 w-4" /> Registrar Factura e Ingresar</>
+                                <><Save className="h-4 w-4" /> Registrar Factura Completa</>
                             )}
                         </Button>
                     </div>

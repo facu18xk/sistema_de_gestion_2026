@@ -18,5 +18,12 @@ export const ordenesPagosAPI = {
     createDetalle: async (payload: OrdenPagoCompraDetalleSaveDTO) => {
         const response = await api.post("/OrdenesPagosComprasDetalles", payload);
         return response.data;
-    }
+    },
+    update: async (id: number, payload: OrdenPagoCompraSaveDTO) => {
+        const response = await api.put(`/OrdenesPagosCompras/${id}`, payload);
+        return response.data;
+    },
+    delete: async (id: number) => {
+        await api.delete(`/OrdenesPagosCompras/${id}`);
+    },
 };

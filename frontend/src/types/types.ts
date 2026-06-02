@@ -317,7 +317,6 @@ export interface OrdenCompraDetalleDTO {
         nombre: string
     }
 }
-
 export interface FacturaCompra {
     idFacturaCompra: number
     idOrdenCompra: number
@@ -328,9 +327,12 @@ export interface FacturaCompra {
     timbrado: string
     fecha: string
     descripcion: string
+    idEstado: number
+    estado: string // "Pendiente" | "Pagado" | "Anulado"
     detalles: FacturaCompraDetalle[]
 }
 
+// Swagger Actualizado: POST todo junto (Cabecera + Detalles + Estado)
 export interface FacturaCompraSaveDTO {
     idOrdenCompra: number
     idProveedor: number
@@ -338,6 +340,8 @@ export interface FacturaCompraSaveDTO {
     timbrado: string
     fecha: string
     descripcion: string
+    estado: string // "Pendiente", "Pagado" o "Anulado"
+    detalles: FacturaCompraDetalleBulkDTO[]
 }
 
 export interface ProductoEmbed {
@@ -357,8 +361,8 @@ export interface FacturaCompraDetalle {
     producto: ProductoEmbed
 }
 
-export interface FacturaCompraDetalleSaveDTO {
-    idFacturaCompra: number
+// DTO para el envío masivo dentro del SaveDTO (sin ID de factura madre)
+export interface FacturaCompraDetalleBulkDTO {
     idProducto: number
     cantidad: number
     precioUnitario: number
