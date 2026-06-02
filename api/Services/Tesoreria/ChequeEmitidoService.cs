@@ -62,6 +62,7 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
 
         entity.NumeroCheque = numeroCheque;
         entity.Beneficiario = beneficiario;
+        entity.FechaEmision = AsTimestampWithoutTimeZone(entity.FechaEmision);
         entity.Estado = string.IsNullOrWhiteSpace(entity.Estado) ? "Emitido" : entity.Estado.Trim();
 
         Set.Add(entity);
@@ -91,6 +92,8 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
 
     public async Task<ChequeEmitido> ConciliarAsync(int id, DateTime fechaPago)
     {
+        fechaPago = AsTimestampWithoutTimeZone(fechaPago);
+
         var cheque = await Set
             .Include(item => item.IdCuentaBancariaNavigation)
             .Include(item => item.IdMovimientoBancarioNavigation)
@@ -129,9 +132,14 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
         existingEntity.IdMovimientoBancario = incomingEntity.IdMovimientoBancario;
         existingEntity.NumeroCheque = incomingEntity.NumeroCheque;
         existingEntity.Beneficiario = incomingEntity.Beneficiario;
-        existingEntity.FechaEmision = incomingEntity.FechaEmision;
+        existingEntity.FechaEmision = AsTimestampWithoutTimeZone(incomingEntity.FechaEmision);
         existingEntity.Monto = incomingEntity.Monto;
         existingEntity.Estado = incomingEntity.Estado;
+    }
+
+    private static DateTime AsTimestampWithoutTimeZone(DateTime value)
+    {
+        return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
     }
 
     private IQueryable<ChequeEmitido> BuildQuery()

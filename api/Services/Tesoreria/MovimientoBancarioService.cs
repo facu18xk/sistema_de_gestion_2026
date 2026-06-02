@@ -20,6 +20,7 @@ public class MovimientoBancarioService : CrudServiceBase<MovimientoBancario, int
 
     public override async Task<MovimientoBancario> CreateAsync(MovimientoBancario entity)
     {
+        entity.Fecha = AsTimestampWithoutTimeZone(entity.Fecha);
         await ApplyBalanceAsync(entity, entity.Monto);
         Set.Add(entity);
         await _context.SaveChangesAsync();
@@ -59,7 +60,7 @@ public class MovimientoBancarioService : CrudServiceBase<MovimientoBancario, int
         existingEntity.IdCuentaBancaria = incomingEntity.IdCuentaBancaria;
         existingEntity.IdTipoMovimientoBancario = incomingEntity.IdTipoMovimientoBancario;
         existingEntity.IdEstado = incomingEntity.IdEstado;
-        existingEntity.Fecha = incomingEntity.Fecha;
+        existingEntity.Fecha = AsTimestampWithoutTimeZone(incomingEntity.Fecha);
         existingEntity.Monto = incomingEntity.Monto;
         existingEntity.Concepto = incomingEntity.Concepto;
         existingEntity.Referencia = incomingEntity.Referencia;
@@ -81,7 +82,7 @@ public class MovimientoBancarioService : CrudServiceBase<MovimientoBancario, int
         {
             IdCuentaBancaria = idCuentaBancaria,
             IdTipoMovimientoBancario = tipo.IdTipoMovimientoBancario,
-            Fecha = fecha,
+            Fecha = AsTimestampWithoutTimeZone(fecha),
             Monto = monto,
             Concepto = concepto,
             Referencia = referencia,
@@ -123,6 +124,11 @@ public class MovimientoBancarioService : CrudServiceBase<MovimientoBancario, int
         var tipos = await _context.TiposMovimientosBancarios.ToListAsync();
         return tipos.FirstOrDefault(item => TesoreriaText.Normalize(item.Nombre) == normalized)
             ?? throw new InvalidOperationException($"No existe el tipo de movimiento bancario {nombre}.");
+    }
+
+    private static DateTime AsTimestampWithoutTimeZone(DateTime value)
+    {
+        return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
     }
 
     private IQueryable<MovimientoBancario> BuildQuery()

@@ -16,7 +16,7 @@ import { formatNumberDots } from "@/utils/money-format";
 import type { ChequeEmitidoSaveDTO, CuentaBancaria } from "@/types/types";
 
 function toLocalIsoDate(date: string) {
-  return new Date(`${date}T00:00:00`).toISOString();
+  return `${date}T00:00:00`;
 }
 
 function getErrorMessage(error: any) {
