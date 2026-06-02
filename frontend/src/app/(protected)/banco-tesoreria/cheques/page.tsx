@@ -152,7 +152,6 @@ export default function ChequesPage() {
               <TableHead>Cuenta</TableHead>
               <TableHead>Beneficiario</TableHead>
               <TableHead>Emisión</TableHead>
-              <TableHead>Pago</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Estado</TableHead>
             </TableRow>
@@ -164,7 +163,7 @@ export default function ChequesPage() {
           {cheques.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={6}
                 className="h-24 text-center text-muted-foreground"
               >
                 No hay cheques emitidos registrados.
@@ -179,9 +178,6 @@ export default function ChequesPage() {
                 </TableCell>
                 <TableCell>{c.beneficiario}</TableCell>
                 <TableCell>{formatDate(c.fechaEmision)}</TableCell>
-                <TableCell>
-                  {c.fechaPago ? formatDate(c.fechaPago) : "—"}
-                </TableCell>
                 <TableCell className="text-right font-medium">
                   {formatMoney(c.monto, monedaPorCuenta(c.idCuentaBancaria))}
                 </TableCell>

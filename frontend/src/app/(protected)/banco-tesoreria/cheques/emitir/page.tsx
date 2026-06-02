@@ -15,6 +15,18 @@ import { notify } from "@/lib/notifications";
 import { formatNumberDots } from "@/utils/money-format";
 import type { ChequeEmitidoSaveDTO, CuentaBancaria } from "@/types/types";
 
+function toLocalIsoDate(date: string) {
+  return new Date(`${date}T00:00:00`).toISOString();
+}
+
+function getErrorMessage(error: any) {
+  const data = error?.response?.data;
+  if (typeof data === "string") return data;
+  if (typeof data?.message === "string") return data.message;
+  if (typeof error?.message === "string") return error.message;
+  return "No se pudo registrar el cheque.";
+}
+
 export default function EmitirChequePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,7 +70,7 @@ export default function EmitirChequePage() {
         idMovimientoBancario: null,
         numeroCheque: numeroCheque.trim(),
         beneficiario: beneficiario.trim(),
-        fechaEmision: new Date(fechaEmision).toISOString(),
+        fechaEmision: toLocalIsoDate(fechaEmision),
         monto,
         estado: "Emitido",
       };
@@ -71,8 +83,8 @@ export default function EmitirChequePage() {
       router.push("/banco-tesoreria/cheques");
       router.refresh();
     } catch (error: any) {
-      console.error("Error completo:", error);
-      console.error("Response:", error.response?.data);
+      console.error("Error al emitir cheque:", error);
+      notify.error("Error", getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }

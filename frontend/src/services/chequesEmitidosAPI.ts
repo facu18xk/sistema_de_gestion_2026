@@ -29,8 +29,6 @@ export const chequesEmitidosAPI = {
   },
 
   create: async (data: ChequeEmitidoSaveDTO): Promise<ChequeEmitido> => {
-    console.log("URL:", API_CONFIG.ENDPOINTS.CHEQUES_EMITIDOS);
-    console.log("DATA:", data);
     const response = await api.post(
       API_CONFIG.ENDPOINTS.CHEQUES_EMITIDOS,
       data,
