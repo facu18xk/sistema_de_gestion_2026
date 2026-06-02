@@ -1,5 +1,7 @@
 export const API_CONFIG = {
-  BASE_URL: "https://sistemadegestion2026-production.up.railway.app",
+  BASE_URL:
+    process.env.NEXT_PUBLIC_API_URL ??
+    "https://sistemadegestion2026-production.up.railway.app",
   ENDPOINTS: {
     LOGIN: "/api/Auth/iniciar",
     PRODUCTS: "/api/Productos",
