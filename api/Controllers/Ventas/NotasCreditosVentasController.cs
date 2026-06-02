@@ -28,7 +28,6 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         {
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = dto.IdEstado,
-            NroComprobante = dto.NroComprobante,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Items = dto.Items

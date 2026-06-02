@@ -158,8 +158,6 @@ public class NotaCreditoVentaCompletaCreateDto
 
     public int IdEstado { get; set; }
 
-    public string? NroComprobante { get; set; }
-
     public string Motivo { get; set; } = string.Empty;
 
     public DateTime FechaEmision { get; set; }

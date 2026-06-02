@@ -313,7 +313,7 @@ public class VentasCompletasService
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = idEstado,
             IdNotaDevolucionVenta = null,
-            NroComprobante = dto.NroComprobante ?? string.Empty,
+            NroComprobante = string.Empty,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Total = 0

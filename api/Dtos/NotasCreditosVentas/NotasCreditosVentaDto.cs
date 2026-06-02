@@ -42,8 +42,6 @@ public class NotasCreditosVentaCreateDto
 
     public int? IdNotaDevolucionVenta { get; set; }
 
-    public string? NroComprobante { get; set; }
-
     public string Motivo { get; set; } = string.Empty;
 
     public DateTime FechaEmision { get; set; }
@@ -56,4 +54,6 @@ public class NotasCreditosVentaCreateDto
 public class NotasCreditosVentaUpdateDto : NotasCreditosVentaCreateDto
 {
     public int IdTimbrado { get; set; }
+
+    public string? NroComprobante { get; set; }
 }
