@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -21,72 +21,18 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
-import Cookies from "js-cookie";
-import { notify } from "@/lib/notifications";
+} from "@/components/ui/navigation-menu"
+import Cookies from 'js-cookie'
+import { notify } from "@/lib/notifications"
 
 //Para listar los diferentes módulos en el navbar
 const modulos = [
-  {
-    title: "Ventas",
-    items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
-  },
-  {
-    title: "Compras",
-    items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
-  },
-  {
-    title: "Banco y Tesorería",
-    items: [
-      "Bancos",
-      "Cuentas bancarias",
-      "Movimientos bancarios",
-      "Cheques",
-      "Transferencias",
-      "Depósitos Bancarios",
-      "Conciliación bancaria",
-      "Órdenes de pago",
-      "Reportes",
-    ],
-  },
+  { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
+  { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Facturas", "Pagos", "Notas de Devolución"] },
+  { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
   { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
-  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
-  {
-    title: "Contabilidad",
-    items: [
-      "Proceso Contable",
-      "Periodo Contable",
-      "Asientos",
-      "Plan de Cuentas",
-    ],
-  },
-];
-
-const routeByItem: Record<string, string> = {
-  Clientes: "/ventas/clientes",
-  Presupuestos: "/ventas/presupuestos",
-  Facturación: "/ventas/facturacion",
-  Devoluciones: "/ventas/devoluciones",
-  Proveedores: "/compras/proveedores",
-  Pedidos: "/compras/pedidos",
-  Cotizaciones: "/compras/cotizaciones",
-  Productos: "/stock/productos",
-  Empleados: "/personas/empleados",
-  Parientes: "/personas/parientes",
-  "Proceso Contable": "/contabilidad/proceso-contable",
-  "Periodo Contable": "/contabilidad/periodo-contable",
-  Asientos: "/contabilidad/asientos",
-  "Plan de Cuentas": "/contabilidad/plan-cuentas",
-  Bancos: "/banco-tesoreria/bancos",
-  "Cuentas bancarias": "/banco-tesoreria/cuentas",
-  "Movimientos bancarios": "/banco-tesoreria/movimientos",
-  Cheques: "/banco-tesoreria/cheques",
-  Transferencias: "/banco-tesoreria/transferencias",
-  "Depósitos Bancarios": "/banco-tesoreria/depositos",
-  "Conciliación bancaria": "/banco-tesoreria/conciliacion",
-  "Órdenes de pago": "/banco-tesoreria/ordenes-pago",
-  Reportes: "/banco-tesoreria/reportes",
-};
+  { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
+]
 
 export default function Navbar() {
   const [userName, setUserName] = useState("Usuario");
@@ -102,26 +48,24 @@ export default function Navbar() {
 
   const handleLogout = () => {
     //1. Eliminar la cookie del token
-    Cookies.remove("token", { path: "/" }); //Obs: mismo path que al momento de crear la cookie
+    Cookies.remove("token", { path: '/' }) //Obs: mismo path que al momento de crear la cookie
     //2. Limpiar datos del usuario en el navegador
-    localStorage.removeItem("user");
+    localStorage.removeItem("user")
     //localStorage.clear() -> si se quiere borrar todo
     //3. Redirigir al login
-    router.push("/login");
+    router.push("/login")
     //4. Opcional: Forzar un refresco para limpiar estados de React
-    router.refresh();
+    router.refresh()
     notify.warning("¡Sesión cerrada!");
-  };
+  }
 
   return (
     <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
+
         {/* IZQUIERDA: Logo y Selects */}
         <div className="flex items-center gap-6">
-          <Link
-            href="/dashboard"
-            className="font-bold text-xl text-primary shrink-0"
-          >
+          <Link href="/dashboard" className="font-bold text-xl text-primary shrink-0">
             McQueen Tires
           </Link>
 
@@ -129,31 +73,35 @@ export default function Navbar() {
           <NavigationMenu viewport={false} className="hidden lg:flex relative">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  asChild
-                >
+                <NavigationMenuLink className={navigationMenuTriggerStyle()} asChild>
                   <Link href="/dashboard">Inicio</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
               {modulos.map((modulo) => (
                 <NavigationMenuItem key={modulo.title}>
-                  <NavigationMenuTrigger className="cursor-pointer">
-                    {modulo.title}
-                  </NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="cursor-pointer">{modulo.title}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="cursor-pointer grid w-[200px] gap-2 p-4">
                       {modulo.items.map((item) => (
                         <li key={item}>
                           <NavigationMenuLink asChild>
                             <Link
-                              href={routeByItem[item] ?? "#"}
+                              href={item === "Productos" ? "/stock/productos" :
+                                item == "Proveedores" ? "/compras/proveedores" :
+                                  item === "Clientes" ? "/ventas/clientes" :
+                                    item === "Empleados" ? "/personas/empleados" :
+                                      item === "Pedidos" ? "/compras/pedidos" :
+                                        item === "Cotizaciones" ? "/compras/cotizaciones" :
+                                          item === "Órdenes" ? "/compras/ordenes" :
+                                            item === "Facturas" ? "/compras/facturas" :
+                                              item === "Pagos" ? "/compras/pagos" :
+                                                item === "Notas de Devolución" ? "/compras/notas-de-devolucion" :
+                                                  "#"
+                              }
                               className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
-                              <div className="text-sm font-medium leading-none">
-                                {item}
-                              </div>
+                              <div className="text-sm font-medium leading-none">{item}</div>
                             </Link>
                           </NavigationMenuLink>
                         </li>
@@ -162,6 +110,7 @@ export default function Navbar() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ))}
+
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -174,15 +123,9 @@ export default function Navbar() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="mr-6 relative h-10 w-10 rounded-full cursor-pointer"
-              >
+              <Button variant="ghost" className="mr-6 relative h-10 w-10 rounded-full cursor-pointer">
                 <Avatar className="h-10 w-10 border">
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="Usuario"
-                  />
+                  <AvatarImage src="https://github.com/shadcn.png" alt="Usuario" />
                   <AvatarFallback>JP</AvatarFallback>
                 </Avatar>
               </Button>
@@ -194,7 +137,7 @@ export default function Navbar() {
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-destructive focus:bg-destructive focus:text-white"
+                className="text-destructive focus:bg-destructive"
                 onClick={handleLogout}
               >
                 Cerrar Sesión
@@ -202,6 +145,7 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
       </div>
     </nav>
   );

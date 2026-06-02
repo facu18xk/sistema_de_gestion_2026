@@ -11,9 +11,9 @@ interface DataTableProps {
     caption: string
     children: React.ReactNode
     headerRow: React.ReactNode
-    currentPage?: number
-    totalPages?: number
-    onPageChange?: (page: number) => void
+    currentPage: number
+    totalPages: number
+    onPageChange: (page: number) => void
 }
 
 export function DataTable({
@@ -24,15 +24,13 @@ export function DataTable({
     totalPages,
     onPageChange
 }: DataTableProps) {
-    const shouldShowPagination =
-        currentPage !== undefined &&
-        totalPages !== undefined &&
-        onPageChange !== undefined
-
     return (
-        <div className="space-y-3">
+        <div className="space-y-1">
             <div className="rounded-md border bg-white shadow-sm">
-                <Table>
+                {/* Targeteamos directamente los td y th internos para reducir su padding vertical.
+                  Puedes cambiar py-2 por py-1.5 o py-1 si lo quieres todavía más compacto.
+                */}
+                <Table className="[&_td]:py-2 [&_th]:py-2">
                     {/*<TableCaption>{caption}</TableCaption>*/}
                     <TableHeader>
                         {headerRow}
@@ -43,37 +41,35 @@ export function DataTable({
                 </Table>
             </div>
             {/* CONTROLES DE PAGINACIÓN */}
-            {shouldShowPagination && (
-                <div className="flex items-center justify-between px-2 py-1">
-                    <div className="text-sm text-muted-foreground">
-                        Página <span className="font-medium text-foreground">{currentPage}</span> de{" "}
-                        <span className="font-medium text-foreground">{totalPages || 1}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onPageChange(currentPage - 1)}
-                            disabled={currentPage <= 1}
-                            className="cursor-pointer select-none"
-                        >
-                            <ChevronLeft className="size-4 mr-1" />
-                            Anterior
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onPageChange(currentPage + 1)}
-                            disabled={currentPage >= totalPages}
-                            className="cursor-pointer select-none"
-                        >
-                            Siguiente
-                            <ChevronRight className="size-4 ml-1" />
-                        </Button>
-                    </div>
+            <div className="flex items-center justify-between px-2">
+                <div className="text-sm text-muted-foreground">
+                    Página <span className="font-medium text-foreground">{currentPage}</span> de{" "}
+                    <span className="font-medium text-foreground">{totalPages || 1}</span>
                 </div>
-            )}
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage <= 1}
+                        className="cursor-pointer select-none"
+                    >
+                        <ChevronLeft className="size-3 mr-1" />
+                        Anterior
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                        className="cursor-pointer select-none"
+                    >
+                        Siguiente
+                        <ChevronRight className="size-3 ml-1" />
+                    </Button>
+                </div>
+            </div>
         </div>
     )
 }
