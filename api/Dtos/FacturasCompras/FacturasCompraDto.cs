@@ -16,6 +16,10 @@ public class FacturasCompraDto
 
     public string Proveedor { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public string NroComprobante { get; set; } = string.Empty;
 
     public string Timbrado { get; set; } = string.Empty;
@@ -32,6 +36,8 @@ public class FacturasCompraUpsertDto
     public int IdOrdenCompra { get; set; }
 
     public int IdProveedor { get; set; }
+
+    public int IdEstado { get; set; }
 
     public string NroComprobante { get; set; } = string.Empty;
 

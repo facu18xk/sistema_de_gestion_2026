@@ -43,6 +43,12 @@ public class OrdenesPagosCompraService : CrudServiceBase<OrdenesPagosCompra, int
     {
         return _context.OrdenesPagosCompras
             .Include(ordenPago => ordenPago.IdProveedorNavigation)
-            .Include(ordenPago => ordenPago.IdEstadoNavigation);
+            .Include(ordenPago => ordenPago.IdEstadoNavigation)
+            .Include(ordenPago => ordenPago.OrdenesPagosComprasDetalles)
+                .ThenInclude(d => d.IdFacturaCompraNavigation)
+            .Include(ordenPago => ordenPago.OrdenesPagosComprasDetalles)
+                .ThenInclude(d => d.IdCuentaBancariaNavigation)
+            .Include(ordenPago => ordenPago.OrdenesPagosComprasDetalles)
+                .ThenInclude(d => d.IdMedioPagoCompraNavigation);
     }
 }

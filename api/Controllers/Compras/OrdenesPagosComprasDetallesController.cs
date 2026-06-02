@@ -24,6 +24,10 @@ public class OrdenesPagosComprasDetallesController : CrudControllerBase<OrdenesP
             IdOrdenPagoCompraDetalle = entity.IdOrdenPagoCompraDetalle,
             IdOrdenPagoCompra = entity.IdOrdenPagoCompra,
             IdFacturaCompra = entity.IdFacturaCompra,
+            IdCuentaBancaria = entity.IdCuentaBancaria,
+            NumeroCuentaBancaria = entity.IdCuentaBancariaNavigation?.NumeroCuenta ?? string.Empty,
+            IdMedioPagoCompra = entity.IdMedioPagoCompra,
+            MedioPago = entity.IdMedioPagoCompraNavigation?.Nombre ?? string.Empty,
             Monto = entity.Monto,
             FacturaCompra = factura is null 
                 ? null 
@@ -42,6 +46,8 @@ public class OrdenesPagosComprasDetallesController : CrudControllerBase<OrdenesP
             IdOrdenPagoCompraDetalle = dto.IdOrdenPagoCompraDetalle,
             IdOrdenPagoCompra = dto.IdOrdenPagoCompra,
             IdFacturaCompra = dto.IdFacturaCompra,
+            IdCuentaBancaria = dto.IdCuentaBancaria,
+            IdMedioPagoCompra = dto.IdMedioPagoCompra,
             Monto = dto.Monto
         };
     }

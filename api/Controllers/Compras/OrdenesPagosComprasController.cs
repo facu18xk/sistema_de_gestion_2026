@@ -14,7 +14,7 @@ public class OrdenesPagosComprasController : CrudControllerBase<OrdenesPagosComp
     {
     }
 
-    protected override OrdenesPagosCompraDto ToReadDto(OrdenesPagosCompra entity)
+   protected override OrdenesPagosCompraDto ToReadDto(OrdenesPagosCompra entity)
     {
         return new OrdenesPagosCompraDto
         {
@@ -24,10 +24,30 @@ public class OrdenesPagosComprasController : CrudControllerBase<OrdenesPagosComp
             IdEstado = entity.IdEstado,
             Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             Fecha = entity.Fecha,
-            Descripcion = entity.Descripcion
+            Descripcion = entity.Descripcion,
+            
+            Detalles = entity.OrdenesPagosComprasDetalles?
+                .Select(d => new api.Dtos.OrdenesPagosComprasDetalles.OrdenesPagosComprasDetalleDto
+                {
+                    IdOrdenPagoCompraDetalle = d.IdOrdenPagoCompraDetalle,
+                    IdOrdenPagoCompra = d.IdOrdenPagoCompra,
+                    IdFacturaCompra = d.IdFacturaCompra,
+                    IdCuentaBancaria = d.IdCuentaBancaria,
+                    NumeroCuentaBancaria = d.IdCuentaBancariaNavigation?.NumeroCuenta ?? string.Empty,
+                    IdMedioPagoCompra = d.IdMedioPagoCompra,
+                    MedioPago = d.IdMedioPagoCompraNavigation?.Nombre ?? string.Empty,
+                    Monto = d.Monto,
+                    FacturaCompra = d.IdFacturaCompraNavigation is null 
+                        ? null 
+                        : new api.Dtos.OrdenesPagosComprasDetalles.FacturaCompraResumenDto 
+                        {
+                            IdFacturaCompra = d.IdFacturaCompraNavigation.IdFacturaCompra,
+                            Nro_Comprobante = d.IdFacturaCompraNavigation.NroComprobante
+                        }
+                })
+                .ToArray() ?? Array.Empty<api.Dtos.OrdenesPagosComprasDetalles.OrdenesPagosComprasDetalleDto>()
         };
     }
-
     protected override OrdenesPagosCompra ToEntity(OrdenesPagosCompraUpsertDto dto)
     {
         return new OrdenesPagosCompra
@@ -35,7 +55,15 @@ public class OrdenesPagosComprasController : CrudControllerBase<OrdenesPagosComp
             IdProveedor = dto.IdProveedor,
             IdEstado = dto.IdEstado,
             Fecha = dto.Fecha,
-            Descripcion = dto.Descripcion
+            Descripcion = dto.Descripcion,
+            
+            OrdenesPagosComprasDetalles = dto.Detalles?.Select(d => new OrdenesPagosComprasDetalle
+            {
+                IdFacturaCompra = d.IdFacturaCompra,
+                IdCuentaBancaria = d.IdCuentaBancaria,
+                IdMedioPagoCompra = d.IdMedioPagoCompra,
+                Monto = d.Monto
+            }).ToList() ?? new List<OrdenesPagosComprasDetalle>()
         };
     }
 

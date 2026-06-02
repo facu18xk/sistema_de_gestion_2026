@@ -7,13 +7,13 @@ using api.Dtos.Asientos;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace api.Services;
-// para usar asiento y hacer post hay que enviar detalle y cabecera al mismo tiempo JSON 
+
 public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
 {
     private readonly DblosAmigosContext _context;
-    
     private readonly IAsientoContableService _asientoContableService;
 
     public FacturasCompraService(
@@ -46,6 +46,7 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
     {
         existingEntity.IdOrdenCompra = incomingEntity.IdOrdenCompra;
         existingEntity.IdProveedor = incomingEntity.IdProveedor;
+        existingEntity.IdEstado = incomingEntity.IdEstado; 
         existingEntity.NroComprobante = incomingEntity.NroComprobante;
         existingEntity.Timbrado = incomingEntity.Timbrado;
         existingEntity.Fecha = incomingEntity.Fecha;
@@ -80,30 +81,27 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
                     
                     Detalles = new List<AsientosDetalleUpsertDto>
                     {
-                        // debe mercaderias 
                         new AsientosDetalleUpsertDto
                         {
                             IdCuentaContable = 9, 
                             Item = 1,
-                            TipoMovimiento = "D", 
+                            TipoMovimiento = "Debe", 
                             Monto = totalNeto,
                             DescripcionItem = "Ingreso de mercadería s/ Factura"
                         },
-                        // debe iva credito fiscal 
                         new AsientosDetalleUpsertDto
                         {
                             IdCuentaContable = 10, 
                             Item = 2,
-                            TipoMovimiento = "D", 
+                            TipoMovimiento = "Debe", 
                             Monto = totalIva,
                             DescripcionItem = "IVA Crédito Fiscal"
                         },
-                        // haber proveedores 
                         new AsientosDetalleUpsertDto
                         {
                             IdCuentaContable = 11, 
                             Item = 3,
-                            TipoMovimiento = "H", 
+                            TipoMovimiento = "Haber", 
                             Monto = totalBruto,
                             DescripcionItem = $"Obligación con proveedor s/ Comprobante {nuevaFactura.NroComprobante}"
                         }
@@ -113,14 +111,11 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
                 await _asientoContableService.CreateManualAsync(asientoDto);
             }
 
-            //si sale bien guardamos 
             await transaction.CommitAsync();
-
             return nuevaFactura;
         }
         catch (Exception)
         {
-            //si hay error revertir 
             await transaction.RollbackAsync();
             throw; 
         }
@@ -129,6 +124,7 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
     private IQueryable<FacturasCompra> BuildQuery()
     {
         return _context.FacturasCompras
+            .Include(f => f.IdEstadoNavigation) 
             .Include(f => f.IdProveedorNavigation)
             .Include(f => f.FacturasComprasDetalles)
                 .ThenInclude(d => d.IdProductoNavigation);
