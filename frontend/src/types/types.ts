@@ -779,6 +779,19 @@ export interface MovimientoBancarioSaveDTO {
     referencia: string;
 }
 
+export interface ChequeEmitido {
+    idChequeEmitido: number;
+    idCuentaBancaria: number;
+    cuentaBancaria: string;
+    idOrdenMedioPagoCompra: number | null;
+    idMovimientoBancario: number | null;
+    numeroCheque: string;
+    beneficiario: string;
+    fechaEmision: string;
+    monto: number;
+    estado: string;
+}
+
 export interface ChequeEmitidoSaveDTO {
     idCuentaBancaria: number;
     idOrdenMedioPagoCompra?: number | null;
@@ -786,7 +799,6 @@ export interface ChequeEmitidoSaveDTO {
     numeroCheque: string;
     beneficiario: string;
     fechaEmision: string;
-    fechaPago?: string | null;
     monto: number;
     estado?: string;
 }
