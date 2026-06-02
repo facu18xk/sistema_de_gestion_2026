@@ -85,7 +85,7 @@ public class NotasCreditosCompraService : CrudServiceBase<NotasCreditosCompra, i
                         {
                             IdCuentaContable = 11, 
                             Item = 1,
-                            TipoMovimiento = "D", 
+                            TipoMovimiento = "Debe", 
                             Monto = totalBruto,
                             DescripcionItem = "Reversión de obligación s/ Nota de Crédito"
                         },
@@ -94,7 +94,7 @@ public class NotasCreditosCompraService : CrudServiceBase<NotasCreditosCompra, i
                         {
                             IdCuentaContable = 9, 
                             Item = 2,
-                            TipoMovimiento = "H", 
+                            TipoMovimiento = "Haber", 
                             Monto = totalNeto,
                             DescripcionItem = "Ajuste de mercadería s/ Nota de Crédito"
                         },
@@ -103,7 +103,7 @@ public class NotasCreditosCompraService : CrudServiceBase<NotasCreditosCompra, i
                         {
                             IdCuentaContable = 10, 
                             Item = 3,
-                            TipoMovimiento = "H", 
+                            TipoMovimiento = "Haber", 
                             Monto = totalIva,
                             DescripcionItem = "Reversión IVA Crédito Fiscal"
                         }

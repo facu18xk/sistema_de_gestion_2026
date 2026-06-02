@@ -28,6 +28,8 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
             OrdenCompraDescripcion = entity.IdOrdenCompraNavigation?.Descripcion ?? string.Empty,
             IdProveedor = entity.IdProveedor,
             Proveedor = entity.IdProveedorNavigation?.RazonSocial ?? string.Empty,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             NroComprobante = entity.NroComprobante,
             Timbrado = entity.Timbrado,
             Fecha = entity.Fecha,
@@ -62,6 +64,7 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
         {
             IdOrdenCompra = dto.IdOrdenCompra,
             IdProveedor = dto.IdProveedor,
+            IdEstado = dto.IdEstado, 
             NroComprobante = dto.NroComprobante,
             Timbrado = dto.Timbrado,
             Fecha = dto.Fecha,

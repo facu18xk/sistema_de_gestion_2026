@@ -31,6 +31,8 @@ public class NotasDevolucionesCompraUpsertDto
     public string Motivo { get; set; } = string.Empty;
 
     public DateTime Fecha { get; set; }
+
+public IReadOnlyCollection<NotasDevolucionesComprasDetalleDto> Detalles { get; set; } = Array.Empty<NotasDevolucionesComprasDetalleDto>();
 }
 
 public class NotasDevolucionesComprasDetalleDto

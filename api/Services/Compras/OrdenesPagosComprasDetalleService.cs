@@ -35,6 +35,8 @@ public class OrdenesPagosComprasDetalleService : CrudServiceBase<OrdenesPagosCom
     {
         existingEntity.IdOrdenPagoCompra = incomingEntity.IdOrdenPagoCompra;
         existingEntity.IdFacturaCompra = incomingEntity.IdFacturaCompra;
+        existingEntity.IdCuentaBancaria = incomingEntity.IdCuentaBancaria;
+        existingEntity.IdMedioPagoCompra = incomingEntity.IdMedioPagoCompra;
         existingEntity.Monto = incomingEntity.Monto;
     }
 
@@ -68,6 +70,8 @@ public class OrdenesPagosComprasDetalleService : CrudServiceBase<OrdenesPagosCom
     {
         return _context.OrdenesPagosComprasDetalles
             .Include(detalle => detalle.IdOrdenPagoCompraNavigation)
-            .Include(detalle => detalle.IdFacturaCompraNavigation);
+            .Include(detalle => detalle.IdFacturaCompraNavigation)
+            .Include(detalle => detalle.IdCuentaBancariaNavigation)
+            .Include(detalle => detalle.IdMedioPagoCompraNavigation);
     }
 }
