@@ -107,7 +107,295 @@ export interface Direccion {
     idPais: number; //para chequeo en edicion y creacion de proveedor
 }
 
-// --- Dentro de types/types.ts ---
+export interface Cliente {
+    idCliente: number;
+    ci: string;
+    ruc: string;
+    fechaNacimiento: string;
+    idDireccion: number;
+    direccion: Direccion;
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
+}
+
+export interface ClienteSaveDTO {
+    ci: string;
+    ruc: string;
+    fechaNacimiento: string;
+    direccion: {
+        calle1: string;
+        calle2: string | null;
+        descripcion: string | null;
+        idCiudad: number;
+    };
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
+}
+
+export interface Estado {
+    idEstado: number;
+    nombre: string;
+}
+
+//Ventas/Presupuestos
+export interface PresupuestoItem {
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    iva: number;
+    subtotal: number;
+}
+
+export interface PresupuestoItemSave {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface PresupuestoCabecera {
+    idPresupuesto: number;
+    idCliente: number;
+    cliente: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+}
+
+export interface PresupuestoCabeceraSave {
+    idCliente: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+}
+
+export interface PresupuestoCompleto {
+    idPresupuesto: number;
+    idCliente: number;
+    cliente: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+    items: PresupuestoItem[];
+}
+
+export interface PresupuestoCompletoSave {
+    idCliente: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+    fechaVencimiento: string;
+    items: PresupuestoItemSave[];
+}
+
+export interface PresupuestoDetalle {
+    idPresupuestoDetalle: number;
+    idPresupuesto: number;
+    idProducto: number;
+    cantidad: number;
+    iva: number;
+    subtotal: number;
+}
+
+export interface PreciosVentas {
+    idPrecioVenta: number;
+    idProducto: number;
+    producto: string;
+    precioCompraBase: number;
+    porcentajeGanancia: number;
+    precioVenta: number;
+    activo: boolean;
+    fechaDesde: string;
+    fechaHasta: string;
+}
+
+//Timbrado
+export interface Timbrado {
+    idTimbrado: number;
+    numeroTimbrado: string;
+    fechaInicio: string;
+    fechaFinal: string;
+    ruc: string;
+    establecimiento: string;
+    puntoExpedicion: string;
+    numeroInicial: number;
+    numeroFinal: number;
+    ultimoNumeroUsado: number;
+    tipoComprobante: string;
+    activo: boolean;
+}
+
+//Ventas/Facturación
+export interface FacturaVentaItem {
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    cantidadDevuelta: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaVentaItemSave {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface FacturaVentaCompleto {
+    idFacturaVenta: number;
+    idPresupuesto: number;
+    presupuestoDescripcion: string;
+    idCliente: number;
+    cliente: string;
+    nroComprobante: string;
+    idEstado: number;
+    estado: string;
+    idTimbrado: number;
+    timbrado: string;
+    timbradoRuc: string;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    medioPagoCompra: string;
+    fechaPago: string;
+    items: FacturaVentaItem[];
+}
+
+export interface FacturaVentaCompletoSave {
+    idPresupuesto: number;
+    idCliente: number;
+    nroComprobante: string;
+    idEstado: number;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    fechaPago: string;
+    items: FacturaVentaItemSave[];
+}
+
+export interface FacturaVentaCabecera {
+    idFacturaVenta: number;
+    idPresupuesto: number;
+    presupuestoDescripcion: string;
+    idCliente: number;
+    cliente: string;
+    nroComprobante: string;
+    idEstado: number;
+    estado: string;
+    idTimbrado: number;
+    timbrado: string;
+    timbradoRuc: string;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    medioPagoCompra: string;
+    fechaPago: string;
+}
+
+export interface FacturaVentaCabeceraSave {
+    idPresupuesto: number;
+    idCliente: number;
+    nroComprobante: string;
+    idEstado: number;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    fechaPago: string;
+}
+
+//Stock/Depositos
+export interface StockDeposito {
+    idDeposito: number;
+    idProducto: number;
+    cantidad: number;
+    deposito: string;
+    producto: string;
+}
+
+export interface StockDepositoSave {
+    idDeposito: number;
+    idProducto: number;
+    cantidad: number;
+}
+
+//Ventas/Devoluciones
+export interface NotaCreditoVentaItem {
+    idNotaCreditoVentaDetalle: number;
+    idNotaCreditoVenta: number;
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoVentaItemSave {
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface NotaCreditoVenta {
+    idNotaCreditoVenta: number;
+    idFacturaVenta: number;
+    facturaVenta: string;
+    idEstado: number;
+    estado: string;
+    idNotaDevolucionVenta: number;
+    notaDevolucionVenta: string;
+    idTimbrado: number;
+    timbrado: string;
+    nroComprobante: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoVentaItem[];
+}
+
+export interface NotaCreditoVentaSave {
+    idFacturaVenta: number;
+    idEstado: number;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoVentaItemSave[];
+}
+
+export interface NotaCreditoVentaDetalle {
+    idNotaCreditoVentaDetalle: number;
+    idNotaCreditoVenta: number;
+    idProducto: number;
+    producto: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface OrdenVenta {
+    idOrdenVenta: number;
+    idPresupuesto: number;
+    presupuestoDescripción: string;
+    idCliente: number;
+    cliente: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface MedioPago {
+    idMedioPagoCompra: number;
+    nombre: string;
+}
 
 // Lo que viene dentro de la lista de categorías del proveedor en el GET
 export interface ProveedorCategoriaDTO {

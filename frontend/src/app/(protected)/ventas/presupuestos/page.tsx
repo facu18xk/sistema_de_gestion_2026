@@ -26,13 +26,15 @@ import { Estado, PresupuestoCabecera, PresupuestoCompleto } from "@/types/types"
 import { notify } from "@/lib/notifications"
 import { esPresupuestoVigente } from "@/utils/date-utils"
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format"
+import { formatGuaranies } from "@/utils/money-format"
 
 const columnWidths = {
   presupuesto: "w-[100px]",
-  cliente: "w-[150px]",
-  vencimiento: "w-[120px]",
+  cliente: "w-[130px]",
+  vencimiento: "w-[100px]",
   estado: "w-[100px]",
-  acciones: "w-[120px]",
+  total: "w-[100px]",
+  acciones: "w-[100px]",
 };
 
 export default function PedidosPage() {
@@ -41,8 +43,8 @@ export default function PedidosPage() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [estados, setEstados] = useState<Estado[]>([]);
   //const [presupuestos, setPresupuestos] = useState<PresupuestoCabecera[]>([]);
-  const [todosLosPresupuestos, setTodosLosPresupuestos] = useState<PresupuestoCabecera[]>([])
-  const [presupuestoAEliminar, setPresupuestoAEliminar] = useState<PresupuestoCabecera | null>(null);
+  const [todosLosPresupuestos, setTodosLosPresupuestos] = useState<PresupuestoCompleto[]>([])
+  const [presupuestoAEliminar, setPresupuestoAEliminar] = useState<PresupuestoCompleto | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -196,7 +198,7 @@ export default function PedidosPage() {
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const resPaginada = await presupuestosAPI.getAll(currentPage, 100);
+      const resPaginada = await presupuestosAPI.getAllCompleto(currentPage, 100);
       setTodosLosPresupuestos(resPaginada.items);
       //setTotalPages(resPaginada.totalPages);
     } catch (error) {
@@ -221,6 +223,14 @@ export default function PedidosPage() {
   //useEffect(() => { cargarPagina() }, [currentPage]);
   useEffect(() => { cargarPagina(), cargarEstados() }, []);
 
+  const PRIORIDAD_ESTADOS: Record<number, number> = {
+    1: 1, // idEstado 1 Pendiente
+    2: 2, // idEstado 2 Aprobado
+    9: 3, // idEstado 9 Facturado
+    6: 4, // idEstado 6 Rechazado
+    5: 5, // idEstado 5 Expirado
+  };
+
   //FILTRO DE BÚSQUEDA
   const presupuestosFiltrados = useMemo(() => {
     if (!searchTerm.trim()) return todosLosPresupuestos;
@@ -228,16 +238,23 @@ export default function PedidosPage() {
     const query = searchTerm.toLowerCase().trim();
     return todosLosPresupuestos.filter(p => 
       formatearNumeroPresupuesto(p.idPresupuesto).toLowerCase().toString().includes(query) ||
-      p.cliente.toLowerCase().includes(query)
+      p.cliente.toLowerCase().includes(query) ||
+      p.estado.toLowerCase().includes(query) 
     );
   }, [searchTerm, todosLosPresupuestos]);
 
   const totalPages = Math.ceil(presupuestosFiltrados.length / itemsPerPage) || 1;
 
   const presupuestosVisiblesEnPagina = useMemo(() => {
+    const presupuestosOrdenados = [...presupuestosFiltrados].sort((a, b) => {
+      const prioridadA = PRIORIDAD_ESTADOS[a.idEstado] ?? 99;
+      const prioridadB = PRIORIDAD_ESTADOS[b.idEstado] ?? 99;
+      
+      return prioridadA - prioridadB;
+    });
     const primerItemIndex = (currentPage - 1) * itemsPerPage;
     const ultimoItemIndex = primerItemIndex + itemsPerPage;
-    return presupuestosFiltrados.slice(primerItemIndex, ultimoItemIndex);
+    return presupuestosOrdenados.slice(primerItemIndex, ultimoItemIndex);
   }, [currentPage, presupuestosFiltrados]);
 
   useEffect(() => { setCurrentPage(1); }, [searchTerm]);
@@ -278,7 +295,7 @@ export default function PedidosPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por presupuesto o cliente..."
+            placeholder="Buscar por presupuesto, cliente o estado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -334,6 +351,7 @@ export default function PedidosPage() {
               <TableHead className={`${columnWidths.cliente}`}>Cliente</TableHead>
               <TableHead className={`${columnWidths.vencimiento}`}>Vencimiento</TableHead>
               <TableHead className={`${columnWidths.estado}`}>Estado</TableHead>
+              <TableHead className={`${columnWidths.total} text-right`}>Total Presupuestado</TableHead>
               <TableHead className={`${columnWidths.acciones} text-right`}>Acciones</TableHead>
             </TableRow>
           }
@@ -343,9 +361,13 @@ export default function PedidosPage() {
         >
           {presupuestosVisiblesEnPagina.map((p) => {
           //const vigente = esPresupuestoVigente(p.fechaVencimiento);
-          const estadoActual = estados.find((e) => e.idEstado == p.idEstado)?.nombre;
+          const estadoActual = estados.find((e) => e.idEstado === p.idEstado)?.nombre;
           const estadoExpirado = estados.find((e) => e.idEstado === 5)?.nombre;
-          const nombreCliente = todosLosPresupuestos.find((c) => c.idCliente == p.idCliente)?.cliente;
+          //const nombreCliente = todosLosPresupuestos.find((c) => c.idCliente == p.idCliente)?.cliente;
+          const nombreCliente = p.cliente;
+          const totalPresupuestado = p.items.reduce((acc, item) => {
+            return acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1));
+          }, 0);
           return (
             <TableRow key={p.idPresupuesto}>
               <TableCell className={`${columnWidths.presupuesto}`}>{formatearNumeroPresupuesto(p.idPresupuesto)}</TableCell>
@@ -355,9 +377,10 @@ export default function PedidosPage() {
                 estadoActual === 'Aprobado' ? <Badge variant="aprobado">{estadoActual}</Badge>
                 : estadoActual === 'Pendiente' ? <Badge variant="pendiente">{estadoActual}</Badge>
                 : estadoActual === 'Rechazado' ? <Badge variant="rechazado">{estadoActual}</Badge>
-                : <Badge variant="destructive">{estadoExpirado}</Badge>
-                
-                }</TableCell>
+                : estadoActual === 'Facturado' ? <Badge variant="secondary">{estadoActual}</Badge>
+                : <Badge variant="destructive">{estadoExpirado}</Badge>}
+              </TableCell>
+              <TableCell className={`${columnWidths.total} text-right`}>{formatGuaranies(totalPresupuestado)}</TableCell>
               <TableCell className={`${columnWidths.acciones} text-right`}>
                 <Button 
                   variant="ghost" 
@@ -371,7 +394,7 @@ export default function PedidosPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  title="Editar Factura"
+                  title={p.idEstado === 1 ? "Editar Presupuesto" : "Ver Presupuesto"}
                   onClick={() => handleEditar(p)}
                 >
                   <Eye className="size-3.5" />
@@ -380,7 +403,7 @@ export default function PedidosPage() {
                   variant="ghost"
                   size="icon"
                   disabled={estadoActual !== 'Pendiente'}
-                  title="Eliminar Factura"
+                  title="Eliminar Presupuesto"
                   onClick={() => {
                     setPresupuestoAEliminar(p)
                     setIsAlertOpen(true)
@@ -394,7 +417,7 @@ export default function PedidosPage() {
         })}
         {presupuestosVisiblesEnPagina.length === 0 && (
           <TableRow>
-            <TableCell colSpan={5} className="py-10 text-center text-muted-foreground text-sm">
+            <TableCell colSpan={6} className="py-10 text-center text-muted-foreground text-sm">
               No hay presupuestos que coincidan con la búsqueda.
             </TableCell>
           </TableRow>
