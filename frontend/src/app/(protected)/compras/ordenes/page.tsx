@@ -18,24 +18,26 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { FilterBar, FilterField } from "@/components/shared/filter-bar"
-import { useRouter, useSearchParams } from "next/navigation" // Importamos useSearchParams para la navegación cruzada
+import { useRouter, useSearchParams } from "next/navigation"
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
 import { proveedoresAPI } from "@/services/proveedoresAPI"
-import { cotizacionesAPI } from "@/services/cotizacionesAPI" // Importamos APIs para calcular montos
+import { ordenesCompraDetallesAPI } from "@/services/ordenesCompraDetallesAPI"
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { OrdenCompraDTO, Proveedor } from "@/types/types"
 import { notify } from "@/lib/notifications"
 
 export default function OrdenesPage() {
     const router = useRouter()
-    const searchParams = useSearchParams() // Hook para capturar el nro de cotización por URL
+    const searchParams = useSearchParams()
 
     const [isLoading, setIsLoading] = useState(true)
     const [isAlertOpen, setIsAlertOpen] = useState(false)
     const [allOrdenes, setAllOrdenes] = useState<OrdenCompraDTO[]>([])
     const [proveedores, setProveedores] = useState<Proveedor[]>()
     const [ordenAEliminar, setOrdenAEliminar] = useState<OrdenCompraDTO | null>(null)
-    const [montosCotizaciones, setMontosCotizaciones] = useState<Record<number, number>>({}) // Guarda los montos totales calculados
+
+    // Almacena el monto real recalculado para cada orden: { [idOrdenCompra]: montoCalculado }
+    const [montosOrdenesCalculados, setMontosOrdenesCalculados] = useState<Record<number, number>>({})
 
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
@@ -45,15 +47,13 @@ export default function OrdenesPage() {
         estado: "",
         fechaDesde: "",
         fechaHasta: "",
-        idCotizacion: "" // Agregamos el campo de filtro para el Nro de Cotización externa
+        idCotizacion: ""
     })
 
-    // Sincronización y lectura de filtros (SessionStorage o Parámetros URL)
     useEffect(() => {
         const idCotizacionParam = searchParams.get("idCotizacion")
 
         if (idCotizacionParam) {
-            // Si viene desde la URL (ej. clic en ver órdenes de una cotización), tiene prioridad absoluta
             setFilters(prev => ({ ...prev, idCotizacion: idCotizacionParam }))
             setCurrentPage(1)
         } else {
@@ -76,7 +76,7 @@ export default function OrdenesPage() {
     }
 
     const camposFiltro: FilterField[] = [
-        { id: "idCotizacion", label: "Nro. Cotización", type: "text", placeholder: "Ej: 5" }, // Agregado en barra de filtros
+        { id: "idCotizacion", label: "Nro. Cotización", type: "text", placeholder: "Ej: 5" },
         {
             id: "proveedor",
             label: "Proveedor",
@@ -124,7 +124,7 @@ export default function OrdenesPage() {
         setFilters({ proveedor: "", estado: "", fechaDesde: "", fechaHasta: "", idCotizacion: "" });
         setCurrentPage(1);
         sessionStorage.removeItem("filters_ordenes");
-        router.replace("/compras/ordenes") // Limpia los query params de la URL para evitar re-filtrados fantasmas
+        router.replace("/compras/ordenes")
     };
 
     const getEstadoStyle = (estado: string) => {
@@ -151,29 +151,52 @@ export default function OrdenesPage() {
                 return obtenerTodoRecursivo(p + 1, total);
             };
 
-            const [itemsOrdenes, resProveedores, resTodosDetalles] = await Promise.all([
+            const [itemsOrdenes, resProveedores, resTodosLosDetallesOrden, resTodosDetallesCotiz] = await Promise.all([
                 obtenerTodoRecursivo(1, []),
                 proveedoresAPI.getAll(1, 300),
-                cotizacionesDetallesAPI.getAll(1, 1000) // Traemos los ítems de cotización para procesar los montos totales
+                ordenesCompraDetallesAPI.getAll(1, 2000),
+                cotizacionesDetallesAPI.getAll(1, 2000)
             ])
 
-            // Agrupación y cálculo analítico del monto de cada cotización en base a sus líneas de ítems
-            const listaDetalles = resTodosDetalles.items || resTodosDetalles || [];
-            const mapeoMontos: Record<number, number> = {};
+            const listaDetallesOrden = resTodosLosDetallesOrden.items || resTodosLosDetallesOrden || [];
+            const listaDetallesCotiz = resTodosDetallesCotiz.items || resTodosDetallesCotiz || [];
 
-            listaDetalles.forEach((det: any) => {
-                const idCot = Number(det.idPedidoCotizacion || det.cotizacionCompraId);
-                if (idCot) {
-                    const cantidad = Number(det.cantidad) || 0;
-                    const precio = Number(det.precioProducto || det.precioUnitario) || 0;
-                    const descuento = Number(det.descuento) || 0;
-                    const subtotalItem = cantidad * precio - descuento;
-
-                    mapeoMontos[idCot] = (mapeoMontos[idCot] || 0) + subtotalItem;
+            // Mapeamos los precios y descuentos de la cotización indexados por [idPedidoCotizacion][idProducto]
+            const mapaPreciosCotiz: Record<number, Record<number, { precio: number, descuento: number }>> = {};
+            listaDetallesCotiz.forEach((cd: any) => {
+                const idCot = Number(cd.idPedidoCotizacion || cd.cotizacionCompraId);
+                const idProd = Number(cd.idProducto);
+                if (idCot && idProd) {
+                    if (!mapaPreciosCotiz[idCot]) mapaPreciosCotiz[idCot] = {};
+                    mapaPreciosCotiz[idCot][idProd] = {
+                        precio: Number(cd.precioProducto || cd.precioUnitario || 0),
+                        descuento: Number(cd.descuento || 0)
+                    };
                 }
             });
 
-            setMontosCotizaciones(mapeoMontos);
+            // Calculamos el monto real de cada orden multiplicando (Precio Cotización - Descuento Cotización) * Cantidad Orden
+            const mapeoMontosOrdenes: Record<number, number> = {};
+            listaDetallesOrden.forEach((doDet: any) => {
+                const idOrd = Number(doDet.idOrdenCompra);
+                const idProd = Number(doDet.idProducto);
+
+                // Buscamos a qué cotización pertenece esta orden para sacar el precio unitario pactado
+                const ordenAsociada = itemsOrdenes.find(o => Number(o.idOrdenCompra) === idOrd);
+                const idCotAsociada = ordenAsociada ? Number(ordenAsociada.idPedidoCotizacion) : 0;
+
+                const infoFinanciera = mapaPreciosCotiz[idCotAsociada]?.[idProd] || {
+                    precio: Number(doDet.precioUnitario || doDet.precio || 0),
+                    descuento: Number(doDet.descuento || 0)
+                };
+
+                const cantidadOrden = Number(doDet.cantidad) || 0;
+                const subtotalItemReal = (infoFinanciera.precio - infoFinanciera.descuento) * cantidadOrden;
+
+                mapeoMontosOrdenes[idOrd] = (mapeoMontosOrdenes[idOrd] || 0) + subtotalItemReal;
+            });
+
+            setMontosOrdenesCalculados(mapeoMontosOrdenes);
             setAllOrdenes(itemsOrdenes)
             setProveedores(resProveedores.items || resProveedores || [])
         } catch (error) {
@@ -230,6 +253,7 @@ export default function OrdenesPage() {
 
     const handleVerFacturasAsociadas = (o: OrdenCompraDTO) => {
         guardarSnapshotFiltros()
+        // Implementación de filtro cruzado idéntico a las otras vistas de la plataforma
         router.push(`/compras/facturas?idOrdenCompra=${o.idOrdenCompra}`)
     }
 
@@ -306,7 +330,6 @@ export default function OrdenesPage() {
                     caption="Historial analítico de órdenes de compra emitidas."
                     headerRow={
                         <TableRow>
-                            {/* Ordenamiento de cabeceras solicitado: Fecha, Nro Orden, Nro Cotización, Estado, Monto, Acciones */}
                             <TableHead className="w-36">Fecha</TableHead>
                             <TableHead className="w-32">Nro Orden</TableHead>
                             <TableHead className="w-32">Cotización</TableHead>
@@ -322,8 +345,9 @@ export default function OrdenesPage() {
                 >
                     {ordenesPaginadas.map((o) => {
                         const esModificable = o.estado === "Pendiente"
+                        // Solo se habilita la visualización de facturas si fue emitido o completado
                         const permiteFacturas = o.estado === "Emitido" || o.estado === "Completado"
-                        const montoCotizacion = o.idPedidoCotizacion ? (montosCotizaciones[Number(o.idPedidoCotizacion)] || 0) : 0
+                        const montoRealCalculado = montosOrdenesCalculados[o.idOrdenCompra] || 0
 
                         return (
                             <TableRow key={o.idOrdenCompra} className="hover:bg-muted/40 transition-colors">
@@ -360,7 +384,7 @@ export default function OrdenesPage() {
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-right font-mono text-xs font-semibold text-foreground">
-                                    {o.idPedidoCotizacion ? formatearMoneda(montoCotizacion) : "—"}
+                                    {formatearMoneda(montoRealCalculado)}
                                 </TableCell>
                                 <TableCell className="text-right space-x-1">
                                     {permiteFacturas && (

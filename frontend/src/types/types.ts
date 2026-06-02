@@ -262,7 +262,7 @@ export interface CotizacionDetalleSaveDTO {
  * ESTADO PARA EL FORMULARIO (Mantiene la UI del Frontend intacta)
  */
 export interface CotizacionFormState {
-    solicitudCotizacionId: string; // Referencia a idPedidoCompra
+    solicitudCotizacionId: string;
     proveedorId: string;
     fecha: string;
     validaHasta: string;
