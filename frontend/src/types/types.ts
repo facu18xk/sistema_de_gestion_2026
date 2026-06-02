@@ -17,6 +17,18 @@ export interface LoginCredentials {
     password: string;
 }
 
+//Interfaz para Productos
+/*export interface Product {
+    idProducto: number;
+    descripcion: string | null;
+    precioUnitario: number | null;
+    esServicio: boolean;
+    porcentajeIva: number;
+    idMarca: number;
+    marca: string | null;
+    idCategoria: number;
+    categoria: string | null;
+}*/
 
 // Lo que RECIBES del Backend (Lectura)
 export interface ProductoDTO {
@@ -25,7 +37,7 @@ export interface ProductoDTO {
     precioUnitario: number;
     esServicio: boolean;
     porcentajeIva: number;
-    cantidadTotal: number;
+    cantidadTotal: number; // Stock sumado de todos los depósitos
     idMarca: number;
     marca: string;
     idCategoria: number;
@@ -73,6 +85,7 @@ export interface ProductoFormState {
     idCategoria: string;
     porcentajeIva: string;
 }
+
 
 export interface Pais {
     idPais: number;
@@ -384,10 +397,12 @@ export interface MedioPago {
     nombre: string;
 }
 
+// Lo que viene dentro de la lista de categorías del proveedor en el GET
 export interface ProveedorCategoriaDTO {
     idCategoria: number;
     categoria: string;
 }
+
 
 export interface Proveedor {
     idProveedor: number;
@@ -420,6 +435,7 @@ export interface ProveedorSaveDTO {
     telefono: string | null;
     categoriaIds: number[];
 }
+
 
 export interface PedidoItem {
     idPedidoCompraDetalle?: number
@@ -473,229 +489,74 @@ export interface PedidoDetalleSaveDTO {
     cantidad: number;
 }
 
-export interface ProcesoContableDTO {
-    idProcesoContable: number
-    periodoAnho: number
-    descripcion: string
-    cantNiveles: number
-    cantDigitosNivel: number
-    moneda: string
-    estado: string
+export interface PedidoDetalleResponseDTO extends PedidoDetalleSaveDTO {
+    idPedidoCompraDetalle: number;
+    numeroPedidoCompra: number;
+    producto: string;
+    categoria: string;
+}/**
+ * ESTRUCTURA REAL SEGÚN SWAGGER DE PEDIDOS COTIZACIONES
+ */
 
-    tienePeriodos?: boolean;
-}
-
-export interface ProcesoContableSaveDTO {
-    periodoAnho: number
-    descripcion: string
-    cantNiveles: number
-    cantDigitosNivel: number
-    moneda: string
-}
-
-export interface PeriodoContableDTO {
-    idPeriodoContable: number
-    idProcesoContable: number
-    procesoContable: string
-    anho: number
-    mes: number
-    fechaInicio: string
-    fechaFin: string
-    estado: string
-}
-
-export interface PeriodoContableSaveDTO {
-    idProcesoContable: number
-    anho: number
-    mes: number
-    fechaInicio: string
-    fechaFin: string
-    estado: string
-}
-
-export type TipoCuentaContable =
-    | "Activo"
-    | "Pasivo"
-    | "Patrimonio"
-    | "Ingreso"
-    | "Gasto"
-
-export type TipoMovimientoAsiento = "Debe" | "Haber"
-
-export interface CuentaContableDTO {
-    idCuentaContable: number
-    idProcesoContable: number
-    idCuentaPadre?: number | null
-    numeroCuenta?: string
-    codigo?: string
-    nombre: string
-    tipoCuenta: TipoCuentaContable | string
-    esAsentable: boolean
-    activa: boolean
-    cuentaPadre?: string | null
-}
-
-export interface AsientoDetalleDTO {
-    idAsientoDetalle?: number
-    idAsiento?: number
-    item: number
-    idCuentaContable: number
-    cuentaContable?: string
-    numeroAsiento?: number
-    descripcionItem?: string | null
-    tipoMovimiento: TipoMovimientoAsiento
-    monto: number
-}
-
-export interface AsientoDTO {
-    idAsiento: number
-    idPeriodoContable?: number | null
-    periodoContable?: string | null
-    idModulo?: number | null
-    modulo?: string | null
-    numeroAsiento: number
-    fecha: string
-    descripcion?: string | null
-    estado: string
-    automatico: boolean
-    referenciaOrigen?: string | null
-    idOrigen?: number | null
-    createdAt?: string | null
-    fechaMayorizacion?: string | null
-}
-
-export interface AsientoCompletoPayloadDTO {
-    idModulo: number | null
-    fecha: string
-    descripcion?: string | null
-    automatico: boolean
-    estado: string
-    referenciaOrigen?: string | null
-    idOrigen?: number | null
-    createdAt?: string | null
-    fechaMayorizacion?: string | null
-    detalles: AsientoDetalleDTO[]
-}
-
-export interface AsientoCompletoDTO {
-    asiento: AsientoDTO
-    detalles: AsientoDetalleDTO[]
-}
-
-export interface Empleado {
-    idEmpleado: number
-    ci: string
-    ruc: string
-    fechaIngreso: string
-    idDireccion: number
-    direccion: Direccion
-    nombres: string
-    apellidos: string
-    correo: string
-    telefono: string
-}
-
-export interface EmpleadoSaveDTO {
-    ci: string
-    ruc: string
-    fechaIngreso: string
-    direccion: {
-        calle1: string
-        calle2: string | null
-        descripcion: string | null
-        idPais: number
-        idCiudad: number
-    }
-    nombres: string
-    apellidos: string
-    correo: string
-    telefono: string
-}
-
-export interface EmpleadoFormState {
-    ci: string
-    ruc: string
-    fechaIngreso: string
-    nombres: string
-    apellidos: string
-    correo: string
-    telefono: string
-
-    idPais: string
-    idCiudad: string
-
-    calle1: string
-    calle2: string
-    descripcionDireccion: string
-}
-
-export interface Pariente {
-    idPariente: number
-    idEmpleado: number
-    tipoRelacion: string
-    edad: number
-    fechaNacimiento: string
-
-    empleado: {
-        idEmpleado: number
-        nombres: string
-        apellidos: string
-    }
-}
-
-export interface ParienteSaveDTO {
-    idEmpleado: number
-    tipoRelacion: string
-    edad: number
-    fechaNacimiento: string
-}
-
-export interface ParienteFormState {
-    idEmpleado: string
-    tipoRelacion: string
-    edad: string
-    fechaNacimiento: string
-}
-
+// Respuesta del GET /api/PedidosCotizaciones (Verificado en image_1ad382.png)
 export interface CotizacionDTO {
-    idPedidoCotizacion: number
-    idPedidoCompra: number
-    idEstado: number
-    idProveedor: number
-    numeroPedido: number
-    fecha: string
-    validaHasta?: string | null
-    estado?: string
-    proveedor?: Proveedor
+    idPedidoCotizacion: number;
+    idPedidoCompra: number;
+    numeroPedidoCompra: number;
+    idEstado: number;
+    estado: string;
+    idProveedor: number;
+    proveedor: {
+        idProveedor: number;
+        ruc: string;
+        razonSocial: string;
+    };
+    numeroPedido: number;
+    fecha: string;
+    validaHasta?: string;
 }
 
+// Cuerpo para el POST / PUT /api/PedidosCotizaciones (Verificado en image_1ad3dc.png)
 export interface CotizacionSaveDTO {
-    idPedidoCompra: number
-    idEstado: number
-    idProveedor: number
-    numeroPedido: number
-    fecha: string
+    idPedidoCompra: number;
+    idEstado: number;
+    idProveedor: number;
+    numeroPedido: number;
+    fecha: string;
 }
 
 export interface CotizacionDetalleDTO {
-    idPedidoCotizacionDetalle: number
-    idPedidoCotizacion: number
-    idProducto: number
-    idCategoria: number
-    descripcion: string
-    cantidad: number
-    precioProducto: number
-    descuento: number
+    idPedidoCotizacionDetalle: number;
+    idPedidoCotizacion: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+    precioProducto: number;
 }
 
+// El cuerpo exacto para el POST /api/PedidosCotizacionesDetalles
 export interface CotizacionDetalleSaveDTO {
-    idPedidoCotizacion: number
-    idProducto: number
-    idCategoria: number
-    descripcion: string
-    cantidad: number
-    precioProducto: number
-    descuento: number
+    idPedidoCotizacion: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+    precioProducto: number;
+    descuento: number;
+}
+
+/**
+ * ESTADO PARA EL FORMULARIO (Mantiene la UI del Frontend intacta)
+ */
+export interface CotizacionFormState {
+    solicitudCotizacionId: string;
+    proveedorId: string;
+    fecha: string;
+    validaHasta: string;
+    idEstado: number;
+    numeroPedido: number;
+    items: CotizacionItemForm[];
 }
 
 export interface CotizacionItemForm {
@@ -707,25 +568,196 @@ export interface CotizacionItemForm {
     descuento: number;
 }
 
-export interface CotizacionFormState {
-    solicitudCotizacionId: string
-    proveedorId: string
-    fecha: string
-    validaHasta: string
+export interface OrdenCompraSaveDTO {
+    idPedidoCotizacion: number
+    idProveedor: number
     idEstado: number
-    numeroPedido: number
-    items: CotizacionItemForm[]
+    fecha: string
+    descripcion: string
 }
 
+export interface OrdenCompraDTO {
+    idOrdenCompra: number
+    idPedidoCotizacion: number
+    idProveedor: number
+    proveedor: string
+    idEstado: number
+    estado: string
+    fecha: string
+    descripcion: string
+    detalles: OrdenCompraDetalleDTO[]
+}
 
-export type EstadoProcesoContable =
-    | "Habilitado"
-    | "Abierto"
-    | "Activo"
-    | "Activa"
-    | "Registrado"
-    | "Registrada"
-    | "Cerrado"
-    | "Cerrada"
-    | "Inhabilitado"
-    | "Inhabilitada"
+export interface OrdenCompraDetalleSaveDTO {
+    idOrdenCompraDetalle: number
+    idOrdenCompra: number
+    idProducto: number
+    cantidad: number
+}
+
+export interface OrdenCompraDetalleDTO {
+    idOrdenCompraDetalle: number
+    idOrdenCompra: number
+    idProducto: number
+    cantidad: number
+    producto: {
+        idProducto: number
+        nombre: string
+    }
+}
+export interface FacturaCompra {
+    idFacturaCompra: number
+    idOrdenCompra: number
+    ordenCompraDescripcion: string
+    idProveedor: number
+    proveedor: string
+    nroComprobante: string
+    timbrado: string
+    fecha: string
+    descripcion: string
+    idEstado: number
+    estado: string // "Pendiente" | "Pagado" | "Anulado"
+    detalles: FacturaCompraDetalle[]
+}
+
+// Swagger Actualizado: POST todo junto (Cabecera + Detalles + Estado)
+export interface FacturaCompraSaveDTO {
+    idOrdenCompra: number
+    idProveedor: number
+    nroComprobante: string
+    timbrado: string
+    fecha: string
+    descripcion: string
+    estado: string // "Pendiente", "Pagado" o "Anulado"
+    detalles: FacturaCompraDetalleBulkDTO[]
+}
+
+export interface ProductoEmbed {
+    idProducto: number
+    descripcion: string
+}
+
+export interface FacturaCompraDetalle {
+    idFacturaCompraDetalle: number
+    idFacturaCompra: number
+    idProducto: number
+    cantidad: number
+    precioUnitario: number
+    totalBruto: number
+    totalIva: number
+    totalNeto: number
+    producto: ProductoEmbed
+}
+
+// DTO para el envío masivo dentro del SaveDTO (sin ID de factura madre)
+export interface FacturaCompraDetalleBulkDTO {
+    idProducto: number
+    cantidad: number
+    precioUnitario: number
+    totalBruto: number
+    totalIva: number
+    totalNeto: number
+}
+
+export interface OrdenPagoCompra {
+    idOrdenPagoCompra: number;
+    idProveedor: number;
+    proveedor: string;
+    idEstado: number;
+    estado: string;
+    fecha: string;
+    descripcion: string;
+    detalles?: OrdenPagoCompraDetalle[];
+}
+
+export interface OrdenPagoCompraDetalle {
+    idOrdenPagoCompraDetalle: number;
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+    facturaCompra?: {
+        idFacturaCompra: number;
+        nro_Comprobante: string;
+    };
+}
+
+export interface OrdenPagoCompraSaveDTO {
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface OrdenPagoCompraDetalleSaveDTO {
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+}
+
+export interface MedioPagoLinea {
+    tipo: "Efectivo" | "Cheque" | "Transferencia" | "Nota de Crédito";
+    referencia: string;
+    monto: number;
+}
+
+export interface ProductoNotaCreditoDetalleDTO {
+    idProducto: number;
+    descripcion: string;
+}
+
+export interface NotaCreditoCompraDetalleDTO {
+    idNotaCreditoCompraDetalle: number;
+    idNotaCreditoCompra: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+    producto?: ProductoNotaCreditoDetalleDTO;
+}
+
+export interface NotaCreditoCompraDTO {
+    idNotaCreditoCompra: number;
+    idFacturaCompra: number;
+    nroComprobanteFactura: string;
+    idNotaDevolucionCompra: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoCompraDetalleDTO[];
+}
+
+export interface NotaCreditoCompraSaveDTO {
+    idFacturaCompra: number;
+    idNotaDevolucionCompra: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+}
+
+export interface NotaCreditoCompraDetalleSaveDTO {
+    idNotaCreditoCompra: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoItemForm {
+    idDetalle?: number;
+    idProducto: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoFormState {
+    idFacturaCompra: string;
+    idNotaDevolucionCompra: string;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoItemForm[];
+}
