@@ -35,7 +35,6 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
     {
         existingEntity.IdFacturaVenta = incomingEntity.IdFacturaVenta;
         existingEntity.IdEstado = incomingEntity.IdEstado;
-        existingEntity.IdNotaDevolucionVenta = incomingEntity.IdNotaDevolucionVenta;
         if (!string.IsNullOrWhiteSpace(incomingEntity.NroComprobante))
         {
             existingEntity.NroComprobante = incomingEntity.NroComprobante.Trim();
@@ -46,7 +45,6 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
         }
         existingEntity.Motivo = incomingEntity.Motivo;
         existingEntity.FechaEmision = incomingEntity.FechaEmision;
-        existingEntity.Total = incomingEntity.Total;
     }
 
     private IQueryable<NotasCreditosVenta> BuildQuery()

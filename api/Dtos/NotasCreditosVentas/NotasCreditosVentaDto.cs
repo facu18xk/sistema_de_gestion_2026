@@ -51,9 +51,17 @@ public class NotasCreditosVentaCreateDto
     public IReadOnlyCollection<VentaItemCreateDto> Items { get; set; } = Array.Empty<VentaItemCreateDto>();
 }
 
-public class NotasCreditosVentaUpdateDto : NotasCreditosVentaCreateDto
+public class NotasCreditosVentaUpdateDto
 {
+    public int IdFacturaVenta { get; set; }
+
+    public int IdEstado { get; set; }
+
     public int IdTimbrado { get; set; }
 
     public string? NroComprobante { get; set; }
+
+    public string Motivo { get; set; } = string.Empty;
+
+    public DateTime FechaEmision { get; set; }
 }

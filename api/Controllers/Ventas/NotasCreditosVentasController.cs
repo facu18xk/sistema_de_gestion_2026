@@ -49,16 +49,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     [HttpPut("{id:int}")]
     public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpdateDto dto)
     {
-        return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaUpdateDto
-        {
-            IdFacturaVenta = dto.IdFacturaVenta,
-            IdEstado = dto.IdEstado,
-            IdTimbrado = dto.IdTimbrado,
-            NroComprobante = dto.NroComprobante,
-            Motivo = dto.Motivo,
-            FechaEmision = dto.FechaEmision,
-            Items = dto.Items
-        });
+        return await base.Update(id, dto);
     }
 
     [HttpPut("completo/{id:int}")]
@@ -137,12 +128,10 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         {
             IdFacturaVenta = dto.IdFacturaVenta,
             IdEstado = dto.IdEstado,
-            IdNotaDevolucionVenta = dto.IdNotaDevolucionVenta,
             IdTimbrado = dto.IdTimbrado,
             NroComprobante = dto.NroComprobante ?? string.Empty,
             Motivo = dto.Motivo,
-            FechaEmision = dto.FechaEmision,
-            Total = dto.Total
+            FechaEmision = dto.FechaEmision
         };
     }
 
