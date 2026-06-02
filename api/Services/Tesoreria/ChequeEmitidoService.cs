@@ -18,37 +18,43 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
 
     protected override Expression<Func<ChequeEmitido, bool>> BuildKeyPredicate(int id) => item => item.IdChequeEmitido == id;
 
-    public async Task<ChequeEmitido> ConciliarAsync(int id)
+    public async Task<ChequeEmitido> ConciliarAsync(int id, DateTime fechaPago)
     {
-        var cheque = await Set.FirstOrDefaultAsync(item => item.IdChequeEmitido == id);
+        var cheque = await Set
+            .Include(item => item.IdCuentaBancariaNavigation)
+            .FirstOrDefaultAsync(item => item.IdChequeEmitido == id);
 
         if (cheque is null)
         {
             throw new KeyNotFoundException($"No existe el cheque emitido con ID {id}");
         }
 
-        if (TesoreriaText.Normalize(cheque.Estado) == "pagado")
+        if (cheque.FechaPago is not null || TesoreriaText.Normalize(cheque.Estado) == "pagado")
         {
             throw new InvalidOperationException("El cheque ya fue conciliado.");
         }
 
+        cheque.FechaPago = fechaPago;
         cheque.Estado = "Pagado";
+        cheque.IdCuentaBancariaNavigation.SaldoDisponible -= cheque.Monto;
         await _context.SaveChangesAsync();
-        return await GetByIdAsync(cheque.IdChequeEmitido) ?? cheque;
+        return cheque;
     }
 
     protected override void UpdateEntity(ChequeEmitido existingEntity, ChequeEmitido incomingEntity)
     {
-        if (TesoreriaText.Normalize(existingEntity.Estado) == "pagado")
+        if (existingEntity.FechaPago is not null)
         {
             throw new InvalidOperationException("No se puede modificar un cheque conciliado.");
         }
 
         existingEntity.IdCuentaBancaria = incomingEntity.IdCuentaBancaria;
         existingEntity.IdOrdenMedioPagoCompra = incomingEntity.IdOrdenMedioPagoCompra;
+        existingEntity.IdMovimientoBancario = incomingEntity.IdMovimientoBancario;
         existingEntity.NumeroCheque = incomingEntity.NumeroCheque;
         existingEntity.Beneficiario = incomingEntity.Beneficiario;
         existingEntity.FechaEmision = incomingEntity.FechaEmision;
+        existingEntity.FechaPago = incomingEntity.FechaPago;
         existingEntity.Monto = incomingEntity.Monto;
         existingEntity.Estado = incomingEntity.Estado;
     }
@@ -57,10 +63,6 @@ public class ChequeEmitidoService : CrudServiceBase<ChequeEmitido, int>
     {
         return _context.ChequesEmitidos
             .Include(item => item.IdCuentaBancariaNavigation)
-            .Include(item => item.IdOrdenMedioPagoCompraNavigation)
-                .ThenInclude(ordenMedioPago => ordenMedioPago!.IdOrdenPagoCompraNavigation)
-                    .ThenInclude(ordenPago => ordenPago.OrdenesPagosComprasDetalles)
-                        .ThenInclude(detalle => detalle.IdFacturaCompraNavigation)
             .OrderByDescending(item => item.FechaEmision)
             .ThenByDescending(item => item.IdChequeEmitido);
     }
