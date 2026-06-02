@@ -27,24 +27,18 @@ export const API_CONFIG = {
     ASIENTOS: "/api/Asientos",
     ASIENTOS_COMPLETO: "/api/Asientos/completo",
     INVOICES: "/api/FacturasVentas",
-<<<<<<< HEAD
     TIMBRADO: "/api/OrdenesVentas",
     BANCOS: "/api/Bancos",
     CUENTAS_BANCARIAS: "/api/CuentasBancarias",
     TIPOS_CUENTAS_BANCARIAS: "/api/TiposCuentasBancarias",
-    CUENTAS_CONTABLES: "/api/CuentasContables",
     MOVIMIENTOS_BANCARIOS: "/api/MovimientosBancarios",
     CHEQUES_EMITIDOS: "/api/ChequesEmitidos",
-    CHEQUES_TERCERO: "/api/ChequesTercero",
-    CHEQUES_MISMO_BANCO: "/api/ChequesMismoBanco",
     DEPOSITOS_BANCARIOS: "/api/DepositosBancarios",
     TIPOS_DEPOSITOS_BANCARIOS: "/api/TiposDepositosBancarios",
     TIPOS_MOVIMIENTOS_BANCARIOS: "/api/TiposMovimientosBancarios",
-=======
     ORDENES_VENTAS: "/api/OrdenesVentas",
     MEDIOS_PAGO: "/api/MediosPagosCompras",
     STOCK: "/api/StocksDepositos",
     NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
->>>>>>> cd41e1c8fb34dd0b0d9e1b78738d45b61c2795ab
   },
 } as const;

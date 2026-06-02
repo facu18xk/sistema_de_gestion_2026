@@ -1,19 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { DataTable } from "@/components/shared/data-table";
+import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
 import { depositosBancariosAPI } from "@/services/depositosBancariosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
+import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
 import { notify } from "@/lib/notifications";
 import type { CuentaBancaria, DepositoBancario } from "@/types/types";
+
+const defaultRango = rangoFechaPorDefecto();
 
 function puedeConfirmar(estado: string): boolean {
   const e = estado.toLowerCase();
@@ -27,11 +39,16 @@ function puedeRechazar(estado: string): boolean {
 
 export default function DepositosPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [depositos, setDepositos] = useState<DepositoBancario[]>([]);
+  const [todosLosDepositos, setTodosLosDepositos] = useState<DepositoBancario[]>([]);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10);
   const [accionId, setAccionId] = useState<number | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [fechaDesde, setFechaDesde] = useState(defaultRango.desde);
+  const [fechaHasta, setFechaHasta] = useState(defaultRango.hasta);
+  const [idCuentaFiltro, setIdCuentaFiltro] = useState("all");
 
   const monedaPorCuenta = (idCuenta: number) =>
     cuentas.find((c) => c.idCuentaBancaria === idCuenta)?.moneda ?? "PYG";
@@ -40,11 +57,10 @@ export default function DepositosPage() {
     setIsLoading(true);
     try {
       const [resDep, resCuentas] = await Promise.all([
-        depositosBancariosAPI.getAll(currentPage, 10),
+        depositosBancariosAPI.getAll(1, 500),
         cuentasBancariasAPI.getAll(1, 200),
       ]);
-      setDepositos(resDep.items);
-      setTotalPages(resDep.totalPages);
+      setTodosLosDepositos(resDep.items);
       setCuentas(resCuentas.items);
     } catch (error) {
       console.error("Error al cargar depósitos:", error);
@@ -56,7 +72,34 @@ export default function DepositosPage() {
 
   useEffect(() => {
     cargarDatos();
-  }, [currentPage]);
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, fechaDesde, fechaHasta, idCuentaFiltro]);
+
+  const depositosFiltrados = useMemo(() => {
+    return todosLosDepositos.filter((d) => {
+      if (idCuentaFiltro !== "all" && d.idCuentaBancaria !== Number(idCuentaFiltro)) {
+        return false;
+      }
+      if (!enRangoFecha(d.fecha, fechaDesde, fechaHasta)) return false;
+      return textoCoincide(
+        searchTerm,
+        d.concepto,
+        d.cuentaBancaria,
+        d.tipoDepositoBancario,
+        d.estado,
+      );
+    });
+  }, [todosLosDepositos, searchTerm, fechaDesde, fechaHasta, idCuentaFiltro]);
+
+  const totalPages = Math.ceil(depositosFiltrados.length / itemsPerPage) || 1;
+
+  const depositos = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return depositosFiltrados.slice(start, start + itemsPerPage);
+  }, [depositosFiltrados, currentPage, itemsPerPage]);
 
   const handleConfirmar = async (id: number) => {
     setAccionId(id);
@@ -94,11 +137,44 @@ export default function DepositosPage() {
       />
 
       <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold tracking-tight">Depósitos bancarios</h1>
+        <h1 className="text-xl font-bold tracking-tight">
+          Listado de depósitos bancarios
+        </h1>
         <Button size="sm" className="h-8 cursor-pointer" asChild>
           <Link href="/banco-tesoreria/depositos/nuevo">Nuevo depósito</Link>
         </Button>
       </div>
+
+      <TesoreriaFiltrosListado
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por concepto, cuenta, tipo o estado..."
+        showDateRange
+        fechaDesde={fechaDesde}
+        fechaHasta={fechaHasta}
+        onFechaDesdeChange={setFechaDesde}
+        onFechaHastaChange={setFechaHasta}
+      >
+        <div className="grid gap-1 min-w-[200px]">
+          <Label className="text-xs text-muted-foreground">Cuenta</Label>
+          <Select value={idCuentaFiltro} onValueChange={setIdCuentaFiltro}>
+            <SelectTrigger className="h-9 bg-white">
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las cuentas</SelectItem>
+              {cuentas.map((c) => (
+                <SelectItem
+                  key={c.idCuentaBancaria}
+                  value={String(c.idCuentaBancaria)}
+                >
+                  {c.banco} — {c.numeroCuenta}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </TesoreriaFiltrosListado>
 
       {isLoading ? (
         <div className="flex justify-center p-10">

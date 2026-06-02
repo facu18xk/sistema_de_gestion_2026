@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
 import {
   Table,
   TableBody,
@@ -22,7 +23,8 @@ import { chequesEmitidosAPI } from "@/services/chequesEmitidosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { movimientosBancariosAPI } from "@/services/movimientosBancariosAPI";
 import { formatMoney } from "@/lib/format-currency";
-import { formatDate, toInputDate } from "@/lib/format-date";
+import { formatDate } from "@/lib/format-date";
+import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
 import { notify } from "@/lib/notifications";
 import type { ChequeEmitido, CuentaBancaria, MovimientoBancario } from "@/types/types";
 
@@ -32,12 +34,7 @@ function esChequePendiente(cheque: ChequeEmitido): boolean {
   return estado.includes("emitido") || estado.includes("pendiente");
 }
 
-function enRango(fechaIso: string, desde: string, hasta: string): boolean {
-  const f = new Date(fechaIso).getTime();
-  const d = new Date(desde).getTime();
-  const h = new Date(hasta).getTime();
-  return f >= d && f <= h;
-}
+const defaultRango = rangoFechaPorDefecto();
 
 export default function ConciliacionBancariaPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -46,11 +43,9 @@ export default function ConciliacionBancariaPage() {
   const [movimientos, setMovimientos] = useState<MovimientoBancario[]>([]);
   const [cheques, setCheques] = useState<ChequeEmitido[]>([]);
 
-  const hoy = new Date().toISOString().split("T")[0];
-  const inicioMes = new Date();
-  inicioMes.setDate(1);
-  const [fechaDesde, setFechaDesde] = useState(toInputDate(inicioMes.toISOString()) ?? hoy);
-  const [fechaHasta, setFechaHasta] = useState(hoy);
+  const [fechaDesde, setFechaDesde] = useState(defaultRango.desde);
+  const [fechaHasta, setFechaHasta] = useState(defaultRango.hasta);
+  const [searchTerm, setSearchTerm] = useState("");
   const [saldoExtracto, setSaldoExtracto] = useState<string>("");
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -84,18 +79,31 @@ export default function ConciliacionBancariaPage() {
     return movimientos.filter(
       (m) =>
         m.idCuentaBancaria === cuentaSel.idCuentaBancaria &&
-        enRango(m.fecha, fechaDesde, fechaHasta),
+        enRangoFecha(m.fecha, fechaDesde, fechaHasta) &&
+        textoCoincide(
+          searchTerm,
+          m.concepto,
+          m.referencia,
+          m.tipoMovimientoBancario,
+          m.estado,
+        ),
     );
-  }, [movimientos, cuentaSel, fechaDesde, fechaHasta]);
+  }, [movimientos, cuentaSel, fechaDesde, fechaHasta, searchTerm]);
 
   const chequesFiltrados = useMemo(() => {
     if (!cuentaSel) return [];
     return cheques.filter(
       (c) =>
         c.idCuentaBancaria === cuentaSel.idCuentaBancaria &&
-        enRango(c.fechaEmision, fechaDesde, fechaHasta),
+        enRangoFecha(c.fechaEmision, fechaDesde, fechaHasta) &&
+        textoCoincide(
+          searchTerm,
+          c.numeroCheque,
+          c.beneficiario,
+          c.estado,
+        ),
     );
-  }, [cheques, cuentaSel, fechaDesde, fechaHasta]);
+  }, [cheques, cuentaSel, fechaDesde, fechaHasta, searchTerm]);
 
   const chequesPendientes = chequesFiltrados.filter(esChequePendiente);
 
@@ -135,35 +143,24 @@ export default function ConciliacionBancariaPage() {
 
       <h1 className="text-xl font-bold tracking-tight">Conciliación bancaria</h1>
 
-      <div className="flex flex-col lg:flex-row justify-between gap-3 my-2">
-        <div className="w-full max-w-md">
-          <CuentaBancariaSelector
-            cuentas={cuentas}
-            selectedId={cuentaSel?.idCuentaBancaria}
-            onSelect={setCuentaSel}
-          />
-        </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="grid gap-1">
-            <Label className="text-xs">Desde</Label>
-            <Input
-              type="date"
-              value={fechaDesde}
-              onChange={(e) => setFechaDesde(e.target.value)}
-              className="h-8 w-[140px]"
-            />
-          </div>
-          <div className="grid gap-1">
-            <Label className="text-xs">Hasta</Label>
-            <Input
-              type="date"
-              value={fechaHasta}
-              onChange={(e) => setFechaHasta(e.target.value)}
-              className="h-8 w-[140px]"
-            />
-          </div>
-        </div>
+      <div className="w-full max-w-md my-2">
+        <CuentaBancariaSelector
+          cuentas={cuentas}
+          selectedId={cuentaSel?.idCuentaBancaria}
+          onSelect={setCuentaSel}
+        />
       </div>
+
+      <TesoreriaFiltrosListado
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar en movimientos y cheques del período..."
+        showDateRange
+        fechaDesde={fechaDesde}
+        fechaHasta={fechaHasta}
+        onFechaDesdeChange={setFechaDesde}
+        onFechaHastaChange={setFechaHasta}
+      />
 
       {cuentaSel && (
         <div className="p-3 border rounded-lg bg-slate-50/40 shadow-sm mb-3">
