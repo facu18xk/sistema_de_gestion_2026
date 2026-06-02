@@ -29,6 +29,4 @@ export const cotizacionesAPI = {
     const response = await api.delete(`${API_CONFIG.ENDPOINTS.COTIZACIONES}/${id}`)
     return response.data
   },
-
-
 }

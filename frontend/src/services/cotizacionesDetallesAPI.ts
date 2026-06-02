@@ -3,7 +3,7 @@ import { API_CONFIG } from "../config/api"
 import { CotizacionDetalleDTO, CotizacionDetalleSaveDTO } from "@/types/types"
 
 export const cotizacionesDetallesAPI = {
-  getAll: async (page: number = 1, pageSize: number = 1000) => {
+  getAll: async (page: number = 1, pageSize: number = 100) => {
     const response = await api.get(API_CONFIG.ENDPOINTS.COTIZACIONES_DETALLES, {
       params: { Page: page, PageSize: pageSize },
     })

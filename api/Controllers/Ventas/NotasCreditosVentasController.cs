@@ -9,7 +9,7 @@ namespace api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVenta, NotasCreditosVentaDto, NotasCreditosVentaUpsertDto, int>
+public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVenta, NotasCreditosVentaDto, NotasCreditosVentaUpdateDto, int>
 {
     private readonly VentasCompletasService _ventasCompletasService;
 
@@ -22,7 +22,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     }
 
     [HttpPost]
-    public override async Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaUpsertDto dto)
+    public async Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaCreateDto dto)
     {
         return await CreateFromCompletaDto(new NotaCreditoVentaCompletaCreateDto
         {
@@ -35,6 +35,12 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         });
     }
 
+    [NonAction]
+    public override Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaUpdateDto dto)
+    {
+        return base.Create(dto);
+    }
+
     [HttpPost("completo")]
     public async Task<ActionResult<NotasCreditosVentaDto>> CreateCompleto(NotaCreditoVentaCompletaCreateDto dto)
     {
@@ -42,7 +48,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     }
 
     [HttpPut("{id:int}")]
-    public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpsertDto dto)
+    public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpdateDto dto)
     {
         return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaUpdateDto
         {
@@ -126,7 +132,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         };
     }
 
-    protected override NotasCreditosVenta ToEntity(NotasCreditosVentaUpsertDto dto)
+    protected override NotasCreditosVenta ToEntity(NotasCreditosVentaUpdateDto dto)
     {
         return new NotasCreditosVenta
         {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Navbar from "@/components/navbar";
 import { useRouter } from "next/navigation";
 import { CotizacionForm } from "@/components/compras/cotizacion-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
@@ -14,22 +15,27 @@ import { notify } from "@/lib/notifications";
 export default function NuevaCotizacionPage() {
   const router = useRouter();
   const [pedidosDisponibles, setPedidosDisponibles] = useState<any[]>([]);
+  const [detallesPedidosOriginales, setDetallesPedidosOriginales] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const cargarPedidosOrigen = async () => {
       try {
         setIsLoading(true);
-        // Solamente traemos las cabeceras de los pedidos al iniciar para poblar el select.
-        // Cero llamadas masivas a detalles aquí, evitando la duplicidad visual.
-        const resPedidos = await pedidosAPI.getAll(1, 500);
+        const [resPedidos, resDetalles] = await Promise.all([
+          pedidosAPI.getAll(1, 500),
+          pedidosDetallesAPI.getAll(1, 1000)
+        ]);
+
         const listaPedidos = resPedidos.items || resPedidos || [];
+        const listaDetalles = resDetalles.items || resDetalles || [];
 
         const filtrados = listaPedidos.filter(
           (p: any) => p.estado === "Aprobado" || p.estado === "Enviado" || p.estado === "Respondido"
         );
 
         setPedidosDisponibles(filtrados);
+        setDetallesPedidosOriginales(listaDetalles);
       } catch (error) {
         console.error("Error al cargar pedidos de origen:", error);
         notify.error("Error", "No se pudo cargar el listado de pedidos de compra.");
@@ -48,25 +54,25 @@ export default function NuevaCotizacionPage() {
         return;
       }
 
+      // 1. Crear Cabecera de la Cotización usando el CotizacionSaveDTO estricto
       const cabeceraPayload: CotizacionSaveDTO = {
         idPedidoCompra: Number(data.solicitudCotizacionId),
-        idEstado: data.idEstado || 1,
+        idEstado: data.idEstado || 1, // 1 por defecto (Pendiente)
         idProveedor: Number(data.proveedorId),
         numeroPedido: data.numeroPedido || Math.floor(Math.random() * 10000),
         fecha: data.fecha,
       };
 
       const nuevaCotizacion = await cotizacionesAPI.create(cabeceraPayload);
-      const idCotizacionGenerado = nuevaCotizacion.idPedidoCotizacion;
+
+      // Evaluamos el ID que devuelva tu backend
+      const idCotizacionGenerado = nuevaCotizacion.idPedidoCotizacion || nuevaCotizacion.idPedidoCotizacion;
 
       if (!idCotizacionGenerado) {
         throw new Error("No se pudo obtener el ID de la cotización generada.");
       }
 
-      // Traemos los detalles del pedido específico solo al momento de guardar para validar categorías en el backend
-      const resDetalles = await pedidosDetallesAPI.getAll(1, 1000);
-      const listaDetalles = resDetalles.items || resDetalles || [];
-
+      // 2. Guardar Detalles adaptados al tipo estricto 'CotizacionDetalleSaveDTO'
       for (const item of data.items) {
         const idProductoFinal = Number(item.productoId);
 
@@ -75,11 +81,13 @@ export default function NuevaCotizacionPage() {
           continue;
         }
 
-        const original = listaDetalles.find(
+        // Buscamos el detalle original en los pedidos para heredar su idCategoria
+        const original = detallesPedidosOriginales.find(
           (d: any) =>
             String(d.idPedidoCompra) === String(data.solicitudCotizacionId) &&
             Number(d.idProducto || d.productoId) === idProductoFinal
         );
+
 
         const detallePayload: CotizacionDetalleSaveDTO = {
           idPedidoCotizacion: Number(idCotizacionGenerado),
@@ -94,6 +102,7 @@ export default function NuevaCotizacionPage() {
         await cotizacionesDetallesAPI.create(detallePayload);
       }
 
+      // 3. Cambiar el estado del pedido de origen
       try {
         await pedidosAPI.updateEstado(Number(data.solicitudCotizacionId), {
           idEstado: 4
@@ -119,7 +128,7 @@ export default function NuevaCotizacionPage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
@@ -127,8 +136,8 @@ export default function NuevaCotizacionPage() {
           { label: "Nueva Cotización" },
         ]}
       />
-      <main className="container p-2">
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Nueva Cotización</h2>
+      <main className="container mx-auto p-4 max-w-5xl">
+        <h2 className="text-2xl font-bold tracking-tight mb-6">Nueva Cotización</h2>
 
         <CotizacionForm
           cotizacionEditada={null}
@@ -137,6 +146,6 @@ export default function NuevaCotizacionPage() {
           onCancel={() => router.push("/compras/cotizaciones")}
         />
       </main>
-    </>
+    </div>
   );
 }

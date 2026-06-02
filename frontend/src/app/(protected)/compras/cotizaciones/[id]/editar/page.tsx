@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "@/components/navbar";
-import { useRouter, useParams, useSearchParams } from "next/navigation"; // Importamos useSearchParams
+import { useRouter, useParams } from "next/navigation";
 import { CotizacionForm } from "@/components/compras/cotizacion-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
-import { Button } from "@/components/ui/button"; // Importamos Button para la navegación cruzada
-import { FileText } from "lucide-react"; // Importamos el icono para el botón
 import { cotizacionesAPI } from "@/services/cotizacionesAPI";
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI";
 import { pedidosAPI } from "@/services/pedidosAPI";
@@ -17,16 +15,11 @@ import { notify } from "@/lib/notifications";
 export default function EditarCotizacionPage() {
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams(); // Hook para leer parámetros de la URL (?mode=ver)
 
   const [cotizacion, setCotizacion] = useState<CotizacionFormState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [pedidosDisponibles, setPedidosDisponibles] = useState<any[]>([]);
   const [detallesPedidosOriginales, setDetallesPedidosOriginales] = useState<any[]>([]);
-
-  // Detectamos si viene explícitamente en modo ver o si el estado cargado no es Pendiente (ej. si idEstado !== 1)
-  const esModoVerUrl = searchParams.get("mode") === "ver";
-  const isViewMode = esModoVerUrl || (cotizacion ? cotizacion.idEstado !== 1 : false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -48,8 +41,8 @@ export default function EditarCotizacionPage() {
         const listaPedidos = resPedidos.items || resPedidos || [];
         const filtrados = listaPedidos.filter((p: any) => {
           const coincideConActual = p.idPedidoCompra === data.idPedidoCompra;
-          const estadoValid = p.estado === "Aprobado" || p.estado === "Enviado" || p.estado === "Respondido";
-          return coincideConActual || estadoValid;
+          const estadoValido = p.estado === "Aprobado" || p.estado === "Enviado" || p.estado === "Respondido";
+          return coincideConActual || estadoValido;
         });
 
         setPedidosDisponibles(filtrados);
@@ -83,19 +76,11 @@ export default function EditarCotizacionPage() {
     if (params.id) cargarDatos();
   }, [params.id]);
 
-  const handleVerOrdenesAsociadas = () => {
-    if (params.id) {
-      // Redirecciona al listado de órdenes aplicando el filtro por el ID de esta cotización
-      router.push(`/compras/ordenes?idCotizacion=${params.id}`);
-    }
-  };
-
   const handleSubmit = async (data: CotizacionFormState) => {
-    if (isViewMode) return; // Seguridad: Evita llamadas al API si está en modo lectura
-
     try {
       const idCotizacion = Number(params.id);
 
+      // 1. Cabecera
       const cabeceraPayload: CotizacionSaveDTO = {
         idPedidoCompra: Number(data.solicitudCotizacionId),
         idEstado: data.idEstado,
@@ -106,6 +91,7 @@ export default function EditarCotizacionPage() {
 
       await cotizacionesAPI.update(idCotizacion, cabeceraPayload);
 
+      // 2. Limpieza de detalles anteriores
       const resDetallesActuales = await cotizacionesDetallesAPI.getAll(1, 500);
       const listaDetallesActuales = resDetallesActuales.items || resDetallesActuales || [];
       const detallesAELiminar = listaDetallesActuales.filter(
@@ -119,6 +105,7 @@ export default function EditarCotizacionPage() {
         }
       }
 
+      // 3. Iterar y guardar los nuevos detalles corrigiendo los campos según Swagger
       for (const item of data.items) {
         const idProductoFinal = Number(item.productoId);
 
@@ -127,16 +114,18 @@ export default function EditarCotizacionPage() {
           continue;
         }
 
+        // Buscamos el detalle original en los pedidos para heredar su idCategoria
         const original = detallesPedidosOriginales.find(
           (d: any) =>
             String(d.idPedidoCompra) === String(data.solicitudCotizacionId) &&
             Number(d.idProducto || d.productoId) === idProductoFinal
         );
 
+        // Construcción del DTO estricto alineado al Backend
         const detallePayload: CotizacionDetalleSaveDTO = {
           idPedidoCotizacion: idCotizacion,
           idProducto: idProductoFinal,
-          idCategoria: original?.idCategoria ? Number(original.idCategoria) : 1,
+          idCategoria: original?.idCategoria ? Number(original.idCategoria) : 1, // Por si no encuentra, manda 1 por defecto
           descripcion: item.descripcion || "Producto",
           cantidad: Number(item.cantidad) || 1,
           precioProducto: Number(item.precioUnitario) || 0,
@@ -146,6 +135,7 @@ export default function EditarCotizacionPage() {
         await cotizacionesDetallesAPI.create(detallePayload);
       }
 
+      // 4. Estado del Pedido Origen
       try {
         await pedidosAPI.updateEstado(Number(data.solicitudCotizacionId), {
           idEstado: 4
@@ -171,40 +161,21 @@ export default function EditarCotizacionPage() {
   }
 
   return (
-    <div className="bg-background">
+    <div className="min-h-screen bg-background">
       <PageBreadcrumb
         steps={[
           { label: "Compras" },
           { label: "Cotizaciones", href: "/compras/cotizaciones" },
-          { label: isViewMode ? "Ver Cotización" : "Editar Cotización" }, // Breadcrumb dinámico
+          { label: "Editar Cotización" },
         ]}
       />
-      <main className="container p-2">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold tracking-tight">
-            {isViewMode ? "Ver Cotización" : "Editar Cotización"} #{params.id} {/* Título dinámico */}
-          </h2>
-
-          {/* Botón dinámico insertado en la cabecera si la cotización está Aprobada (idEstado === 2) */}
-          {cotizacion && Number(cotizacion.idEstado) === 2 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleVerOrdenesAsociadas}
-              className="flex items-center gap-2 border-emerald-200 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50/50 dark:border-emerald-900/30 dark:text-emerald-400 font-medium"
-            >
-              <FileText className="h-4 w-4" />
-              Ver Órdenes Emitidas
-            </Button>
-          )}
-        </div>
+      <main className="container mx-auto p-4 max-w-5xl">
+        <h2 className="text-2xl font-bold tracking-tight mb-6">Editar Cotización #{params.id}</h2>
 
         <CotizacionForm
           cotizacionEditada={cotizacion}
           pedidosLista={pedidosDisponibles}
-          deshabilitarSeleccion={isViewMode} // Deshabilita los selectores por completo si es modo vista
-          isReadOnly={isViewMode}            // Nueva prop para ocultar/modificar los botones inferiores
+          deshabilitarSeleccion={false}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/compras/cotizaciones")}
         />

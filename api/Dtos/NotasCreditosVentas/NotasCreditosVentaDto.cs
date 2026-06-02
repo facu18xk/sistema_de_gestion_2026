@@ -34,15 +34,13 @@ public class NotasCreditosVentaDto
     public IReadOnlyCollection<NotasCreditosVentasDetalleDto> Detalles { get; set; } = Array.Empty<NotasCreditosVentasDetalleDto>();
 }
 
-public class NotasCreditosVentaUpsertDto
+public class NotasCreditosVentaCreateDto
 {
     public int IdFacturaVenta { get; set; }
 
     public int IdEstado { get; set; }
 
     public int? IdNotaDevolucionVenta { get; set; }
-
-    public int IdTimbrado { get; set; }
 
     public string? NroComprobante { get; set; }
 
@@ -53,4 +51,9 @@ public class NotasCreditosVentaUpsertDto
     public decimal Total { get; set; }
 
     public IReadOnlyCollection<VentaItemCreateDto> Items { get; set; } = Array.Empty<VentaItemCreateDto>();
+}
+
+public class NotasCreditosVentaUpdateDto : NotasCreditosVentaCreateDto
+{
+    public int IdTimbrado { get; set; }
 }
