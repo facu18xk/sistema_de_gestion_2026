@@ -10,7 +10,7 @@ export const notasCreditosVentasAPI = {
         return response.data;
     },
     create: async (notaCredito: NotaCreditoVentaSave): Promise<NotaCreditoVenta> => {
-        const response = await api.post(API_CONFIG.ENDPOINTS.NOTAS_CREDITOS_VENTAS, notaCredito);
+        const response = await api.post(`${API_CONFIG.ENDPOINTS.NOTAS_CREDITOS_VENTAS}/completo`, notaCredito);
         return response.data;
     },
     getById: async (notaCreditoId: number): Promise<NotaCreditoVenta> => {
@@ -21,6 +21,10 @@ export const notasCreditosVentasAPI = {
         const response = await api.get(`${API_CONFIG.BASE_URL}/api/NotasCreditosVentasDetalles`, {
             params: { Page: page, PageSize: pageSize }
         });
+        return response.data;
+    },
+    update: async (notaCreditoId: number, notaData: NotaCreditoVentaSave): Promise<NotaCreditoVenta> => {
+        const response = await api.put(`${API_CONFIG.ENDPOINTS.NOTAS_CREDITOS_VENTAS}/${notaCreditoId}`, notaData);
         return response.data;
     },
 };

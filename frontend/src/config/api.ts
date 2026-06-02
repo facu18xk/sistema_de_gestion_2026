@@ -31,5 +31,6 @@ export const API_CONFIG = {
     MEDIOS_PAGO: "/api/MediosPagosCompras",
     STOCK: "/api/StocksDepositos",
     NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
+    TIMBRADO: "/api/Timbrados"
   },
 } as const;

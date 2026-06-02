@@ -41,11 +41,13 @@ export function FacturaSelector({
 
     const lowerSearch = search.toLowerCase();
     return facturas.filter((f) => {
+      const nroComp = f.nroComprobante.toString();
       const nroFormateado = formatearNumeroFactura(f.idFacturaVenta).toLowerCase();
       const idStr = f.idFacturaVenta.toString();
       const infoCliente = f.cliente ? f.cliente.toLowerCase() : ""; 
 
       return (
+        nroComp.includes(lowerSearch) ||
         nroFormateado.includes(lowerSearch) || 
         idStr.includes(lowerSearch) || 
         infoCliente.includes(lowerSearch)
@@ -73,7 +75,7 @@ export function FacturaSelector({
           >
             <span className="truncate font-medium text-slate-700">
               {facturaSeleccionada
-                ? formatearNumeroFactura(facturaSeleccionada.idFacturaVenta)
+                ? `Fact. ${facturaSeleccionada.nroComprobante}`
                 : "Buscar factura..."}
             </span>
             <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
@@ -98,7 +100,7 @@ export function FacturaSelector({
                   return (
                     <CommandItem
                       key={fact.idFacturaVenta}
-                      value={`${nroFormateado} ${fact.idFacturaVenta} ${fact.cliente}`}
+                      value={`${fact.nroComprobante} ${nroFormateado} ${fact.idFacturaVenta} ${fact.cliente}`}
                       onSelect={() => {
                         onSelectFactura(fact.idFacturaVenta);
                         setOpen(false); // Cierra el popover limpiamente
@@ -116,7 +118,7 @@ export function FacturaSelector({
                           )}
                         />
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900">{nroFormateado}</span>
+                          <span className="font-bold text-slate-900">{`Fact. ${fact.nroComprobante}`}</span>
                           <span className="text-[11px] text-muted-foreground">
                             Cliente: {fact.cliente || `ID: ${fact.idCliente}`}
                           </span>

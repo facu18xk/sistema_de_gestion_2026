@@ -225,6 +225,7 @@ export interface FacturaVentaItem {
     idProducto: number;
     producto: string;
     cantidad: number;
+    cantidadDevuelta: number;
     precioUnitario: number;
     totalBruto: number;
     totalIva: number;
@@ -243,6 +244,8 @@ export interface FacturaVentaCompleto {
     idCliente: number;
     cliente: string;
     nroComprobante: string;
+    idEstado: number;
+    estado: string;
     idTimbrado: number;
     timbrado: string;
     timbradoRuc: string;
@@ -257,6 +260,9 @@ export interface FacturaVentaCompleto {
 export interface FacturaVentaCompletoSave {
     idPresupuesto: number;
     idCliente: number;
+    nroComprobante: string;
+    idEstado: number;
+    idTimbrado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -271,6 +277,8 @@ export interface FacturaVentaCabecera {
     idCliente: number;
     cliente: string;
     nroComprobante: string;
+    idEstado: number;
+    estado: string;
     idTimbrado: number;
     timbrado: string;
     timbradoRuc: string;
@@ -278,6 +286,18 @@ export interface FacturaVentaCabecera {
     descripcion: string;
     idMedioPagoCompra: number;
     medioPagoCompra: string;
+    fechaPago: string;
+}
+
+export interface FacturaVentaCabeceraSave {
+    idPresupuesto: number;
+    idCliente: number;
+    nroComprobante: string;
+    idEstado: number;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
     fechaPago: string;
 }
 
@@ -316,10 +336,13 @@ export interface NotaCreditoVenta {
     idNotaCreditoVenta: number;
     idFacturaVenta: number;
     facturaVenta: string;
+    idEstado: number;
+    estado: string;
     idNotaDevolucionVenta: number;
     notaDevolucionVenta: string;
     idTimbrado: number;
     timbrado: string;
+    nroComprobante: string;
     motivo: string;
     fechaEmision: string;
     total: number;
@@ -328,7 +351,7 @@ export interface NotaCreditoVenta {
 
 export interface NotaCreditoVentaSave {
     idFacturaVenta: number;
-    idTimbrado: number;
+    idEstado: number;
     motivo: string;
     fechaEmision: string;
     items: NotaCreditoVentaItemSave[];

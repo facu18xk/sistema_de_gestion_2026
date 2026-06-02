@@ -31,6 +31,7 @@ import { preciosVentasAPI } from "@/services/preciosVentasAPI";
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
 import { ProductoSelector } from "@/components/ventas/ProductoSelector";
 import { formatCI, formatRUC } from "@/utils/cedula-format";
+import { formatPhone } from "@/utils/phone-format";
 
 export default function VerPresupuestoPage() {
   const params = useParams();
@@ -51,7 +52,7 @@ export default function VerPresupuestoPage() {
   const [isProductoModalOpen, setIsProductoModalOpen] = useState(false);
   const [esEditable, setEsEditable] = useState(false);
   const [esAprobado, setEsAprobado] = useState(false);
-  const [esVigente, setEsVigente] = useState(true);
+  const [estaExpirado, setEstaExpirado] = useState(false);
 
   const columnWidths = {
     producto: "w-[35%]",
@@ -70,6 +71,7 @@ export default function VerPresupuestoPage() {
         //Cargamos el presupuesto
         const resPresupuesto = await presupuestosAPI.getById(idPresupuesto);
         setPresupuesto(resPresupuesto);
+        //console.log(resPresupuesto);
         if (resPresupuesto) {
           //Estado actual del presupuesto
           setIdEstadoSeleccionado(resPresupuesto.idEstado);
@@ -80,8 +82,6 @@ export default function VerPresupuestoPage() {
           setEsEditable(permiteEditar);
           const permiteFacturar = resPresupuesto.idEstado === 2 ? true : false;
           setEsAprobado(permiteFacturar);
-          const expirado = resPresupuesto.idEstado === 5 ? true : false;
-          setEsVigente(!expirado);
           //Cargamos los datos del cliente
           if (resPresupuesto.idCliente) {
             const resCliente = await clientesAPI.getById(resPresupuesto.idCliente);
@@ -90,7 +90,7 @@ export default function VerPresupuestoPage() {
         }
         //Cargamos los estados
         const resEstados = await estadosAPI.getAll();
-        const toRemove = ['Enviado', 'Respondido', 'Expirado', 'Pagado', 'Anulado', 'Emitido', 'Facturado', 'Registrado'];
+        const toRemove = ['Enviado', 'Respondido', 'Expirado', 'Pagado', 'Anulado', 'Emitido', 'Facturado', 'Registrado', 'Completado'];
         const estadosFiltrados = resEstados.items.filter(item => !toRemove.includes(item.nombre));
         setListaEstados(estadosFiltrados);
         //Cargamos los productos disponibles
@@ -170,7 +170,7 @@ export default function VerPresupuestoPage() {
         cantidad: item.cantidad
       }))
     };
-
+    
     try {
       await presupuestosAPI.update(idPresupuesto, payload);
       notify.success("¡Presupuesto Actualizado!", "Todos los cambios se guardaron con éxito.");
@@ -195,6 +195,217 @@ export default function VerPresupuestoPage() {
   const totalGeneral = itemsCarrito.reduce(
     (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva/100) + 1)), 0
   );
+
+  const imprimirPresupuesto = () => {
+    if (!presupuesto) return;
+  
+    // 1. Calculamos los totales necesarios para el pie de página
+    const totalBruto = presupuesto.items.reduce((acc, item) => {
+      return acc + ((item.cantidad * item.precioUnitario));
+    }, 0);
+    const totalIvaAcumulado = presupuesto.items.reduce((acc, item) => {
+      return acc + ((item.cantidad * item.precioUnitario) * (item.iva / 100));
+    }, 0);
+    const totalPresupuestado = presupuesto.items.reduce((acc, item) => {
+      return acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1));
+    }, 0);
+  
+    // 2. Creamos un iframe oculto en el documento
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "absolute";
+    iframe.style.width = "0px";
+    iframe.style.height = "0px";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+  
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return;
+  
+    // 3. Escribimos el HTML y los estilos estrictos A4 dentro del iframe
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Presupuesto ${formatearNumeroPresupuesto(presupuesto.idPresupuesto)}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 15mm 12mm 15mm 12mm;
+          }
+          body {
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 11px;
+            color: #000000;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+          }
+          /* Estructura Maestra en 4 Filas */
+          .factura-contenedor {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 20px;
+            height: 260mm; /* Ajuste para que entre perfecto en el alto de la página */
+            padding: 10px;
+          }
+          
+          /* Fila 1 */
+          .fila-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 15px;
+          }
+          .header-empresa h2 { margin: 0 0 5px 0; font-size: 16px; font-weight: 900; text-transform: uppercase; }
+          .header-empresa p { margin: 2px 0; color: #334155; }
+          .header-timbrado {
+            border: 1px solid #000000;
+            padding: 10px;
+            border-radius: 6px;
+            min-width: 220px;
+          }
+          .header-timbrado p { margin: 2px 0; }
+          .comprobante-titulo { font-size: 10px; text-transform: uppercase; color: #64748b; margin-top: 8px; }
+          .comprobante-numero { font-family: monospace; font-size: 15px; font-weight: bold; color: #047857; margin: 2px 0; }
+  
+          /* Fila 2 */
+          .fila-cliente {
+            border: 1px solid #000000;
+            border-radius: 6px;
+            padding: 12px;
+          }
+          .cliente-titulo { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #64748b; margin: 0 0 8px 0; }
+          .cliente-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+          .data-block p { margin: 2px 0; }
+          .data-label { color: #64748b; font-size: 10px; }
+          .data-value { font-weight: 600; }
+  
+          /* Fila 3 */
+          .fila-detalles {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+          }
+          table { width: 100%; border-collapse: collapse; }
+          th { background-color: #f1f5f9; color: #000000; border: 1px solid #000000; font-weight: bold; padding: 8px; text-align: left; }
+          td { border-bottom: 1px solid #e2e8f0; padding: 8px; }
+          tr { page-break-inside: avoid; }
+          .text-right { text-align: right; }
+  
+          /* Fila 4 */
+          .fila-totales {
+            border-top: 2px solid #000000;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .iva-liquidacion { color: #64748b; }
+          .iva-liquidacion span { margin-right: 15px; }
+          .total-monto { text-align: right; }
+          .total-label { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 600; }
+          .total-valor { font-size: 20px; font-weight: 900; margin-top: 2px; }
+        </style>
+      </head>
+      <body>
+        <div class="factura-contenedor">
+          
+          <div class="fila-header">
+            <div class="header-empresa">
+              <h2>McQueen Tires</h2>
+              <p>Representante oficial del Rayo McQueen</p>
+              <p><strong>Casa Central:</strong> Av. Bernardino Caballero & Av. Irrazábal</p>
+              <p>Encarnación, Itapúa, Paraguay</p>
+              <p><strong>Teléfono:</strong> +595 71 200000</p>
+              <p><strong>Email:</strong> mcqueentires@gmail.com</p>
+              <p style="font-weight: bold; margin-top: 5px;">RUC: 80012345-6</p>
+            </div>
+            <div class="header-timbrado">
+              <p><strong>PRESUPUESTO:</strong> ${formatearNumeroPresupuesto(presupuesto.idPresupuesto)}</p>
+              <p><span class="data-label"><strong>Fecha Emisión:</strong></span> ${formatearFecha(presupuesto.fecha) || "80012345-6"}</p>
+              <p><span class="data-label"><strong>Fecha Vencimiento:</strong></span> ${formatearFecha(presupuesto.fechaVencimiento)}</p>
+            </div>
+          </div>
+  
+          <div class="fila-cliente">
+            <div class="cliente-titulo">Información del Cliente</div>
+            <div class="cliente-grid">
+              <div class="data-block">
+                <div class="data-label">Razón Social o Nombre</div>
+                <div class="data-value">${presupuesto.cliente || "Sin especificar"}</div>
+              </div>
+              <div class="data-block">
+                <div class="data-label">CI/RUC</div>
+                <div class="data-value">${cliente?.ruc ? formatRUC(cliente?.ruc) : formatCI(cliente?.ci)}</div>
+              </div>
+              <div class="data-block">
+                <div class="data-label">Correo</div>
+                <div class="data-value">${cliente?.correo || "Sin especificar"}</div>
+              </div>
+              <div class="data-block">
+                <div class="data-label">Telefono</div>
+                <div class="data-value">${formatPhone(cliente?.telefono) || "Sin especificar"}</div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="fila-detalles">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 45%;">Descripción del Producto</th>
+                  <th style="width: 10%;">Cantidad</th>
+                  <th style="width: 15%;">Precio Unitario</th>
+                  <th style="width: 15%;">Subtotal IVA</th>
+                  <th style="width: 15%; text-align: right;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${presupuesto.items.map(item => `
+                  <tr>
+                    <td>
+                      <strong>${item.producto}</strong><br/>
+                      <span style="font-size: 9px; color: #64748b; font-family: monospace;">${formatearNumeroProducto(item.idProducto)}</span>
+                    </td>
+                    <td>${item.cantidad}</td>
+                    <td>${formatGuaranies(item.precioUnitario)}</td>
+                    <td>${formatGuaranies(item.cantidad * item.precioUnitario * (item.iva/100))}</td>
+                    <td class="text-right" style="font-weight: bold;">${formatGuaranies(item.cantidad * item.precioUnitario *((item.iva/100) + 1))}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+  
+          <div class="fila-totales">
+            <div class="iva-liquidacion">
+              <strong>Liquidación del Impuesto:</strong>
+              <span>(5%): ₲ 0</span>
+              <span>(10%): ${formatGuaranies(totalIvaAcumulado)}</span>
+              <span><strong>Total Bruto:</strong> ${formatGuaranies(totalBruto)}</span>
+            </div>
+            <div class="total-monto">
+              <div class="total-label">Total Presupuestado</div>
+              <div class="total-valor">${formatGuaranies(totalGeneral)}</div>
+            </div>
+          </div>
+  
+        </div>
+      </body>
+      </html>
+    `);
+    doc.close();
+  
+    // 4. Esperamos a que el contenido cargue en el iframe y disparamos la impresión
+    iframe.contentWindow?.focus();
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      // 5. Eliminamos el iframe del DOM para no saturar la memoria
+      document.body.removeChild(iframe);
+    }, 500);
+  };
+
 
   return (
     <>
@@ -227,7 +438,7 @@ export default function VerPresupuestoPage() {
           <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push("/ventas/presupuestos")}>
             <ArrowLeft className="h-4 w-4"/> Volver
           </Button>
-          <Button size="sm" variant="secondary" className="gap-2" onClick={() => window.print()}>
+          <Button size="sm" variant="secondary" className="gap-2" onClick={() => imprimirPresupuesto()}>
             <Printer className="h-4 w-4"/> Imprimir
           </Button>
           {esEditable && (
@@ -273,12 +484,12 @@ export default function VerPresupuestoPage() {
                 <p className="text-muted-foreground text-[13px]">Email</p>
                 <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
               </div>
-              <div>
+              {/*<div>
                 <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
                 <p className="font-medium text-slate-700 text-[13px]">
                   {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
                 </p>
-              </div>
+              </div>*/}
             </div>
           </div>
           {/* DATOS PRESUPUESTO */}
@@ -286,27 +497,38 @@ export default function VerPresupuestoPage() {
             <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
               Estado del Presupuesto
             </label>
-            <Select
+            {presupuesto.idEstado === 5 ? (
+              <span className="inline-flex items-center justify-start rounded-full bg-white px-3 py-1.5 text-sm font-bold text-red-500 border shadow-sm w-full md:w-auto">
+                <span className="w-2 h-2 rounded-full bg-red-400 mr-2" />
+                  Expirado
+              </span>
+              ) : presupuesto.idEstado === 9 ? (
+              <span className="inline-flex items-center justify-start rounded-full bg-white px-3 py-1.5 text-sm font-bold text-gray-500 border shadow-sm w-full md:w-auto">
+                <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                  Facturado
+              </span>
+              ): (
+              <Select
               value={String(idEstadoSeleccionado)}
               onValueChange={(val) => setIdEstadoSeleccionado(Number(val))}
               disabled={!esEditable || isUpdating}
-            >
-              <SelectTrigger className="w-full h-8 bg-white shadow-sm text-sm mt-0.5">
-                <SelectValue placeholder="Seleccione un estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {listaEstados.map((est) => (
-                  <SelectItem key={est.idEstado} value={String(est.idEstado)} className="text-sm">
-                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                      est.idEstado === 1 ? "bg-yellow-400" : 
-                      est.idEstado === 2 ? "bg-green-500" : 
-                      est.idEstado === 6 ? "bg-red-500" : "bg-red-400"
-                    }`} />
-                    {esVigente ? est.nombre : 'Expirado'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              >
+                <SelectTrigger className="w-full h-8 bg-white shadow-sm text-sm mt-0.5">
+                  <SelectValue placeholder="Seleccione un estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {listaEstados.map((est) => (
+                    <SelectItem key={est.idEstado} value={String(est.idEstado)} className="text-sm">
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                        est.idEstado === 1 ? "bg-yellow-400" : 
+                        est.idEstado === 2 ? "bg-green-500" : 
+                        est.idEstado === 6 ? "bg-red-500" : "bg-red-400"
+                      }`} />
+                      {est.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>)}
           </div>
           <div className="flex flex-col gap-1 md:pl-2">
             <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">
