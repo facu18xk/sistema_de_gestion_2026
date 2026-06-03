@@ -1,9 +1,6 @@
 using System.Linq.Expressions;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
-using api.Dtos.Contabilidad; 
-using api.Dtos.AsientosDetalles; 
-using api.Dtos.Asientos; 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,15 +11,11 @@ namespace api.Services;
 public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
 {
     private readonly DblosAmigosContext _context;
-    private readonly IAsientoContableService _asientoContableService;
 
-    public FacturasCompraService(
-        DblosAmigosContext context, 
-        IAsientoContableService asientoContableService) 
+    public FacturasCompraService(DblosAmigosContext context) 
         : base(context)
     {
         _context = context;
-        _asientoContableService = asientoContableService;
     }
 
     protected override DbSet<FacturasCompra> Set => _context.FacturasCompras;
@@ -60,57 +53,32 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
         try
         {
             var nuevaFactura = await base.CreateAsync(entity);
-
-            decimal totalNeto = entity.FacturasComprasDetalles?.Sum(d => d.TotalNeto) ?? 0;
-            decimal totalIva = entity.FacturasComprasDetalles?.Sum(d => d.TotalIva) ?? 0;
-            decimal totalBruto = entity.FacturasComprasDetalles?.Sum(d => d.TotalBruto) ?? 0;
-
-            if (totalBruto > 0)
+            if (entity.FacturasComprasDetalles != null && entity.FacturasComprasDetalles.Any())
             {
-                var asientoDto = new AsientoCompletoUpsertDto
+                foreach (var detalle in entity.FacturasComprasDetalles)
                 {
-                    IdModulo = 1, 
-                    Fecha = DateOnly.FromDateTime(nuevaFactura.Fecha),
-                    Descripcion = string.IsNullOrWhiteSpace(nuevaFactura.Descripcion) 
-                        ? $"Registro de Factura de Compra Nro: {nuevaFactura.NroComprobante}" 
-                        : nuevaFactura.Descripcion,
-                    Automatico = true,
-                    Estado = "Registrado",
-                    ReferenciaOrigen = "Facturas_Compras",
-                    IdOrigen = nuevaFactura.IdFacturaCompra,
-                    
-                    Detalles = new List<AsientosDetalleUpsertDto>
+                    var stockActual = await _context.StocksDepositos
+                        .FirstOrDefaultAsync(s => s.IdProducto == detalle.IdProducto && s.IdDeposito == 1);
+
+                    if (stockActual != null)
                     {
-                        new AsientosDetalleUpsertDto
-                        {
-                            IdCuentaContable = 9, 
-                            Item = 1,
-                            TipoMovimiento = "Debe", 
-                            Monto = totalNeto,
-                            DescripcionItem = "Ingreso de mercadería s/ Factura"
-                        },
-                        new AsientosDetalleUpsertDto
-                        {
-                            IdCuentaContable = 10, 
-                            Item = 2,
-                            TipoMovimiento = "Debe", 
-                            Monto = totalIva,
-                            DescripcionItem = "IVA Crédito Fiscal"
-                        },
-                        new AsientosDetalleUpsertDto
-                        {
-                            IdCuentaContable = 11, 
-                            Item = 3,
-                            TipoMovimiento = "Haber", 
-                            Monto = totalBruto,
-                            DescripcionItem = $"Obligación con proveedor s/ Comprobante {nuevaFactura.NroComprobante}"
-                        }
+                        stockActual.Cantidad += detalle.Cantidad;
+                        _context.StocksDepositos.Update(stockActual);
                     }
-                };
-
-                await _asientoContableService.CreateManualAsync(asientoDto);
+                    else
+                    {
+                        var nuevoStock = new StocksDeposito
+                        {
+                            IdDeposito = 1,
+                            IdProducto = detalle.IdProducto,
+                            Cantidad = detalle.Cantidad
+                        };
+                        await _context.StocksDepositos.AddAsync(nuevoStock);
+                    }
+                }
+                
+                await _context.SaveChangesAsync();
             }
-
             await transaction.CommitAsync();
             return nuevaFactura;
         }

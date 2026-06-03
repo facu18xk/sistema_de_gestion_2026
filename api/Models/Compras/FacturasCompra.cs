@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema; // Agregar esto para [Column] y [ForeignKey]
+using System.ComponentModel.DataAnnotations.Schema; 
 
 namespace api.Models;
 
