@@ -74,15 +74,17 @@ export default function NuevoDepositoPage() {
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [bancos, setBancos] = useState<Banco[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [tiposDeposito, setTiposDeposito] = useState<TipoDepositoBancario[]>([]);
+  const [tiposDeposito, setTiposDeposito] = useState<TipoDepositoBancario[]>(
+    [],
+  );
   const [cuentaSel, setCuentaSel] = useState<CuentaBancaria | null>(null);
   const [idTipoDeposito, setIdTipoDeposito] = useState<string>("");
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [concepto, setConcepto] = useState("");
   const [chequesTercero, setChequesTercero] = useState<LineaTerceroUI[]>([]);
-  const [chequesMismoBanco, setChequesMismoBanco] = useState<LineaMismoBancoUI[]>(
-    [],
-  );
+  const [chequesMismoBanco, setChequesMismoBanco] = useState<
+    LineaMismoBancoUI[]
+  >([]);
   const [efectivoCliente, setEfectivoCliente] = useState<Cliente | null>(null);
   const [efectivoMonto, setEfectivoMonto] = useState(0);
 
@@ -110,7 +112,9 @@ export default function NuevoDepositoPage() {
           setIdTipoDeposito(String(resTipos.items[0].idTipoDepositoBancario));
         }
       })
-      .catch(() => notify.error("Error", "No se pudieron cargar los catálogos."));
+      .catch(() =>
+        notify.error("Error", "No se pudieron cargar los catálogos."),
+      );
   }, []);
 
   const handleTipoChange = (value: string) => {
@@ -134,7 +138,10 @@ export default function NuevoDepositoPage() {
 
   const handleGuardar = async () => {
     if (!cuentaSel || !idTipoDeposito) {
-      notify.error("Datos incompletos", "Seleccione cuenta y tipo de depósito.");
+      notify.error(
+        "Datos incompletos",
+        "Seleccione cuenta y tipo de depósito.",
+      );
       return;
     }
 
@@ -148,11 +155,7 @@ export default function NuevoDepositoPage() {
       }
     } else if (modo === "tercero") {
       const validos = chequesTercero.filter(
-        (c) =>
-          c.monto > 0 &&
-          c.idBanco &&
-          c.idCliente &&
-          c.numeroCheque.trim(),
+        (c) => c.monto > 0 && c.idBanco && c.idCliente && c.numeroCheque.trim(),
       );
       if (validos.length === 0) {
         notify.error(
@@ -173,12 +176,18 @@ export default function NuevoDepositoPage() {
         return;
       }
     } else {
-      notify.error("Tipo no válido", "Seleccione un tipo de depósito reconocido.");
+      notify.error(
+        "Tipo no válido",
+        "Seleccione un tipo de depósito reconocido.",
+      );
       return;
     }
 
     if (totalDeposito <= 0) {
-      notify.error("Sin montos", "El monto del depósito debe ser mayor a cero.");
+      notify.error(
+        "Sin montos",
+        "El monto del depósito debe ser mayor a cero.",
+      );
       return;
     }
 
@@ -209,7 +218,10 @@ export default function NuevoDepositoPage() {
                 .map(({ idCliente, ...c }) => c)
             : undefined,
       });
-      notify.success("Depósito registrado", "El depósito fue creado correctamente.");
+      notify.success(
+        "Depósito registrado",
+        "El depósito fue creado correctamente.",
+      );
       router.push("/banco-tesoreria/depositos");
       router.refresh();
     } catch (error) {
@@ -232,7 +244,9 @@ export default function NuevoDepositoPage() {
         ]}
       />
 
-      <h1 className="text-xl font-bold tracking-tight">Nuevo depósito bancario</h1>
+      <h1 className="text-xl font-bold tracking-tight">
+        Nuevo depósito bancario
+      </h1>
 
       <div className="flex justify-between items-start gap-4 my-2">
         <div className="w-full max-w-md">
@@ -364,7 +378,9 @@ export default function NuevoDepositoPage() {
                   <TableHead className="min-w-[120px]">Nº cheque</TableHead>
                   <TableHead className="min-w-[200px]">Librador</TableHead>
                   <TableHead>Emisión</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Monto (₲)</TableHead>
+                  <TableHead className="text-right min-w-[120px]">
+                    Monto (₲)
+                  </TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
@@ -403,7 +419,10 @@ export default function NuevoDepositoPage() {
                           value={linea.numeroCheque}
                           onChange={(e) => {
                             const next = [...chequesTercero];
-                            next[idx] = { ...linea, numeroCheque: e.target.value };
+                            next[idx] = {
+                              ...linea,
+                              numeroCheque: e.target.value,
+                            };
                             setChequesTercero(next);
                           }}
                           className="h-8"
@@ -420,7 +439,10 @@ export default function NuevoDepositoPage() {
                                 ...linea,
                                 idCliente: cliente?.idCliente,
                                 librador: cliente
-                                  ? nombreCliente(cliente.nombres, cliente.apellidos)
+                                  ? nombreCliente(
+                                      cliente.nombres,
+                                      cliente.apellidos,
+                                    )
                                   : "",
                               };
                               setChequesTercero(next);
@@ -434,7 +456,10 @@ export default function NuevoDepositoPage() {
                           value={linea.fechaEmision.split("T")[0]}
                           onChange={(e) => {
                             const next = [...chequesTercero];
-                            next[idx] = { ...linea, fechaEmision: e.target.value };
+                            next[idx] = {
+                              ...linea,
+                              fechaEmision: e.target.value,
+                            };
                             setChequesTercero(next);
                           }}
                           className="h-8"
@@ -489,7 +514,10 @@ export default function NuevoDepositoPage() {
               variant="outline"
               className="h-7 gap-1 cursor-pointer"
               onClick={() =>
-                setChequesMismoBanco((prev) => [...prev, lineaMismoBancoVacia()])
+                setChequesMismoBanco((prev) => [
+                  ...prev,
+                  lineaMismoBancoVacia(),
+                ])
               }
             >
               <Plus className="size-3" /> Agregar cheque
@@ -502,7 +530,9 @@ export default function NuevoDepositoPage() {
                   <TableHead className="min-w-[120px]">Nº cheque</TableHead>
                   <TableHead className="min-w-[200px]">Librador</TableHead>
                   <TableHead>Emisión</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Monto (₲)</TableHead>
+                  <TableHead className="text-right min-w-[120px]">
+                    Monto (₲)
+                  </TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
@@ -524,7 +554,10 @@ export default function NuevoDepositoPage() {
                           value={linea.numeroCheque}
                           onChange={(e) => {
                             const next = [...chequesMismoBanco];
-                            next[idx] = { ...linea, numeroCheque: e.target.value };
+                            next[idx] = {
+                              ...linea,
+                              numeroCheque: e.target.value,
+                            };
                             setChequesMismoBanco(next);
                           }}
                           className="h-8"
@@ -541,7 +574,10 @@ export default function NuevoDepositoPage() {
                                 ...linea,
                                 idCliente: cliente?.idCliente,
                                 librador: cliente
-                                  ? nombreCliente(cliente.nombres, cliente.apellidos)
+                                  ? nombreCliente(
+                                      cliente.nombres,
+                                      cliente.apellidos,
+                                    )
                                   : "",
                               };
                               setChequesMismoBanco(next);
@@ -555,7 +591,10 @@ export default function NuevoDepositoPage() {
                           value={linea.fechaEmision.split("T")[0]}
                           onChange={(e) => {
                             const next = [...chequesMismoBanco];
-                            next[idx] = { ...linea, fechaEmision: e.target.value };
+                            next[idx] = {
+                              ...linea,
+                              fechaEmision: e.target.value,
+                            };
                             setChequesMismoBanco(next);
                           }}
                           className="h-8"
@@ -603,13 +642,16 @@ export default function NuevoDepositoPage() {
 
       {modo === "desconocido" && idTipoDeposito && (
         <p className="text-sm text-muted-foreground p-4 border rounded-lg bg-amber-50/50">
-          El tipo &quot;{tipoSel?.nombre}&quot; no tiene un formulario configurado.
-          Los nombres esperados en la API deben contener: &quot;efectivo&quot;,
-          &quot;tercero&quot; o &quot;mismo&quot; (mismo banco).
+          El tipo &quot;{tipoSel?.nombre}&quot; no tiene un formulario
+          configurado. Los nombres esperados en la API deben contener:
+          &quot;efectivo&quot;, &quot;tercero&quot; o &quot;mismo&quot; (mismo
+          banco).
         </p>
       )}
 
-      {(modo === "efectivo" || modo === "tercero" || modo === "mismo_banco") && (
+      {(modo === "efectivo" ||
+        modo === "tercero" ||
+        modo === "mismo_banco") && (
         <div className="flex justify-end mt-4 pt-4 border-t">
           <p className="text-2xl font-black text-primary">
             Total depósito:{" "}

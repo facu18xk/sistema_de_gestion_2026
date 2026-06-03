@@ -8,7 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ChequeEmitido } from "@/types/types";
 import { formatMoney } from "@/lib/format-currency";
-import { formatDate, toInputDate } from "@/lib/format-date";
+import { formatDate } from "@/lib/format-date";
+
+function todayInputDate() {
+  return new Date().toISOString().substring(0, 10);
+}
+
+function toLocalIsoDate(date: string) {
+  return `${date}T00:00:00`;
+}
 
 interface ConciliarChequeFormProps {
   cheque: ChequeEmitido;
@@ -24,21 +32,17 @@ export function ConciliarChequeForm({
   onCancel,
 }: ConciliarChequeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fechaPago, setFechaPago] = useState(
-    toInputDate(cheque.fechaPago) || new Date().toISOString().substring(0, 10),
-  );
+  const [fechaPago, setFechaPago] = useState(todayInputDate());
 
   useEffect(() => {
-    setFechaPago(
-      toInputDate(cheque.fechaPago) || new Date().toISOString().substring(0, 10),
-    );
+    setFechaPago(todayInputDate());
   }, [cheque]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(new Date(fechaPago).toISOString());
+      await onSubmit(toLocalIsoDate(fechaPago));
     } finally {
       setIsSubmitting(false);
     }

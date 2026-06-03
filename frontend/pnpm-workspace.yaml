@@ -1,0 +1,4 @@
+allowBuilds:
+  msw: true
+  sharp: set this to true or false
+  unrs-resolver: true

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { esVigenteParaNotaCredito } from "@/utils/date-utils";
 
-function NuevaDevolucionPageContent() {
+export default function NuevaDevolucionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idFacturaQuery = searchParams.get("facturaId");
@@ -81,7 +81,7 @@ function NuevaDevolucionPageContent() {
         } else {
           // Modo 2: Ingreso manual, cargar lista de facturas para el selector
           const resFacturas = await facturasAPI.getAll(1, 200); // Trae las últimas facturas emitidas
-          const facturasVigentes = resFacturas.items.filter((f) => esVigenteParaNotaCredito(f.fechaPago));
+          const facturasVigentes = resFacturas.items.filter((f) => {esVigenteParaNotaCredito(f.fechaPago)});
           //setListaFacturas(resFacturas.items);
           setListaFacturas(facturasVigentes);
         }
@@ -121,13 +121,8 @@ function NuevaDevolucionPageContent() {
       idProducto: item.idProducto,
       descripcion: item.producto,
       precioUnitario: item.precioUnitario,
-      esServicio: false,
       porcentajeIva: 10, // Puedes estimarlo o mapearlo según tu lógica (ej: item.totalIva > 0 ? 10 : 0)
-      cantidadTotal: item.cantidad, // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
-      idMarca: 0,
-      marca: "",
-      idCategoria: 0,
-      categoria: "",
+      cantidadTotal: item.cantidad // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
     }));
   };
 
@@ -438,13 +433,5 @@ function NuevaDevolucionPageContent() {
         </div>
       </div>
     </>
-  );
-}
-
-export default function NuevaDevolucionPage() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando módulos de devoluciones...</div>}>
-      <NuevaDevolucionPageContent />
-    </Suspense>
   );
 }

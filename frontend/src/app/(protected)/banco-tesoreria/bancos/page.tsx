@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,11 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { FormSheet } from "@/components/shared/form-sheet";
 import { BancoForm } from "@/components/banco-tesoreria/banco-form";
+import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
+import { textoCoincide } from "@/lib/list-filters";
 import { bancosAPI } from "@/services/bancosAPI";
 import { notify } from "@/lib/notifications";
+import { Badge } from "@/components/ui/badge";
 import type { Banco, BancoSaveDTO } from "@/types/types";
 
 export default function BancosPage() {
@@ -29,20 +32,19 @@ export default function BancosPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const [bancos, setBancos] = useState<Banco[]>([]);
+  const [todosLosBancos, setTodosLosBancos] = useState<Banco[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [bancoAEditar, setBancoAEditar] = useState<Banco | null>(null);
   const [bancoAEliminar, setBancoAEliminar] = useState<Banco | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
 
   const cargarPagina = async () => {
     setIsLoading(true);
     try {
-      const res = await bancosAPI.getAll(currentPage, itemsPerPage);
-      setBancos(res.items);
-      setTotalPages(res.totalPages);
+      const res = await bancosAPI.getAll(1, 500);
+      setTodosLosBancos(res.items);
     } catch (error) {
       console.error("Error al cargar bancos:", error);
       notify.error(
@@ -56,7 +58,24 @@ export default function BancosPage() {
 
   useEffect(() => {
     cargarPagina();
-  }, [currentPage]);
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const bancosFiltrados = useMemo(() => {
+    return todosLosBancos.filter((b) =>
+      textoCoincide(searchTerm, b.nombre, b.activo ? "activo" : "inactivo"),
+    );
+  }, [todosLosBancos, searchTerm]);
+
+  const totalPages = Math.ceil(bancosFiltrados.length / itemsPerPage) || 1;
+
+  const bancos = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return bancosFiltrados.slice(start, start + itemsPerPage);
+  }, [bancosFiltrados, currentPage, itemsPerPage]);
 
   const handleCrearNuevo = () => {
     setBancoAEditar(null);
@@ -116,6 +135,12 @@ export default function BancosPage() {
         onButtonClick={handleCrearNuevo}
       />
 
+      <TesoreriaFiltrosListado
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por nombre de banco..."
+      />
+
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -172,15 +197,9 @@ export default function BancosPage() {
               <TableRow key={b.idBanco}>
                 <TableCell className="font-medium">{b.nombre}</TableCell>
                 <TableCell>
-                  <span
-                    className={
-                      b.activo
-                        ? "text-sm font-medium text-emerald-600"
-                        : "text-sm text-muted-foreground"
-                    }
-                  >
+                  <Badge variant={b.activo ? "activo" : "destructive"}>
                     {b.activo ? "Activo" : "Inactivo"}
-                  </span>
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
