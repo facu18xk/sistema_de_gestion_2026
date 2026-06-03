@@ -28,6 +28,7 @@ public class DepositoBancarioService : CrudServiceBase<DepositoBancario, int>
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
         var afectaDisponible = await DepositoAfectaDisponibleAsync(entity.IdTipoDepositoBancario);
+        entity.Fecha = AsTimestampWithoutTimeZone(entity.Fecha);
         var movimiento = await _movimientoBancarioService.AddMovementAsync(
             entity.IdCuentaBancaria,
             "Credito",
@@ -99,9 +100,14 @@ public class DepositoBancarioService : CrudServiceBase<DepositoBancario, int>
     {
         existingEntity.IdCuentaBancaria = incomingEntity.IdCuentaBancaria;
         existingEntity.IdTipoDepositoBancario = incomingEntity.IdTipoDepositoBancario;
-        existingEntity.Fecha = incomingEntity.Fecha;
+        existingEntity.Fecha = AsTimestampWithoutTimeZone(incomingEntity.Fecha);
         existingEntity.Monto = incomingEntity.Monto;
         existingEntity.Concepto = incomingEntity.Concepto;
+    }
+
+    private static DateTime AsTimestampWithoutTimeZone(DateTime value)
+    {
+        return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
     }
 
     private async Task<bool> DepositoAfectaDisponibleAsync(int idTipoDepositoBancario)
