@@ -232,7 +232,7 @@ export default function NuevaFacturaPage() {
 
     setIsSubmitting(true);
     const fechaHoy = new Date().toISOString().split('T')[0];
-    const ultimoNumero = timbrado?.ultimoNumeroUsado + 1;
+    const ultimoNumero = Number(timbrado?.ultimoNumeroUsado) + 1;
 
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
@@ -251,11 +251,11 @@ export default function NuevaFacturaPage() {
     };
 
     const updatedPresupuesto: PresupuestoCabeceraSave = {
-      idCliente: presupuestoSel?.idCliente,
+      idCliente: Number(presupuestoSel?.idCliente),
       idEstado: 9, //Estado 'Facturado'
-      fecha: presupuestoSel?.fecha,
-      descripcion: presupuestoSel?.descripcion,
-      fechaVencimiento: presupuestoSel?.fechaVencimiento
+      fecha: String(presupuestoSel?.fecha),
+      descripcion: String(presupuestoSel?.descripcion),
+      fechaVencimiento: String(presupuestoSel?.fechaVencimiento)
     }
 
     try {

@@ -380,6 +380,25 @@ export interface NotaCreditoVentaDetalle {
     subtotal: number;
 }
 
+export interface NotaConCliente {
+    idNotaCreditoVenta: number;
+    idFacturaVenta: number;
+    facturaVenta: string;
+    idEstado: number;
+    estado: string;
+    idCliente: number;
+    cliente: string;
+    idNotaDevolucionVenta: number;
+    notaDevolucionVenta: string;
+    idTimbrado: number;
+    timbrado: string;
+    nroComprobante: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoVentaItem[];
+}
+
 export interface OrdenVenta {
     idOrdenVenta: number;
     idPresupuesto: number;

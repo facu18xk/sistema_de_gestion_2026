@@ -196,6 +196,8 @@ export default function DetalleNotaCreditoPage() {
       // 1. Calculamos los totales necesarios para el pie de página
       const totalIvaAcumulado = notaCredito.detalles.reduce((acc, item) => acc + (item.cantidad * item.precioUnitario * 0.1), 0);
       const totalNeto = notaCredito.detalles.reduce((acc, item) => acc + (item.cantidad * item.precioUnitario * 1.1), 0);
+      const fechaStart = String(timbrado?.fechaInicio);
+      const fechaEnd = String(timbrado?.fechaFinal);
     
       // 2. Creamos un iframe oculto en el documento
       const iframe = document.createElement("iframe");
@@ -310,8 +312,8 @@ export default function DetalleNotaCreditoPage() {
               </div>
               <div class="header-timbrado">
                 <p><strong>TIMBRADO N°:</strong> ${notaCredito.timbrado || "1654321"}</p>
-                <p><strong><span class="data-label">Fecha Inicio:</strong></span> ${formatearFecha(timbrado?.fechaInicio)}</p>
-                <p><strong><span class="data-label">Fecha Fin:</strong></span> ${formatearFecha(timbrado?.fechaFinal)}</p>
+                <p><strong><span class="data-label">Fecha Inicio:</strong></span> ${formatearFecha(fechaStart)}</p>
+                <p><strong><span class="data-label">Fecha Fin:</strong></span> ${formatearFecha(fechaEnd)}</p>
                 <div class="comprobante-titulo"><strong>Nota de Crédito</strong></div>
                 <div class="comprobante-numero">${notaCredito.nroComprobante}</div>
               </div>

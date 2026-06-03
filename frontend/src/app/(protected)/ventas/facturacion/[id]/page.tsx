@@ -168,6 +168,8 @@ export default function DetalleFacturaPage() {
   
     // 1. Calculamos los totales necesarios para el pie de página
     const totalIvaAcumulado = factura.items.reduce((acc, item) => acc + item.totalIva, 0);
+    const fechaStart = String(timbrado?.fechaInicio);
+    const fechaEnd = String(timbrado?.fechaFinal);
   
     // 2. Creamos un iframe oculto en el documento
     const iframe = document.createElement("iframe");
@@ -282,8 +284,8 @@ export default function DetalleFacturaPage() {
             </div>
             <div class="header-timbrado">
               <p><strong>TIMBRADO N°:</strong> ${factura.timbrado || "1654321"}</p>
-              <p><span class="data-label">Fecha Inicio:</span> ${formatearFecha(timbrado?.fechaInicio) || "80012345-6"}</p>
-              <p><span class="data-label">Fecha Fin:</span> ${formatearFecha(timbrado?.fechaFinal)}</p>
+              <p><span class="data-label">Fecha Inicio:</span> ${formatearFecha(fechaStart) || "80012345-6"}</p>
+              <p><span class="data-label">Fecha Fin:</span> ${formatearFecha(fechaEnd)}</p>
               <div class="comprobante-titulo">Factura de Venta</div>
               <div class="comprobante-numero">${factura.nroComprobante}</div>
             </div>

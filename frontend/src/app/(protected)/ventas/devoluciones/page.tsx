@@ -11,7 +11,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { useRouter } from "next/navigation"
 import { notasCreditosVentasAPI } from "@/services/notasCreditosVentasAPI"
 import { facturasAPI } from "@/services/facturasAPI"
-import { FacturaVentaCabecera, NotaCreditoVenta } from "@/types/types"
+import { FacturaVentaCabecera, NotaCreditoVenta, NotaConCliente } from "@/types/types"
 import { notify } from "@/lib/notifications"
 import { formatearNumeroFactura } from "@/utils/factura-format"
 import { formatearNumeroNotaCredito, formatearTimbradoNota } from "@/utils/nota-format";
@@ -34,6 +34,7 @@ export default function DevolucionesPage() {
   const [facturas, setFacturas] = useState<FacturaVentaCabecera[]>([]);
   const [notasCredito, setNotasCredito] = useState<NotaCreditoVenta[]>([]);
   const [todasLasNotas, setTodasLasNotas] = useState<NotaCreditoVenta[]>([]);
+  const [notas, setNotas] = useState<NotaConCliente[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -71,28 +72,41 @@ export default function DevolucionesPage() {
   //useEffect(() => { cargarPagina() }, [currentPage]);
   useEffect(() => { cargarPagina(), cargarFacturas() }, []);
 
+  const notasConCliente: NotaConCliente[] = useMemo(() => {
+    if (todasLasNotas.length === 0) return [];
+    const mapaFacturas = new Map(facturas.map(f => [f.idFacturaVenta, f]));
+    return todasLasNotas.map((nota): NotaConCliente => {
+      const factura = mapaFacturas.get(nota.idFacturaVenta);
+      return {
+        ...nota,
+        idCliente: factura?.idCliente ?? 0,
+        cliente: factura?.cliente ?? "Cliente no encontrado"
+      };
+    });
+  }, [todasLasNotas, facturas]);
+  
   //FILTRO DE BÚSQUEDA
-    const notasFiltradas = useMemo(() => {
-      if (!searchTerm.trim()) return todasLasNotas;
-      
-      const query = searchTerm.toLowerCase().trim();
-      return todasLasNotas.filter(nota => 
-        formatearTimbradoNota(nota.idNotaCreditoVenta).toLowerCase().toString().includes(query) ||
-        nota.facturaVenta.toLowerCase().toString().includes(query) ||
-        nota.estado.toLowerCase().includes(query)
-      );
-    }, [searchTerm, todasLasNotas]);
-  
-    const totalPages = Math.ceil(notasFiltradas.length / itemsPerPage) || 1;
-  
-    const notasVisiblesEnPagina = useMemo(() => {
-      const primerItemIndex = (currentPage - 1) * itemsPerPage;
-      const ultimoItemIndex = primerItemIndex + itemsPerPage;
-      return notasFiltradas.slice(primerItemIndex, ultimoItemIndex);
-    }, [currentPage, notasFiltradas]);
-    console.log("Notas:", notasVisiblesEnPagina)
-  
-    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+  const notasFiltradas = useMemo(() => {
+    if (!searchTerm.trim()) return notasConCliente;
+    
+    const query = searchTerm.toLowerCase().trim();
+    return notasConCliente.filter(nota => 
+      nota.nroComprobante.toLowerCase().includes(query) ||
+      nota.facturaVenta.toLowerCase().includes(query) ||
+      nota.estado.toLowerCase().includes(query) ||
+      nota.cliente.toLowerCase().includes(query) // <-- ¡Ahora puedes buscar por cliente!
+    );
+  }, [searchTerm, notasConCliente]);
+
+  const totalPages = Math.ceil(notasFiltradas.length / itemsPerPage) || 1;
+
+  const notasVisiblesEnPagina = useMemo(() => {
+    const primerItemIndex = (currentPage - 1) * itemsPerPage;
+    const ultimoItemIndex = primerItemIndex + itemsPerPage;
+    return notasFiltradas.slice(primerItemIndex, ultimoItemIndex);
+  }, [currentPage, notasFiltradas]);
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
   return (
     <>
@@ -150,7 +164,7 @@ export default function DevolucionesPage() {
           onPageChange={(page) => setCurrentPage(page)}
         >
           {notasVisiblesEnPagina.map((nota) => {
-          const facturaAsociada = facturas.find((f) => f.idFacturaVenta == nota.idFacturaVenta);
+          //const facturaAsociada = facturas.find((f) => f.idFacturaVenta == nota.idFacturaVenta);
           const estadoActual = nota.estado;
           const totalNota = nota.detalles.reduce((acc, item) => {
             return acc + (item.subtotal);
@@ -158,9 +172,9 @@ export default function DevolucionesPage() {
 
           return (
             <TableRow key={nota.idNotaCreditoVenta}>
-              <TableCell>{formatearTimbradoNota(nota.idNotaCreditoVenta)}</TableCell>
-              <TableCell>{facturaAsociada?.nroComprobante}</TableCell>
-              <TableCell className="font-medium">{facturaAsociada?.cliente}</TableCell>
+              <TableCell>{nota.nroComprobante}</TableCell>
+              <TableCell>{nota.facturaVenta}</TableCell>
+              <TableCell className="font-medium">{nota.cliente}</TableCell>
               <TableCell>{new Date(nota.fechaEmision).toLocaleDateString()}</TableCell>
               <TableCell className={`${columnWidths.estado}`}>{
                 estadoActual === 'Emitido' ? <Badge variant="aprobado">{estadoActual}</Badge> : 
