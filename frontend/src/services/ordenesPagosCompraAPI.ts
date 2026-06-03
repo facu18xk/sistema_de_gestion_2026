@@ -11,19 +11,19 @@ export const ordenesPagosAPI = {
     },
 
     create: async (payload: OrdenPagoCompraSaveDTO) => {
-        const response = await api.post("/OrdenesPagosCompras", payload);
+        const response = await api.post(API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA, payload);
         return response.data;
     },
 
     createDetalle: async (payload: OrdenPagoCompraDetalleSaveDTO) => {
-        const response = await api.post("/OrdenesPagosComprasDetalles", payload);
+        const response = await api.post(API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA_DETALLES, payload);
         return response.data;
     },
     update: async (id: number, payload: OrdenPagoCompraSaveDTO) => {
-        const response = await api.put(`/OrdenesPagosCompras/${id}`, payload);
+        const response = await api.put(`${API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA}/${id}`, payload);
         return response.data;
     },
     delete: async (id: number) => {
-        await api.delete(`/OrdenesPagosCompras/${id}`);
+        await api.delete(`${API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA}/${id}`);
     },
 };
