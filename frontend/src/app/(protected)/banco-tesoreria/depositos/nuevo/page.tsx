@@ -35,6 +35,8 @@ import { formatMoney } from "@/lib/format-currency";
 import { modoTipoDeposito, nombreCliente } from "@/lib/deposito-tipo";
 import { notify } from "@/lib/notifications";
 import { formatNumberDots } from "@/utils/money-format";
+import { chequesTercerosAPI } from "@/services/chequesTercerosAPI";
+import { chequesMismoBancoAPI } from "@/services/chequesMismoBancoAPI";
 import type {
   Banco,
   ChequeMismoBancoLineSave,
@@ -199,13 +201,56 @@ export default function NuevoDepositoPage() {
 
     setIsSubmitting(true);
     try {
-      await depositosBancariosAPI.create({
+      // 1. CREAR DEPÓSITO (CABECERA)
+      const deposito = await depositosBancariosAPI.create({
         idCuentaBancaria: cuentaSel.idCuentaBancaria,
         idTipoDepositoBancario: Number(idTipoDeposito),
-        fecha: new Date(fecha).toISOString(),
+        fecha: new Date(fecha).toISOString().split("T")[0],
         monto: totalDeposito,
         concepto: conceptoFinal,
-        chequesTercero:
+      });
+      // 2. OBTENER ID REAL GENERADO
+      const idDeposito = deposito.idDepositoBancario;
+
+      // 3. CHEQUES DE TERCEROS
+      if (modo === "tercero") {
+        const chequesValidos = chequesTercero.filter(
+          (c) => c.monto > 0 && c.numeroCheque.trim(),
+        );
+
+        for (const cheque of chequesValidos) {
+          await chequesTercerosAPI.create({
+            idDepositoBancario: idDeposito,
+            bancoEmisor: cheque.bancoEmisor,
+            numeroCheque: cheque.numeroCheque,
+            librador: cheque.librador,
+            fechaEmision: cheque.fechaEmision,
+            monto: cheque.monto,
+            estado: "Pendiente",
+          });
+        }
+      }
+
+      // 4. CHEQUES MISMO BANCO
+      if (modo === "mismo_banco") {
+        const chequesValidos = chequesMismoBanco.filter(
+          (c) => c.monto > 0 && c.numeroCheque.trim(),
+        );
+
+        for (const cheque of chequesValidos) {
+          await chequesMismoBancoAPI.create({
+            idDepositoBancario: idDeposito,
+            numeroCheque: cheque.numeroCheque,
+            librador: cheque.librador,
+            fechaEmision: cheque.fechaEmision,
+            monto: cheque.monto,
+          });
+        }
+      }
+
+      // 5. MENSAJE Y REDIRECCIÓN
+      {
+        /*chequesTercero:
           modo === "tercero"
             ? chequesTercero
                 .filter((c) => c.monto > 0)
@@ -216,8 +261,9 @@ export default function NuevoDepositoPage() {
             ? chequesMismoBanco
                 .filter((c) => c.monto > 0)
                 .map(({ idCliente, ...c }) => c)
-            : undefined,
-      });
+            : undefined,*/
+      }
+
       notify.success(
         "Depósito registrado",
         "El depósito fue creado correctamente.",

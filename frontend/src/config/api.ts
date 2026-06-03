@@ -33,6 +33,8 @@ export const API_CONFIG = {
     TIPOS_CUENTAS_BANCARIAS: "/api/TiposCuentasBancarias",
     MOVIMIENTOS_BANCARIOS: "/api/MovimientosBancarios",
     CHEQUES_EMITIDOS: "/api/ChequesEmitidos",
+    CHEQUES_TERCEROS: "/api/ChequesTerceros",
+    CHEQUES_MISMO_BANCO: "/api/ChequesMismoBanco",
     DEPOSITOS_BANCARIOS: "/api/DepositosBancarios",
     TIPOS_DEPOSITOS_BANCARIOS: "/api/TiposDepositosBancarios",
     TIPOS_MOVIMIENTOS_BANCARIOS: "/api/TiposMovimientosBancarios",

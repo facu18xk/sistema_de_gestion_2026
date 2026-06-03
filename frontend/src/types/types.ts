@@ -822,6 +822,16 @@ export interface ChequeTerceroLineSave {
     monto: number;
 }
 
+export interface ChequeTerceroSaveDTO {
+    idDepositoBancario: number;
+    bancoEmisor: string;
+    numeroCheque: string;
+    librador: string;
+    fechaEmision: string;
+    monto: number;
+    estado: string;
+}
+
 export interface ChequeMismoBanco {
     idChequeMismoBanco: number;
     idDepositoBancario: number;
@@ -832,6 +842,14 @@ export interface ChequeMismoBanco {
 }
 
 export interface ChequeMismoBancoLineSave {
+    numeroCheque: string;
+    librador: string;
+    fechaEmision: string;
+    monto: number;
+}
+
+export interface ChequeMismoBancoSaveDTO {
+    idDepositoBancario: number;
     numeroCheque: string;
     librador: string;
     fechaEmision: string;
@@ -862,6 +880,16 @@ export interface DepositoBancarioSaveDTO {
     fecha: string;
     monto: number;
     concepto: string;
-    chequesTercero?: ChequeTerceroLineSave[];
-    chequesMismoBanco?: ChequeMismoBancoLineSave[];
+}
+
+export interface DetalleDepositoBancario {
+    idDetalleDepositoBancario: number;
+    idDepositoBancario: number;
+    monto: number;
+    descripcion: string;
+}
+export interface DetalleDepositoBancarioSaveDTO {
+    idDepositoBancario: number;
+    monto: number;
+    descripcion: string;
 }
