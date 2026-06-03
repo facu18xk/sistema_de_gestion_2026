@@ -43,6 +43,7 @@ builder.Services.AddScoped<TimbradoNumberingService>();
 builder.Services.AddScoped<VentasCompletasService>();
 builder.Services.AddScoped<MovimientoBancarioService>();
 builder.Services.AddScoped<ChequeEmitidoService>();
+ builder.Services.AddScoped<DepositoBancarioService>();
 builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
