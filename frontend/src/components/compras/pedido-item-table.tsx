@@ -32,7 +32,7 @@ export function PedidoItemsTable({
   readOnly = false,
 }: PedidoItemsTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 6;
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
 

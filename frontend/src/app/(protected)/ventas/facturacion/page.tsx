@@ -22,20 +22,18 @@ import { DataTable } from "@/components/shared/data-table"
 import { useRouter } from "next/navigation"
 import { facturasAPI } from "@/services/facturasAPI"
 import { estadosAPI } from "@/services/estadosAPI"
-import { Estado, FacturaVentaCabecera, PresupuestoCabecera, FacturaVentaCompleto } from "@/types/types"
+import { Estado, FacturaVentaCabecera, PresupuestoCabecera, PresupuestoCompleto } from "@/types/types"
 import { notify } from "@/lib/notifications"
 import { esPresupuestoVigente } from "@/utils/date-utils"
 import { formatearNumeroFactura } from "@/utils/factura-format"
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format"
-import { formatGuaranies } from "@/utils/money-format"
 
 const columnWidths = {
-  factura: "w-[140px]",
+  factura: "w-[80px]",
   presupuesto: "w-[80px]",
-  cliente: "w-[130px]",
+  cliente: "w-[150px]",
   fecha: "w-[100px]",
   estado: "w-[100px]",
-  total: "w-[100px]",
   acciones: "w-[80px]",
 };
 
@@ -45,8 +43,8 @@ export default function FacturasPage() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [estados, setEstados] = useState<Estado[]>([]);
   //const [facturas, setFacturas] = useState<FacturaVentaCabecera[]>([]);
-  const [todasLasFacturas, setTodasLasFacturas] = useState<FacturaVentaCompleto[]>([]);
-  const [facturaAEliminar, setFacturaAEliminar] = useState<FacturaVentaCompleto | null>(null);
+  const [todasLasFacturas, setTodasLasFacturas] = useState<FacturaVentaCabecera[]>([]);
+  const [facturaAEliminar, setFacturaAEliminar] = useState<FacturaVentaCabecera | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -120,7 +118,7 @@ export default function FacturasPage() {
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const resPaginada = await facturasAPI.getAllCompleto(currentPage, 200);
+      const resPaginada = await facturasAPI.getAll(currentPage, 200);
       //setFacturas(resPaginada.items);
       setTodasLasFacturas(resPaginada.items);
       //setTotalPages(resPaginada.totalPages);
@@ -151,11 +149,10 @@ export default function FacturasPage() {
     if (!searchTerm.trim()) return todasLasFacturas;
     
     const query = searchTerm.toLowerCase().trim();
-    return todasLasFacturas.filter(f => 
-      f.nroComprobante.toLowerCase().toString().includes(query) ||
-      formatearNumeroPresupuesto(f.idPresupuesto).toLowerCase().toString().includes(query) ||
-      f.cliente.toLowerCase().includes(query) ||
-      f.estado.toLowerCase().includes(query)
+    return todasLasFacturas.filter(p => 
+      formatearNumeroFactura(p.idFacturaVenta).toLowerCase().toString().includes(query) ||
+      formatearNumeroPresupuesto(p.idPresupuesto).toLowerCase().toString().includes(query) ||
+      p.cliente.toLowerCase().includes(query)
     );
   }, [searchTerm, todasLasFacturas]);
 
@@ -166,7 +163,6 @@ export default function FacturasPage() {
     const ultimoItemIndex = primerItemIndex + itemsPerPage;
     return facturasFiltradas.slice(primerItemIndex, ultimoItemIndex);
   }, [currentPage, facturasFiltradas]);
-  console.log("Facturas:", facturasVisiblesEnPagina)
 
   useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
@@ -185,7 +181,7 @@ export default function FacturasPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por factura, presupuesto, cliente o estado..."
+            placeholder="Buscar por factura, presupuesto o cliente..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -214,10 +210,9 @@ export default function FacturasPage() {
             <TableRow>
               <TableHead className={`${columnWidths.factura}`}>Factura</TableHead>
               <TableHead className={`${columnWidths.presupuesto}`}>Presupuesto</TableHead>
-              <TableHead className={`${columnWidths.cliente}`}>Cliente</TableHead>
-              <TableHead className={`${columnWidths.fecha}`}>Fecha Emisión</TableHead>
+              <TableHead className={`${columnWidths.cliente} font-medium`}>Cliente</TableHead>
+              <TableHead className={`${columnWidths.fecha}`}>Fecha Emisión/Pago</TableHead>
               <TableHead className={`${columnWidths.estado}`}>Estado</TableHead>
-              <TableHead className={`${columnWidths.total} text-right`}>Total</TableHead>
               <TableHead className={`${columnWidths.acciones} text-right`}>Acciones</TableHead>
             </TableRow>
           }
@@ -225,26 +220,23 @@ export default function FacturasPage() {
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         >
-          {facturasVisiblesEnPagina.map((f) => {
+          {facturasFiltradas.map((f) => {
           //const vigente = esPresupuestoVigente(p.fechaVencimiento);
           //const estadoActual = estados.find((e) => e.idEstado == p.idEstado)?.nombre;
-          const estadoActual = f.estado;
-          //const estadoExpirado = "Expirado"
+          const estadoActual: string = "Emitido"
+          const estadoExpirado = "Expirado"
           const nombreCliente = todasLasFacturas.find((c) => c.idCliente == f.idCliente)?.cliente;
-          const totalFacturado = f.items.reduce((acc, item) => {
-            return acc + (item.totalNeto);
-          }, 0);
           return (
             <TableRow key={f.idFacturaVenta}>
-              <TableCell className={`${columnWidths.factura}`}>{f.nroComprobante}</TableCell>
+              <TableCell className={`${columnWidths.factura}`}>{formatearNumeroFactura(f.idFacturaVenta)}</TableCell>
               <TableCell className={`${columnWidths.presupuesto}`}>{formatearNumeroPresupuesto(f.idPresupuesto)}</TableCell>
               <TableCell className={`${columnWidths.cliente} font-medium`}>{nombreCliente}</TableCell>
               <TableCell className={`${columnWidths.fecha}`}>{new Date(f.fecha).toLocaleDateString()}</TableCell>
               <TableCell className={`${columnWidths.estado}`}>{
                 estadoActual === 'Emitido' ? <Badge variant="aprobado">{estadoActual}</Badge> : 
-                <Badge variant="destructive">{estadoActual}</Badge>}
-              </TableCell>
-              <TableCell className={`${columnWidths.acciones} text-right`}>{formatGuaranies(totalFacturado)}</TableCell>
+                <Badge variant="destructive">{estadoExpirado}</Badge>
+                
+                }</TableCell>
               <TableCell className={`${columnWidths.acciones} text-right`}>
                 <Button
                   variant="ghost"
@@ -260,7 +252,7 @@ export default function FacturasPage() {
         })}
         {facturasVisiblesEnPagina.length === 0 && (
           <TableRow>
-            <TableCell colSpan={7} className="py-10 text-center text-muted-foreground text-sm">
+            <TableCell colSpan={6} className="py-10 text-center text-muted-foreground text-sm">
               No hay facturas que coincidan con la búsqueda.
             </TableCell>
           </TableRow>

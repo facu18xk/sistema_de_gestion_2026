@@ -26,7 +26,6 @@ export default function EmitirChequePage() {
   const [fechaEmision, setFechaEmision] = useState(
     new Date().toISOString().split("T")[0],
   );
-  const [fechaPago, setFechaPago] = useState("");
   const [monto, setMonto] = useState<number>(0);
 
   useEffect(() => {
@@ -55,20 +54,25 @@ export default function EmitirChequePage() {
     try {
       const payload: ChequeEmitidoSaveDTO = {
         idCuentaBancaria: cuentaSel.idCuentaBancaria,
+        idOrdenMedioPagoCompra: null,
+        idMovimientoBancario: null,
         numeroCheque: numeroCheque.trim(),
         beneficiario: beneficiario.trim(),
         fechaEmision: new Date(fechaEmision).toISOString(),
-        fechaPago: fechaPago ? new Date(fechaPago).toISOString() : null,
         monto,
         estado: "Emitido",
       };
+
       await chequesEmitidosAPI.create(payload);
-      notify.success("Cheque emitido", "El cheque fue registrado correctamente.");
+      notify.success(
+        "Cheque emitido",
+        "El cheque fue registrado correctamente.",
+      );
       router.push("/banco-tesoreria/cheques");
       router.refresh();
-    } catch (error) {
-      console.error("Error al emitir cheque:", error);
-      notify.error("Error", "No se pudo registrar el cheque.");
+    } catch (error: any) {
+      console.error("Error completo:", error);
+      console.error("Response:", error.response?.data);
     } finally {
       setIsSubmitting(false);
     }
@@ -153,7 +157,7 @@ export default function EmitirChequePage() {
               className="h-9"
             />
           </div>
-          <div className="grid gap-1.5">
+          {/*<div className="grid gap-1.5">
             <Label htmlFor="fechaPago" className="text-[13px]">
               Fecha pago (opcional)
             </Label>
@@ -164,7 +168,7 @@ export default function EmitirChequePage() {
               onChange={(e) => setFechaPago(e.target.value)}
               className="h-9"
             />
-          </div>
+          </div>*/}
         </div>
       </div>
 
@@ -180,7 +184,9 @@ export default function EmitirChequePage() {
               <p className="font-semibold">{cuentaSel.numeroCuenta}</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-[13px]">Saldo disponible</p>
+              <p className="text-muted-foreground text-[13px]">
+                Saldo disponible
+              </p>
               <p className="font-semibold">
                 {formatMoney(cuentaSel.saldoDisponible, cuentaSel.moneda)}
               </p>

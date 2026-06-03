@@ -17,7 +17,6 @@ import { preciosVentasAPI } from "@/services/preciosVentasAPI";
 import { Cliente, ProductoDTO, PresupuestoCompletoSave, PreciosVentas } from "@/types/types";
 import { formatGuaranies } from "@/utils/money-format";
 import { formatearNumeroProducto } from "@/utils/producto-format";
-import { formatPhone } from "@/utils/phone-format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +28,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { formatCI, formatRUC } from "@/utils/cedula-format";
-import { sumarDiasHabiles } from "@/utils/date-utils";
 
 /*const resPaginada = {
   "items": [
@@ -177,9 +175,9 @@ export default function NuevoPresupuestoPage() {
     try {
       const fechaHoraEmision = fechaEmision;
       const diasValidez = 10;
-      //const fechaVenc = new Date(fechaEmision);
-      //fechaVenc.setDate(fechaVenc.getDate() + diasValidez);
-      const fechaHoraVencimiento = sumarDiasHabiles(fechaEmision, diasValidez);
+      const fechaVenc = new Date(fechaEmision);
+      fechaVenc.setDate(fechaVenc.getDate() + diasValidez);
+      const fechaHoraVencimiento = fechaVenc.toISOString().split('T')[0];
       const itemsMapeados = itemsCarrito.map((item) => ({
         idProducto: item.idProducto,
         cantidad: item.cantidadTotal,
@@ -221,8 +219,7 @@ export default function NuevoPresupuestoPage() {
   };
 
   const updateCantidad = (index: number, nuevaCantidad: number) => {
-    //console.log(`Modificar ${index} con cantidad ${nuevaCantidad}`)
-    //if (nuevaCantidad < 1) return;
+    if (nuevaCantidad < 1) return;
     setItemsCarrito(prev => {
       const nuevoCarrito = [...prev];
       nuevoCarrito[index] = { ...nuevoCarrito[index], cantidadTotal: nuevaCantidad };
@@ -248,17 +245,6 @@ export default function NuevoPresupuestoPage() {
       }
     }
   };
-
-  const handleCantidad = async (index: number ,input: string) => {
-      if (input === "") {
-        updateCantidad(index, 0);
-        return;
-      }
-      const soloNumerosRegex = /^[0-9]+$/;
-      if (soloNumerosRegex.test(input)) {
-        updateCantidad(index, Number(input));
-      }
-  }
 
   const totalGeneral = itemsCarrito.reduce(
     (acc, item) => acc + ((item.cantidadTotal * item.precioUnitario) * ((item.porcentajeIva/100) + 1)), 0
@@ -339,13 +325,9 @@ export default function NuevoPresupuestoPage() {
                   <p className="text-muted-foreground text-[13px]">Email</p>
                   <p className="font-medium text-slate-700 text-[13px]">{clienteSel.correo || "No registrado"}</p>
                 </div>
-                {/*<div className="hidden sm:block">
+                <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Fecha de Nacimiento</p>
                   <p className="font-medium text-slate-700 text-[13px]">{new Date(clienteSel.fechaNacimiento).toLocaleDateString()}</p>
-                </div>*/}
-                <div className="hidden sm:block">
-                  <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(clienteSel.telefono) || "No registrado"}</p>
                 </div>
               </div>
             ) : (
@@ -422,28 +404,13 @@ export default function NuevoPresupuestoPage() {
                       </div>
                     </TableCell>
                     {/* CANTIDAD */}
-                    {/*<TableCell className={columnWidths.cantidad}>
+                    <TableCell className={columnWidths.cantidad}>
                       <Input 
                         type="number" 
                         min="1"
                         className="w-16 h-8 px-2"
                         value={item.cantidadTotal} 
                         onChange={(e) => updateCantidad(index, Number(e.target.value))} 
-                      />
-                    </TableCell>*/}
-                    <TableCell className={columnWidths.cantidad}>
-                      <Input 
-                        type="text" 
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        className="w-16 h-8 px-2 text-center"
-                        value={item.cantidadTotal === 0 ? "" : item.cantidadTotal}
-                        onChange={(e) => {handleCantidad(index, e.target.value)}}
-                        onBlur={() => {
-                          if (item.cantidadTotal === 0) {
-                            updateCantidad(index, 1);
-                          }
-                        }} 
                       />
                     </TableCell>
                     {/* PRECIO UNITARIO */}
@@ -473,14 +440,7 @@ export default function NuevoPresupuestoPage() {
                 );
               })}
               {/* CARRITO VACÍO */}
-              {!clienteSel && itemsCarrito.length === 0 && (
-                <TableRow>
-                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(clienteSel){setIsProductoModalOpen(true)}}}>
-                  Seleccione un cliente para empezar.
-                </TableCell>
-                </TableRow>
-              )}
-              {clienteSel && itemsCarrito.length === 0 && (
+              {itemsCarrito.length === 0 && (
                 <TableRow>
                 <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(clienteSel){setIsProductoModalOpen(true)}}}>
                   No hay productos seleccionados. Use el botón "+ Agregar" para comenzar.
