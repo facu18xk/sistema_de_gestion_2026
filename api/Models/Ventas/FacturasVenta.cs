@@ -7,15 +7,13 @@ public partial class FacturasVenta
 {
     public int IdFacturaVenta { get; set; }
 
-<<<<<<< HEAD
     public int IdPresupuesto { get; set; }
-=======
-    public int IdOrdenVenta { get; set; }
->>>>>>> front
 
     public int IdCliente { get; set; }
 
     public string NroComprobante { get; set; } = null!;
+
+    public int IdEstado { get; set; }
 
     public int IdTimbrado { get; set; }
 
@@ -33,11 +31,9 @@ public partial class FacturasVenta
 
     public virtual MediosPagosCompra IdMedioPagoCompraNavigation { get; set; } = null!;
 
-<<<<<<< HEAD
     public virtual Presupuesto IdPresupuestoNavigation { get; set; } = null!;
-=======
-    public virtual OrdenesVenta IdOrdenVentaNavigation { get; set; } = null!;
->>>>>>> front
+
+    public virtual Estado IdEstadoNavigation { get; set; } = null!;
 
     public virtual Timbrado IdTimbradoNavigation { get; set; } = null!;
 

@@ -11,6 +11,10 @@ public class NotasCreditosVentaDto
 
     public string FacturaVenta { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public int? IdNotaDevolucionVenta { get; set; }
 
     public string NotaDevolucionVenta { get; set; } = string.Empty;
@@ -18,6 +22,8 @@ public class NotasCreditosVentaDto
     public int IdTimbrado { get; set; }
 
     public string Timbrado { get; set; } = string.Empty;
+
+    public string NroComprobante { get; set; } = string.Empty;
 
     public string Motivo { get; set; } = string.Empty;
 
@@ -28,13 +34,13 @@ public class NotasCreditosVentaDto
     public IReadOnlyCollection<NotasCreditosVentasDetalleDto> Detalles { get; set; } = Array.Empty<NotasCreditosVentasDetalleDto>();
 }
 
-public class NotasCreditosVentaUpsertDto
+public class NotasCreditosVentaCreateDto
 {
     public int IdFacturaVenta { get; set; }
 
-    public int? IdNotaDevolucionVenta { get; set; }
+    public int IdEstado { get; set; }
 
-    public int IdTimbrado { get; set; }
+    public int? IdNotaDevolucionVenta { get; set; }
 
     public string Motivo { get; set; } = string.Empty;
 
@@ -43,4 +49,19 @@ public class NotasCreditosVentaUpsertDto
     public decimal Total { get; set; }
 
     public IReadOnlyCollection<VentaItemCreateDto> Items { get; set; } = Array.Empty<VentaItemCreateDto>();
+}
+
+public class NotasCreditosVentaUpdateDto
+{
+    public int IdFacturaVenta { get; set; }
+
+    public int IdEstado { get; set; }
+
+    public int IdTimbrado { get; set; }
+
+    public string? NroComprobante { get; set; }
+
+    public string Motivo { get; set; } = string.Empty;
+
+    public DateTime FechaEmision { get; set; }
 }

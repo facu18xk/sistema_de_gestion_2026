@@ -101,7 +101,6 @@ public class ChequeEmitidoDto
     public string NumeroCheque { get; set; } = string.Empty;
     public string Beneficiario { get; set; } = string.Empty;
     public DateTime FechaEmision { get; set; }
-    public DateTime? FechaPago { get; set; }
     public decimal Monto { get; set; }
     public string Estado { get; set; } = string.Empty;
 }
@@ -114,7 +113,6 @@ public class ChequeEmitidoUpsertDto
     public string NumeroCheque { get; set; } = string.Empty;
     public string Beneficiario { get; set; } = string.Empty;
     public DateTime FechaEmision { get; set; } = DateTime.Now;
-    public DateTime? FechaPago { get; set; }
     public decimal Monto { get; set; }
     public string Estado { get; set; } = "Emitido";
 }

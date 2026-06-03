@@ -44,11 +44,7 @@ public class PeriodoContableGeneratorService : IPeriodoContableGeneratorService
                     Mes = month,
                     FechaInicio = firstDay,
                     FechaFin = firstDay.AddMonths(1).AddDays(-1),
-<<<<<<< HEAD
                     Estado = ContabilidadEstados.Habilitado
-=======
-                    Estado = "Habilitado"
->>>>>>> front
                 };
             })
             .ToList();

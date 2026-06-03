@@ -5,19 +5,6 @@ namespace api.Services;
 
 public static class ContabilidadRules
 {
-<<<<<<< HEAD
-=======
-    private static readonly string[] EnabledStates =
-    {
-        "habilitado",
-        "abierto",
-        "activo",
-        "activa",
-        "registrado",
-        "registrada"
-    };
-
->>>>>>> front
     public static bool IsEnabled(string? estado)
     {
         if (string.IsNullOrWhiteSpace(estado))
@@ -25,13 +12,9 @@ public static class ContabilidadRules
             return true;
         }
 
-<<<<<<< HEAD
         return ContabilidadEstados.EstadosHabilitados.Contains(
             estado.Trim(),
             StringComparer.OrdinalIgnoreCase);
-=======
-        return EnabledStates.Contains(estado.Trim().ToLowerInvariant());
->>>>>>> front
     }
 
     public static bool IsDebe(string tipoMovimiento)

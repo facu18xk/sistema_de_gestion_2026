@@ -35,12 +35,14 @@ public class FacturasVentasDetalleService : CrudServiceBase<FacturasVentasDetall
 
     public override async Task<FacturasVentasDetalle> CreateAsync(FacturasVentasDetalle entity)
     {
+        ValidateCantidadDevuelta(entity);
         entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
         return await base.CreateAsync(entity);
     }
 
     public override async Task<FacturasVentasDetalle> UpdateAsync(int id, FacturasVentasDetalle entity)
     {
+        ValidateCantidadDevuelta(entity);
         entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
         return await base.UpdateAsync(id, entity);
     }
@@ -50,6 +52,7 @@ public class FacturasVentasDetalleService : CrudServiceBase<FacturasVentasDetall
         existingEntity.IdFacturaVenta = incomingEntity.IdFacturaVenta;
         existingEntity.IdProducto = incomingEntity.IdProducto;
         existingEntity.Cantidad = incomingEntity.Cantidad;
+        existingEntity.CantidadDevuelta = incomingEntity.CantidadDevuelta;
         existingEntity.PrecioUnitario = incomingEntity.PrecioUnitario;
         existingEntity.TotalBruto = incomingEntity.TotalBruto;
         existingEntity.TotalIva = incomingEntity.TotalIva;
@@ -60,6 +63,21 @@ public class FacturasVentasDetalleService : CrudServiceBase<FacturasVentasDetall
     {
         return _context.FacturasVentasDetalles
             .Include(entity => entity.IdFacturaVentaNavigation)
+                .ThenInclude(fv => fv.NotasCreditosVenta)
+                    .ThenInclude(nc => nc.NotasCreditosVentasDetalles)
             .Include(entity => entity.IdProductoNavigation);
+    }
+
+    private static void ValidateCantidadDevuelta(FacturasVentasDetalle entity)
+    {
+        if (entity.CantidadDevuelta < 0)
+        {
+            throw new InvalidOperationException("La cantidad devuelta no puede ser negativa.");
+        }
+
+        if (entity.CantidadDevuelta > entity.Cantidad)
+        {
+            throw new InvalidOperationException("La cantidad devuelta no puede superar la cantidad facturada.");
+        }
     }
 }

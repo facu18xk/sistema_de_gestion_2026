@@ -34,10 +34,6 @@ public class OrdenesCompraService : CrudServiceBase<OrdenesCompra, int>
     protected override void UpdateEntity(OrdenesCompra existingEntity, OrdenesCompra incomingEntity)
     {
         existingEntity.IdPedidoCotizacion = incomingEntity.IdPedidoCotizacion;
-<<<<<<< HEAD
-=======
-        existingEntity.IdCotizacionCompra = incomingEntity.IdCotizacionCompra;
->>>>>>> front
         existingEntity.IdProveedor = incomingEntity.IdProveedor;
         existingEntity.IdEstado = incomingEntity.IdEstado;
         existingEntity.Fecha = incomingEntity.Fecha;
@@ -48,17 +44,9 @@ public class OrdenesCompraService : CrudServiceBase<OrdenesCompra, int>
     {
         return _context.OrdenesCompras
             .Include(orden => orden.IdPedidoCotizacionNavigation)
-<<<<<<< HEAD
             .Include(orden => orden.IdProveedorNavigation)
             .Include(orden => orden.IdEstadoNavigation)
             .Include(orden => orden.OrdenesComprasDetalles)
             .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 }
-=======
-            .Include(orden => orden.IdCotizacionCompraNavigation)
-            .Include(orden => orden.IdProveedorNavigation)
-            .Include(orden => orden.IdEstadoNavigation);
-    }
-}
->>>>>>> front

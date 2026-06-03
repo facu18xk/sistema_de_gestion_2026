@@ -29,7 +29,7 @@ public class PedidosCotizacionesDetallesController : CrudControllerBase<PedidosC
             Descripcion = entity.Descripcion,
             Cantidad = entity.Cantidad,
             PrecioProducto = entity.PrecioProducto,
-            Descuento = entity.Descuento
+            Descuento = entity.Descuento 
         };
     }
 
@@ -43,7 +43,7 @@ public class PedidosCotizacionesDetallesController : CrudControllerBase<PedidosC
             Descripcion = dto.Descripcion,
             Cantidad = dto.Cantidad,
             PrecioProducto = dto.PrecioProducto,
-            Descuento = dto.Descuento
+            Descuento = dto.Descuento 
         };
     }
 

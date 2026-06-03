@@ -22,9 +22,6 @@ public partial class Estado
     public virtual ICollection<PedidosCotizaciones> PedidosCotizaciones { get; set; } = new List<PedidosCotizaciones>();
 
     public virtual ICollection<Presupuesto> Presupuestos { get; set; } = new List<Presupuesto>();
-<<<<<<< HEAD
 
     public virtual ICollection<NotasDevolucionesCompra> NotasDevolucionesCompras { get; set; } = new List<NotasDevolucionesCompra>();
-=======
->>>>>>> front
 }

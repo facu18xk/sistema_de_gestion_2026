@@ -58,6 +58,60 @@ interface AgregarProductosViewProps {
     onNuevoProducto: () => void;
 }
 
+export type FilterField = {
+    id: string;
+    label: string;
+    type: "text" | "select" | "date";
+    placeholder?: string;
+    options?: Array<{ label: string; value: string }>;
+};
+
+interface FilterBarProps {
+    fields: FilterField[];
+    filters: Record<string, string>;
+    onFilterChange: (id: string, value: string) => void;
+}
+
+export function FilterBar({
+    fields,
+    filters,
+    onFilterChange,
+}: FilterBarProps) {
+    return (
+        <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-2">
+            {fields.map((field) => (
+                <div key={field.id} className="grid gap-1.5 min-w-[170px]">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {field.label}
+                    </span>
+                    {field.type === "select" ? (
+                        <select
+                            className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            value={filters[field.id] || ""}
+                            onChange={(e) => onFilterChange(field.id, e.target.value)}
+                        >
+                            <option value="">{field.placeholder || "Todos"}</option>
+                            {(field.options || []).map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    ) : (
+                        <Input
+                            type={field.type}
+                            className="h-9"
+                            placeholder={field.placeholder}
+                            value={filters[field.id] || ""}
+                            onChange={(e) => onFilterChange(field.id, e.target.value)}
+                        />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function AgregarProductosView({
     productos,
     itemsExistentes,
@@ -78,6 +132,8 @@ export function AgregarProductosView({
     const [soloSeleccionados, setSoloSeleccionados] = useState(false);
 
     useEffect(() => {
+        // Sync derived view state when the incoming product list or existing items change.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setProductosEstado(
             productos.map((p) => {
                 const itemEnPedido = itemsExistentes.find((item) => item.idProducto === p.id);

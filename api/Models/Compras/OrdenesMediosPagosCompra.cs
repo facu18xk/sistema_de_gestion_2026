@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-<<<<<<< HEAD
 using System.ComponentModel.DataAnnotations.Schema;
-=======
->>>>>>> front
 
 namespace api.Models;
 
@@ -17,7 +14,6 @@ public partial class OrdenesMediosPagosCompra
 
     public decimal Monto { get; set; }
 
-<<<<<<< HEAD
     [NotMapped]
     public int? IdCuentaBancaria { get; set; }
 
@@ -36,8 +32,6 @@ public partial class OrdenesMediosPagosCompra
     [NotMapped]
     public int? IdChequeEmitido { get; set; }
 
-=======
->>>>>>> front
     public virtual MediosPagosCompra IdMedioPagoCompraNavigation { get; set; } = null!;
 
     public virtual OrdenesPagosCompra IdOrdenPagoCompraNavigation { get; set; } = null!;

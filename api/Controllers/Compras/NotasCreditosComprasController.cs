@@ -1,10 +1,14 @@
 using api.Dtos.NotasCreditosCompras;
+using api.Dtos.NotasCreditosComprasDetalles;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+
+using ReadDetalleDto = api.Dtos.NotasCreditosCompras.NotasCreditosComprasDetalleDto;
 
 namespace api.Controllers;
 
@@ -30,7 +34,7 @@ public class NotasCreditosComprasController : CrudControllerBase<NotasCreditosCo
             FechaEmision = entity.FechaEmision,
             Total = entity.Total,
             Detalles = entity.NotasCreditosComprasDetalles?
-                .Select(d => new NotasCreditosComprasDetalleDto
+                .Select(d => new ReadDetalleDto 
                 {
                     IdNotaCreditoCompraDetalle = d.IdNotaCreditoCompraDetalle,
                     IdNotaCreditoCompra = d.IdNotaCreditoCompra,
@@ -39,13 +43,13 @@ public class NotasCreditosComprasController : CrudControllerBase<NotasCreditosCo
                     Subtotal = d.Subtotal,
                     Producto = d.IdProductoNavigation is null 
                         ? null 
-                        : new ProductoNotaCreditoDetalleDto 
+                        : new api.Dtos.NotasCreditosCompras.ProductoNotaCreditoDetalleDto 
                         {
                             IdProducto = d.IdProductoNavigation.IdProducto,
                             Descripcion = d.IdProductoNavigation.Descripcion
                         }
                 })
-                .ToArray() ?? Array.Empty<NotasCreditosComprasDetalleDto>()
+                .ToArray() ?? Array.Empty<ReadDetalleDto>() 
         };
     }
 
@@ -58,7 +62,15 @@ public class NotasCreditosComprasController : CrudControllerBase<NotasCreditosCo
             Timbrado = dto.Timbrado,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
-            Total = dto.Total
+            Total = dto.Total,
+            
+            NotasCreditosComprasDetalles = dto.Detalles?.Select(d => new NotasCreditosComprasDetalle
+            {
+                IdProducto = d.IdProducto,
+                Cantidad = d.Cantidad, 
+                PrecioUnitario = d.PrecioUnitario,
+                Subtotal = d.Subtotal
+            }).ToList() ?? new List<NotasCreditosComprasDetalle>()
         };
     }
 

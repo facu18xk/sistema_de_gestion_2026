@@ -17,6 +17,22 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
         _chequeEmitidoService = chequeEmitidoService;
     }
 
+    [HttpPost]
+    public override async Task<ActionResult<ChequeEmitidoDto>> Create(ChequeEmitidoUpsertDto dto)
+    {
+        try
+        {
+            var createdEntity = await _chequeEmitidoService.CreateAsync(ToEntity(dto));
+            var responseEntity = await RefreshCreatedEntityAsync(createdEntity);
+
+            return CreatedAtAction(nameof(GetById), new { id = GetId(responseEntity) }, ToReadDto(responseEntity));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("{id:int}/conciliar")]
     public async Task<ActionResult<ChequeEmitidoDto>> Conciliar(int id, ConciliarChequeDto dto)
     {
@@ -45,7 +61,6 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
         NumeroCheque = entity.NumeroCheque,
         Beneficiario = entity.Beneficiario,
         FechaEmision = entity.FechaEmision,
-        FechaPago = entity.FechaPago,
         Monto = entity.Monto,
         Estado = entity.Estado
     };
@@ -58,7 +73,6 @@ public class ChequesEmitidosController : CrudControllerBase<ChequeEmitido, Chequ
         NumeroCheque = dto.NumeroCheque,
         Beneficiario = dto.Beneficiario,
         FechaEmision = dto.FechaEmision,
-        FechaPago = dto.FechaPago,
         Monto = dto.Monto,
         Estado = dto.Estado
     };

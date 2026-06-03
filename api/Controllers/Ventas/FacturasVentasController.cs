@@ -63,6 +63,8 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
             IdCliente = entity.IdCliente,
             Cliente = FormatCliente(entity.IdClienteNavigation),
             NroComprobante = entity.NroComprobante,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             IdTimbrado = entity.IdTimbrado,
             Timbrado = entity.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
             TimbradoRuc = entity.IdTimbradoNavigation?.Ruc ?? string.Empty,
@@ -80,6 +82,9 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         {
             IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
+            NroComprobante = dto.NroComprobante ?? string.Empty,
+            IdEstado = dto.IdEstado,
+            IdTimbrado = dto.IdTimbrado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,

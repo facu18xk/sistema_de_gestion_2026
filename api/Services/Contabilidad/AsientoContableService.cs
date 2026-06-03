@@ -46,15 +46,11 @@ public class AsientoContableService : IAsientoContableService
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
-<<<<<<< HEAD
         if (existing.IdPeriodoContable != periodo.IdPeriodoContable)
         {
             existing.NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable);
         }
 
-=======
-        existing.NumeroAsiento = dto.NumeroAsiento <= 0 ? existing.NumeroAsiento : dto.NumeroAsiento;
->>>>>>> front
         existing.IdPeriodoContable = periodo.IdPeriodoContable;
         existing.IdModulo = dto.IdModulo;
         existing.Fecha = dto.Fecha;
@@ -127,19 +123,11 @@ public class AsientoContableService : IAsientoContableService
 
         return await CreateAsync(new AsientoCompletoUpsertDto
         {
-<<<<<<< HEAD
-=======
-            NumeroAsiento = dto.NumeroAsiento,
->>>>>>> front
             IdModulo = modelo.IdModulo,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion ?? modelo.Descripcion,
             Automatico = true,
-<<<<<<< HEAD
             Estado = ContabilidadEstados.Registrado,
-=======
-            Estado = "Registrado",
->>>>>>> front
             ReferenciaOrigen = dto.ReferenciaOrigen,
             IdOrigen = dto.IdOrigen,
             Detalles = detalles
@@ -161,35 +149,15 @@ public class AsientoContableService : IAsientoContableService
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
-<<<<<<< HEAD
         var asiento = new Asiento
         {
             NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable),
-=======
-        var numeroAsiento = dto.NumeroAsiento;
-        if (numeroAsiento <= 0)
-        {
-            var ultimoNumero = await _context.Asientos
-                .Where(item => item.IdPeriodoContable == periodo.IdPeriodoContable)
-                .Select(item => (int?)item.NumeroAsiento)
-                .MaxAsync() ?? 0;
-            numeroAsiento = ultimoNumero + 1;
-        }
-
-        var asiento = new Asiento
-        {
-            NumeroAsiento = numeroAsiento,
->>>>>>> front
             IdPeriodoContable = periodo.IdPeriodoContable,
             IdModulo = dto.IdModulo,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             Automatico = dto.Automatico,
-<<<<<<< HEAD
             Estado = string.IsNullOrWhiteSpace(dto.Estado) ? ContabilidadEstados.Registrado : dto.Estado,
-=======
-            Estado = string.IsNullOrWhiteSpace(dto.Estado) ? "Registrado" : dto.Estado,
->>>>>>> front
             ReferenciaOrigen = dto.ReferenciaOrigen,
             IdOrigen = dto.IdOrigen,
             CreatedAt = dto.CreatedAt ?? DateTime.Now,
@@ -226,7 +194,6 @@ public class AsientoContableService : IAsientoContableService
         return ToDto(created);
     }
 
-<<<<<<< HEAD
     private async Task<int> GetNextNumeroAsientoAsync(int idPeriodoContable)
     {
         var ultimoNumero = await _context.Asientos
@@ -237,8 +204,6 @@ public class AsientoContableService : IAsientoContableService
         return ultimoNumero + 1;
     }
 
-=======
->>>>>>> front
     private static string NormalizeMovimiento(string tipoMovimiento)
     {
         return ContabilidadRules.IsDebe(tipoMovimiento) ? "Debe" : "Haber";

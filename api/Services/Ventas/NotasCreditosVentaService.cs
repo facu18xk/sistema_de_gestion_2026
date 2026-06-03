@@ -34,17 +34,24 @@ public class NotasCreditosVentaService : CrudServiceBase<NotasCreditosVenta, int
     protected override void UpdateEntity(NotasCreditosVenta existingEntity, NotasCreditosVenta incomingEntity)
     {
         existingEntity.IdFacturaVenta = incomingEntity.IdFacturaVenta;
-        existingEntity.IdNotaDevolucionVenta = incomingEntity.IdNotaDevolucionVenta;
-        existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
+        existingEntity.IdEstado = incomingEntity.IdEstado;
+        if (!string.IsNullOrWhiteSpace(incomingEntity.NroComprobante))
+        {
+            existingEntity.NroComprobante = incomingEntity.NroComprobante.Trim();
+        }
+        if (incomingEntity.IdTimbrado > 0)
+        {
+            existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
+        }
         existingEntity.Motivo = incomingEntity.Motivo;
         existingEntity.FechaEmision = incomingEntity.FechaEmision;
-        existingEntity.Total = incomingEntity.Total;
     }
 
     private IQueryable<NotasCreditosVenta> BuildQuery()
     {
         return _context.NotasCreditosVentas
             .Include(entity => entity.IdFacturaVentaNavigation)
+            .Include(entity => entity.IdEstadoNavigation)
             .Include(entity => entity.IdNotaDevolucionVentaNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.NotasCreditosVentasDetalles)

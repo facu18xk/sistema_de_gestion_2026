@@ -11,15 +11,12 @@ public class OrdenesMediosPagosCompraDto
     public decimal Monto { get; set; }
 
     public MedioPagoResumenDto? MedioPago { get; set; }
-<<<<<<< HEAD
 
     public int? IdCuentaBancaria { get; set; }
 
     public int? IdMovimientoBancario { get; set; }
 
     public int? IdChequeEmitido { get; set; }
-=======
->>>>>>> front
 }
 
 public class MedioPagoResumenDto
@@ -37,7 +34,6 @@ public class OrdenesMediosPagosCompraUpsertDto
     public int IdMedioPagoCompra { get; set; }
     
     public decimal Monto { get; set; }
-<<<<<<< HEAD
 
     public int? IdCuentaBancaria { get; set; }
 
@@ -47,6 +43,3 @@ public class OrdenesMediosPagosCompraUpsertDto
 
     public string? ReferenciaBancaria { get; set; }
 }
-=======
-}
->>>>>>> front

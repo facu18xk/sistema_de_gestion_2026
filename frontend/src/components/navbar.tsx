@@ -1,13 +1,10 @@
 "use client";
 
-<<<<<<< HEAD
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
-=======
-import Link from "next/link";
-import { useState, useEffect } from "react";
->>>>>>> front
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { notify } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -27,34 +24,9 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-<<<<<<< HEAD
-import Cookies from "js-cookie";
-import { notify } from "@/lib/notifications";
 
 const DEFAULT_USER_NAME = "Usuario";
 
-const subscribeToUserName = () => () => {};
-
-const getStoredUserName = () => {
-  if (typeof window === "undefined") {
-    return DEFAULT_USER_NAME;
-  }
-
-  try {
-    const userData = localStorage.getItem("user");
-
-    if (!userData) {
-      return DEFAULT_USER_NAME;
-    }
-
-    const user = JSON.parse(userData);
-    return `${user.firstName} ${user.lastName}`;
-  } catch {
-    return DEFAULT_USER_NAME;
-  }
-};
-
-//Para listar los diferentes módulos en el navbar
 const modulos = [
   {
     title: "Ventas",
@@ -119,121 +91,48 @@ const modulos = [
 ];
 
 export default function Navbar() {
-  const userName = useSyncExternalStore(
-    subscribeToUserName,
-    getStoredUserName,
-    () => DEFAULT_USER_NAME,
-  );
-  const router = useRouter();
-
-  const handleLogout = () => {
-=======
-import Cookies from "js-cookie";
-import { notify } from "@/lib/notifications";
-
-//Para listar los diferentes módulos en el navbar
-const modulos = [
-  {
-    title: "Ventas",
-    items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
-  },
-  {
-    title: "Compras",
-    items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
-  },
-  {
-    title: "Banco y Tesorería",
-    items: [
-      "Bancos",
-      "Cuentas bancarias",
-      "Movimientos bancarios",
-      "Cheques",
-      "Transferencias",
-      "Depósitos Bancarios",
-      "Conciliación bancaria",
-      "Órdenes de pago",
-      "Reportes",
-    ],
-  },
-  { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
-  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
-  {
-    title: "Contabilidad",
-    items: [
-      "Proceso Contable",
-      "Periodo Contable",
-      "Asientos",
-      "Plan de Cuentas",
-    ],
-  },
-];
-
-const routeByItem: Record<string, string> = {
-  Clientes: "/ventas/clientes",
-  Presupuestos: "/ventas/presupuestos",
-  Facturación: "/ventas/facturacion",
-  Devoluciones: "/ventas/devoluciones",
-  Proveedores: "/compras/proveedores",
-  Pedidos: "/compras/pedidos",
-  Cotizaciones: "/compras/cotizaciones",
-  Productos: "/stock/productos",
-  Empleados: "/personas/empleados",
-  Parientes: "/personas/parientes",
-  "Proceso Contable": "/contabilidad/proceso-contable",
-  "Periodo Contable": "/contabilidad/periodo-contable",
-  Asientos: "/contabilidad/asientos",
-  "Plan de Cuentas": "/contabilidad/plan-cuentas",
-  Bancos: "/banco-tesoreria/bancos",
-  "Cuentas bancarias": "/banco-tesoreria/cuentas",
-  "Movimientos bancarios": "/banco-tesoreria/movimientos",
-  Cheques: "/banco-tesoreria/cheques",
-  Transferencias: "/banco-tesoreria/transferencias",
-  "Depósitos Bancarios": "/banco-tesoreria/depositos",
-  "Conciliación bancaria": "/banco-tesoreria/conciliacion",
-  "Órdenes de pago": "/banco-tesoreria/ordenes-pago",
-  Reportes: "/banco-tesoreria/reportes",
-};
-
-export default function Navbar() {
-  const [userName, setUserName] = useState("Usuario");
+  const [userName, setUserName] = useState(DEFAULT_USER_NAME);
   const router = useRouter();
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
+    try {
+      const userData = localStorage.getItem("user");
+
+      if (!userData) {
+        return;
+      }
+
       const user = JSON.parse(userData);
-      setUserName(`${user.firstName} ${user.lastName}`);
+      const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+
+      if (fullName) {
+        setUserName(fullName);
+      }
+    } catch {
+      setUserName(DEFAULT_USER_NAME);
     }
   }, []);
 
   const handleLogout = () => {
->>>>>>> front
-    //1. Eliminar la cookie del token
-    Cookies.remove("token", { path: "/" }); //Obs: mismo path que al momento de crear la cookie
-    //2. Limpiar datos del usuario en el navegador
+    Cookies.remove("token", { path: "/" });
     localStorage.removeItem("user");
-    //localStorage.clear() -> si se quiere borrar todo
-    //3. Redirigir al login
     router.push("/login");
-    //4. Opcional: Forzar un refresco para limpiar estados de React
     router.refresh();
     notify.warning("¡Sesión cerrada!");
   };
 
   return (
-    <nav className="fixed top-0 w-full border-b bg-white/80 backdrop-blur-md z-50">
+    <nav className="fixed top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* IZQUIERDA: Logo y Selects */}
         <div className="flex items-center gap-6">
           <Link
             href="/dashboard"
-            className="font-bold text-xl text-primary shrink-0"
+            className="shrink-0 text-xl font-bold text-primary"
           >
             McQueen Tires
           </Link>
 
-          {/* Selects de Módulos (Estilo Native Select con Tailwind) */}
-          <NavigationMenu viewport={false} className="hidden lg:flex relative">
+          <NavigationMenu viewport={false} className="relative hidden lg:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink
@@ -250,8 +149,7 @@ export default function Navbar() {
                     {modulo.title}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-<<<<<<< HEAD
-                    <ul className="cursor-pointer grid w-[240px] gap-2 p-4">
+                    <ul className="grid w-[240px] cursor-pointer gap-2 p-4">
                       {modulo.items.map((item) => (
                         <li key={item.href}>
                           <NavigationMenuLink asChild>
@@ -264,21 +162,6 @@ export default function Navbar() {
                               </div>
                             </Link>
                           </NavigationMenuLink>
-=======
-                    <ul className="cursor-pointer grid w-[200px] gap-2 p-4">
-                      {modulo.items.map((item) => (
-                        <li key={item}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={routeByItem[item] ?? "#"}
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none">
-                                {item}
-                              </div>
-                            </Link>
-                          </NavigationMenuLink>
->>>>>>> front
                         </li>
                       ))}
                     </ul>
@@ -289,9 +172,8 @@ export default function Navbar() {
           </NavigationMenu>
         </div>
 
-        {/* DERECHA: Perfil y Logout */}
         <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block">
+          <div className="hidden text-right sm:block">
             <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs text-muted-foreground">Administrador</p>
           </div>
@@ -299,7 +181,7 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="mr-6 relative h-10 w-10 rounded-full cursor-pointer"
+                className="relative mr-6 h-10 w-10 cursor-pointer rounded-full"
               >
                 <Avatar className="h-10 w-10 border">
                   <AvatarImage

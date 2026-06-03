@@ -31,15 +31,12 @@ import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { tiposDepositosBancariosAPI } from "@/services/tiposDepositosBancariosAPI";
 import { bancosAPI } from "@/services/bancosAPI";
 import { clientesAPI } from "@/services/clientesAPI";
+import { chequesTercerosAPI } from "@/services/chequesTercerosAPI";
+import { chequesMismoBancoAPI } from "@/services/chequesMismoBancoAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { modoTipoDeposito, nombreCliente } from "@/lib/deposito-tipo";
 import { notify } from "@/lib/notifications";
 import { formatNumberDots } from "@/utils/money-format";
-<<<<<<< HEAD
-=======
-import { chequesTercerosAPI } from "@/services/chequesTercerosAPI";
-import { chequesMismoBancoAPI } from "@/services/chequesMismoBancoAPI";
->>>>>>> front
 import type {
   Banco,
   ChequeMismoBancoLineSave,
@@ -204,16 +201,6 @@ export default function NuevoDepositoPage() {
 
     setIsSubmitting(true);
     try {
-<<<<<<< HEAD
-      await depositosBancariosAPI.create({
-        idCuentaBancaria: cuentaSel.idCuentaBancaria,
-        idTipoDepositoBancario: Number(idTipoDeposito),
-        fecha: new Date(fecha).toISOString(),
-        monto: totalDeposito,
-        concepto: conceptoFinal,
-        chequesTercero:
-=======
-      // 1. CREAR DEPÓSITO (CABECERA)
       const deposito = await depositosBancariosAPI.create({
         idCuentaBancaria: cuentaSel.idCuentaBancaria,
         idTipoDepositoBancario: Number(idTipoDeposito),
@@ -221,10 +208,8 @@ export default function NuevoDepositoPage() {
         monto: totalDeposito,
         concepto: conceptoFinal,
       });
-      // 2. OBTENER ID REAL GENERADO
       const idDeposito = deposito.idDepositoBancario;
 
-      // 3. CHEQUES DE TERCEROS
       if (modo === "tercero") {
         const chequesValidos = chequesTercero.filter(
           (c) => c.monto > 0 && c.numeroCheque.trim(),
@@ -243,7 +228,6 @@ export default function NuevoDepositoPage() {
         }
       }
 
-      // 4. CHEQUES MISMO BANCO
       if (modo === "mismo_banco") {
         const chequesValidos = chequesMismoBanco.filter(
           (c) => c.monto > 0 && c.numeroCheque.trim(),
@@ -259,29 +243,6 @@ export default function NuevoDepositoPage() {
           });
         }
       }
-
-      // 5. MENSAJE Y REDIRECCIÓN
-      {
-        /*chequesTercero:
->>>>>>> front
-          modo === "tercero"
-            ? chequesTercero
-                .filter((c) => c.monto > 0)
-                .map(({ idBanco, idCliente, ...c }) => c)
-            : undefined,
-        chequesMismoBanco:
-          modo === "mismo_banco"
-            ? chequesMismoBanco
-                .filter((c) => c.monto > 0)
-                .map(({ idCliente, ...c }) => c)
-<<<<<<< HEAD
-            : undefined,
-      });
-=======
-            : undefined,*/
-      }
-
->>>>>>> front
       notify.success(
         "Depósito registrado",
         "El depósito fue creado correctamente.",

@@ -15,12 +15,8 @@ public static class SwaggerModules
             ["catalogos"] = new() { Title = "api - Catalogos", Version = "v1" },
             ["compras"] = new() { Title = "api - Compras", Version = "v1" },
             ["ventas"] = new() { Title = "api - Ventas", Version = "v1" },
-<<<<<<< HEAD
             ["contabilidad"] = new() { Title = "api - Contabilidad", Version = "v1" },
             ["tesoreria"] = new() { Title = "api - Tesoreria", Version = "v1" }
-=======
-            ["contabilidad"] = new() { Title = "api - Contabilidad", Version = "v1" }
->>>>>>> front
         };
 
     private static readonly IReadOnlyDictionary<string, string> ControllerModules =
@@ -58,22 +54,16 @@ public static class SwaggerModules
 
             ["FacturasVentas"] = "ventas",
             ["FacturasVentasDetalles"] = "ventas",
-<<<<<<< HEAD
             ["NotasCreditosVentas"] = "ventas",
             ["NotasCreditosVentasDetalles"] = "ventas",
             ["NotasDevolucionesVentas"] = "ventas",
             ["NotasDevolucionesVentasDetalles"] = "ventas",
-=======
->>>>>>> front
             ["OrdenesVentas"] = "ventas",
             ["OrdenesVentasDetalles"] = "ventas",
             ["PreciosVentas"] = "ventas",
             ["Presupuestos"] = "ventas",
             ["PresupuestosDetalles"] = "ventas",
-<<<<<<< HEAD
             ["Timbrados"] = "ventas",
-=======
->>>>>>> front
 
             ["Asientos"] = "contabilidad",
             ["AsientosDetalles"] = "contabilidad",
@@ -84,22 +74,8 @@ public static class SwaggerModules
             ["ModelosAsientos"] = "contabilidad",
             ["ModelosAsientosDetalles"] = "contabilidad",
             ["PeriodosContables"] = "contabilidad",
-            ["ProcesosContables"] = "contabilidad"
-<<<<<<< HEAD
-            ,
-            ["Bancos"] = "tesoreria",
-            ["CuentasBancarias"] = "tesoreria",
-            ["TiposCuentasBancarias"] = "tesoreria",
+            ["ProcesosContables"] = "contabilidad",
             ["MovimientosBancarios"] = "tesoreria",
-            ["TiposMovimientosBancarios"] = "tesoreria",
-            ["ChequesEmitidos"] = "tesoreria",
-            ["DepositosBancarios"] = "tesoreria",
-            ["TiposDepositosBancarios"] = "tesoreria",
-            ["DetallesDepositosBancarios"] = "tesoreria",
-            ["ChequesMismoBanco"] = "tesoreria",
-            ["ChequesTerceros"] = "tesoreria"
-=======
->>>>>>> front
         };
 
     public static bool IncludesApi(string documentName, ApiDescription apiDescription)

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-<<<<<<< HEAD
 using System.ComponentModel.DataAnnotations.Schema;
-=======
->>>>>>> front
 
 namespace api.Models;
 
@@ -19,7 +16,6 @@ public partial class Pariente
 
     public DateOnly FechaNacimiento { get; set; }
 
-<<<<<<< HEAD
     [Column("Nombre")]
     public string Nombre { get; set; } = string.Empty;
 
@@ -31,7 +27,3 @@ public partial class Pariente
 
     public virtual Empleado IdEmpleadoNavigation { get; set; } = null!;
 }
-=======
-    public virtual Empleado IdEmpleadoNavigation { get; set; } = null!;
-}
->>>>>>> front

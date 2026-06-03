@@ -5,10 +5,6 @@ namespace api.Dtos.Contabilidad;
 
 public class AsientoCompletoUpsertDto
 {
-<<<<<<< HEAD
-=======
-    public int NumeroAsiento { get; set; }
->>>>>>> front
     public int? IdModulo { get; set; }
     public DateOnly Fecha { get; set; }
     public string? Descripcion { get; set; }
@@ -30,10 +26,6 @@ public class AsientoCompletoDto
 public class GenerarAsientoDesdeModeloDto
 {
     public int IdModeloAsiento { get; set; }
-<<<<<<< HEAD
-=======
-    public int NumeroAsiento { get; set; }
->>>>>>> front
     public DateOnly Fecha { get; set; }
     public string? Descripcion { get; set; }
     public string? ReferenciaOrigen { get; set; }

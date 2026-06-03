@@ -12,7 +12,6 @@ public class StockDepositoDto
 
     public string Producto { get; set; } = string.Empty;
 }
-<<<<<<< HEAD
 
 public class StockDepositoUpsertDto
 {
@@ -22,5 +21,3 @@ public class StockDepositoUpsertDto
 
     public int Cantidad { get; set; }
 }
-=======
->>>>>>> front

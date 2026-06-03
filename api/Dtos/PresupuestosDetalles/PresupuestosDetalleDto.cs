@@ -14,11 +14,8 @@ public class PresupuestosDetalleDto
 
     public decimal PrecioUnitario { get; set; }
 
-<<<<<<< HEAD
     public decimal PrecioVenta { get; set; }
 
-=======
->>>>>>> front
     public decimal Iva { get; set; }
 
     public decimal Subtotal { get; set; }

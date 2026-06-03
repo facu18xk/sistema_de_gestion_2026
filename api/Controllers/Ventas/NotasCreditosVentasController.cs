@@ -9,7 +9,7 @@ namespace api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVenta, NotasCreditosVentaDto, NotasCreditosVentaUpsertDto, int>
+public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVenta, NotasCreditosVentaDto, NotasCreditosVentaUpdateDto, int>
 {
     private readonly VentasCompletasService _ventasCompletasService;
 
@@ -22,16 +22,22 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     }
 
     [HttpPost]
-    public override async Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaUpsertDto dto)
+    public async Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaCreateDto dto)
     {
         return await CreateFromCompletaDto(new NotaCreditoVentaCompletaCreateDto
         {
             IdFacturaVenta = dto.IdFacturaVenta,
-            IdTimbrado = dto.IdTimbrado,
+            IdEstado = dto.IdEstado,
             Motivo = dto.Motivo,
             FechaEmision = dto.FechaEmision,
             Items = dto.Items
         });
+    }
+
+    [NonAction]
+    public override Task<ActionResult<NotasCreditosVentaDto>> Create(NotasCreditosVentaUpdateDto dto)
+    {
+        return base.Create(dto);
     }
 
     [HttpPost("completo")]
@@ -41,20 +47,13 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
     }
 
     [HttpPut("{id:int}")]
-    public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpsertDto dto)
+    public override async Task<ActionResult<NotasCreditosVentaDto>> Update(int id, NotasCreditosVentaUpdateDto dto)
     {
-        return await UpdateFromCompletaDto(id, new NotaCreditoVentaCompletaCreateDto
-        {
-            IdFacturaVenta = dto.IdFacturaVenta,
-            IdTimbrado = dto.IdTimbrado,
-            Motivo = dto.Motivo,
-            FechaEmision = dto.FechaEmision,
-            Items = dto.Items
-        });
+        return await base.Update(id, dto);
     }
 
     [HttpPut("completo/{id:int}")]
-    public async Task<ActionResult<NotasCreditosVentaDto>> UpdateCompleto(int id, NotaCreditoVentaCompletaCreateDto dto)
+    public async Task<ActionResult<NotasCreditosVentaDto>> UpdateCompleto(int id, NotaCreditoVentaCompletaUpdateDto dto)
     {
         return await UpdateFromCompletaDto(id, dto);
     }
@@ -76,7 +75,7 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         }
     }
 
-    private async Task<ActionResult<NotasCreditosVentaDto>> UpdateFromCompletaDto(int id, NotaCreditoVentaCompletaCreateDto dto)
+    private async Task<ActionResult<NotasCreditosVentaDto>> UpdateFromCompletaDto(int id, NotaCreditoVentaCompletaUpdateDto dto)
     {
         try
         {
@@ -100,10 +99,13 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
             IdNotaCreditoVenta = entity.IdNotaCreditoVenta,
             IdFacturaVenta = entity.IdFacturaVenta,
             FacturaVenta = entity.IdFacturaVentaNavigation?.NroComprobante ?? string.Empty,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             IdNotaDevolucionVenta = entity.IdNotaDevolucionVenta,
             NotaDevolucionVenta = entity.IdNotaDevolucionVentaNavigation?.Motivo ?? string.Empty,
             IdTimbrado = entity.IdTimbrado,
             Timbrado = entity.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
+            NroComprobante = entity.NroComprobante,
             Motivo = entity.Motivo,
             FechaEmision = entity.FechaEmision,
             Total = entity.Total,
@@ -120,16 +122,16 @@ public class NotasCreditosVentasController : CrudControllerBase<NotasCreditosVen
         };
     }
 
-    protected override NotasCreditosVenta ToEntity(NotasCreditosVentaUpsertDto dto)
+    protected override NotasCreditosVenta ToEntity(NotasCreditosVentaUpdateDto dto)
     {
         return new NotasCreditosVenta
         {
             IdFacturaVenta = dto.IdFacturaVenta,
-            IdNotaDevolucionVenta = dto.IdNotaDevolucionVenta,
+            IdEstado = dto.IdEstado,
             IdTimbrado = dto.IdTimbrado,
+            NroComprobante = dto.NroComprobante ?? string.Empty,
             Motivo = dto.Motivo,
-            FechaEmision = dto.FechaEmision,
-            Total = dto.Total
+            FechaEmision = dto.FechaEmision
         };
     }
 

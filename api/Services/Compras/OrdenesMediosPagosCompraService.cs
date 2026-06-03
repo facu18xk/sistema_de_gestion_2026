@@ -1,9 +1,6 @@
 using System.Linq.Expressions;
-<<<<<<< HEAD
 using api.Dtos.AsientosDetalles;
 using api.Dtos.Contabilidad;
-=======
->>>>>>> front
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +9,6 @@ namespace api.Services;
 public class OrdenesMediosPagosCompraService : CrudServiceBase<OrdenesMediosPagosCompra, int>
 {
     private readonly DblosAmigosContext _context;
-<<<<<<< HEAD
     private readonly MovimientoBancarioService _movimientoBancarioService;
     private readonly IAsientoContableService _asientoContableService;
 
@@ -25,13 +21,6 @@ public class OrdenesMediosPagosCompraService : CrudServiceBase<OrdenesMediosPago
         _context = context;
         _movimientoBancarioService = movimientoBancarioService;
         _asientoContableService = asientoContableService;
-=======
-
-    public OrdenesMediosPagosCompraService(DblosAmigosContext context)
-        : base(context)
-    {
-        _context = context;
->>>>>>> front
     }
 
     protected override DbSet<OrdenesMediosPagosCompra> Set => _context.OrdenesMediosPagosCompras;
@@ -58,7 +47,6 @@ public class OrdenesMediosPagosCompraService : CrudServiceBase<OrdenesMediosPago
         existingEntity.Monto = incomingEntity.Monto;
     }
 
-<<<<<<< HEAD
     public override async Task<OrdenesMediosPagosCompra> CreateAsync(OrdenesMediosPagosCompra entity)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -95,8 +83,6 @@ public class OrdenesMediosPagosCompraService : CrudServiceBase<OrdenesMediosPago
         return entity;
     }
 
-=======
->>>>>>> front
     public override async Task<OrdenesMediosPagosCompra> UpdateAsync(int id, OrdenesMediosPagosCompra entity)
     {
         var existingEntity = await BuildQuery().FirstOrDefaultAsync(BuildKeyPredicate(id));
@@ -127,7 +113,6 @@ public class OrdenesMediosPagosCompraService : CrudServiceBase<OrdenesMediosPago
     {
         return _context.OrdenesMediosPagosCompras
             .Include(o => o.IdOrdenPagoCompraNavigation)
-<<<<<<< HEAD
             .ThenInclude(o => o.IdProveedorNavigation)
             .Include(o => o.IdMedioPagoCompraNavigation);
     }
@@ -294,8 +279,3 @@ public class OrdenesMediosPagosCompraService : CrudServiceBase<OrdenesMediosPago
         return cuentas.FirstOrDefault(item => TesoreriaText.Normalize(item.Nombre) == normalized);
     }
 }
-=======
-            .Include(o => o.IdMedioPagoCompraNavigation);
-    }
-}
->>>>>>> front

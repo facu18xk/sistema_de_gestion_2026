@@ -344,6 +344,7 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdMedioPagoCompra).HasColumnName("Id_Medio_Pago_Compra");
             entity.Property(e => e.IdPresupuesto).HasColumnName("Id_Presupuesto");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
             entity.Property(e => e.NroComprobante)
                 .HasMaxLength(100)
@@ -365,6 +366,11 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
 
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany()
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Facturas_Ventas_Estados");
+
             entity.HasOne(d => d.IdTimbradoNavigation).WithMany(p => p.FacturasVenta)
                 .HasForeignKey(d => d.IdTimbrado)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -378,6 +384,9 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Facturas_Ventas_Detalles");
 
             entity.Property(e => e.IdFacturaVentaDetalle).HasColumnName("Id_Factura_Venta_Detalle");
+            entity.Property(e => e.CantidadDevuelta)
+                .HasDefaultValue(0)
+                .HasColumnName("Cantidad_Devuelta");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
             entity.Property(e => e.PrecioUnitario)
@@ -491,8 +500,13 @@ public partial class DblosAmigosContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("Fecha_Emision");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdNotaDevolucionVenta).HasColumnName("Id_Nota_Devolucion_Venta");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
+            entity.Property(e => e.NroComprobante)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Nro_Comprobante");
             entity.Property(e => e.Motivo)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -502,6 +516,11 @@ public partial class DblosAmigosContext : DbContext
                 .HasForeignKey(d => d.IdFacturaVenta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Notas_Creditos_Ventas_Facturas_Ventas");
+
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany()
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Notas_Creditos_Ventas_Estados");
 
             entity.HasOne(d => d.IdNotaDevolucionVentaNavigation).WithMany(p => p.NotasCreditosVenta)
                 .HasForeignKey(d => d.IdNotaDevolucionVenta)
@@ -1251,291 +1270,6 @@ public partial class DblosAmigosContext : DbContext
             entity.Property(e => e.UltimoNumeroUsado)
                 .HasDefaultValue(0)
                 .HasColumnName("Ultimo_Numero_Usado");
-        });
-
-        modelBuilder.Entity<ProcesoContable>(entity =>
-        {
-            entity.HasKey(e => e.IdProcesoContable);
-
-            entity.ToTable("procesos_contables");
-
-            entity.Property(e => e.IdProcesoContable).HasColumnName("id");
-            entity.Property(e => e.CantDigitosNivel).HasColumnName("cant_digitos_nivel");
-            entity.Property(e => e.CantNiveles).HasColumnName("cant_niveles");
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Descripcion)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("descripcion");
-            entity.Property(e => e.Estado)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("estado");
-            entity.Property(e => e.Moneda)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("moneda");
-            entity.Property(e => e.PeriodoAnho).HasColumnName("periodo_anho");
-        });
-
-        modelBuilder.Entity<Modulo>(entity =>
-        {
-            entity.HasKey(e => e.IdModulo);
-
-            entity.ToTable("modulos");
-
-            entity.Property(e => e.IdModulo).HasColumnName("id");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("nombre");
-        });
-
-        modelBuilder.Entity<PeriodoContable>(entity =>
-        {
-            entity.HasKey(e => e.IdPeriodoContable);
-
-            entity.ToTable("periodos_contables");
-
-            entity.Property(e => e.IdPeriodoContable).HasColumnName("id");
-            entity.Property(e => e.Anho).HasColumnName("anho");
-            entity.Property(e => e.Estado)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("estado");
-            entity.Property(e => e.FechaFin).HasColumnName("fecha_fin");
-            entity.Property(e => e.FechaInicio).HasColumnName("fecha_inicio");
-            entity.Property(e => e.IdProcesoContable).HasColumnName("proceso_contable_id");
-            entity.Property(e => e.Mes).HasColumnName("mes");
-
-            entity.HasOne(d => d.IdProcesoContableNavigation).WithMany(p => p.PeriodosContables)
-                .HasForeignKey(d => d.IdProcesoContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_periodos_contables_procesos_contables");
-        });
-
-        modelBuilder.Entity<CuentaContable>(entity =>
-        {
-            entity.HasKey(e => e.IdCuentaContable);
-
-            entity.ToTable("cuentas_contables");
-
-            entity.Property(e => e.IdCuentaContable).HasColumnName("id");
-            entity.Property(e => e.Activa).HasColumnName("activa");
-            entity.Property(e => e.EsAsentable).HasColumnName("es_asentable");
-            entity.Property(e => e.IdCuentaPadre).HasColumnName("cuenta_padre_id");
-            entity.Property(e => e.IdProcesoContable).HasColumnName("proceso_contable_id");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("nombre");
-            entity.Property(e => e.NumeroCuenta)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("numero_cuenta");
-            entity.Property(e => e.TipoCuenta)
-                .HasMaxLength(30)
-                .IsUnicode(false)
-                .HasColumnName("tipo_cuenta");
-
-            entity.HasOne(d => d.IdCuentaPadreNavigation).WithMany(p => p.InverseIdCuentaPadreNavigation)
-                .HasForeignKey(d => d.IdCuentaPadre)
-                .HasConstraintName("FK_cuentas_contables_cuenta_padre");
-
-            entity.HasOne(d => d.IdProcesoContableNavigation).WithMany(p => p.CuentasContables)
-                .HasForeignKey(d => d.IdProcesoContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_cuentas_contables_procesos_contables");
-        });
-
-        modelBuilder.Entity<Asiento>(entity =>
-        {
-            entity.HasKey(e => e.IdAsiento);
-
-            entity.ToTable("asientos");
-
-            entity.Property(e => e.IdAsiento).HasColumnName("id");
-            entity.Property(e => e.Automatico).HasColumnName("automatico");
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Descripcion)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("descripcion");
-            entity.Property(e => e.Estado)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("estado");
-            entity.Property(e => e.Fecha).HasColumnName("fecha");
-            entity.Property(e => e.FechaMayorizacion)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("fecha_mayorizacion");
-            entity.Property(e => e.IdModulo).HasColumnName("modulo_id");
-            entity.Property(e => e.IdOrigen).HasColumnName("id_origen");
-            entity.Property(e => e.IdPeriodoContable).HasColumnName("periodo_contable_id");
-            entity.Property(e => e.NumeroAsiento).HasColumnName("numero_asiento");
-            entity.Property(e => e.ReferenciaOrigen)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("referencia_origen");
-
-            entity.HasOne(d => d.IdModuloNavigation).WithMany(p => p.Asientos)
-                .HasForeignKey(d => d.IdModulo)
-                .HasConstraintName("FK_asientos_modulos");
-
-            entity.HasOne(d => d.IdPeriodoContableNavigation).WithMany(p => p.Asientos)
-                .HasForeignKey(d => d.IdPeriodoContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_asientos_periodos_contables");
-        });
-
-        modelBuilder.Entity<AsientosDetalle>(entity =>
-        {
-            entity.HasKey(e => e.IdAsientoDetalle);
-
-            entity.ToTable("asientos_detalles");
-
-            entity.Property(e => e.IdAsientoDetalle).HasColumnName("id");
-            entity.Property(e => e.DescripcionItem)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("descripcion_item");
-            entity.Property(e => e.IdAsiento).HasColumnName("asiento_id");
-            entity.Property(e => e.IdCuentaContable).HasColumnName("cuenta_contable_id");
-            entity.Property(e => e.Item).HasColumnName("item");
-            entity.Property(e => e.Monto)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("monto");
-            entity.Property(e => e.TipoMovimiento)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("tipo_movimiento");
-
-            entity.HasOne(d => d.IdAsientoNavigation).WithMany(p => p.AsientosDetalles)
-                .HasForeignKey(d => d.IdAsiento)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_asientos_detalles_asientos");
-
-            entity.HasOne(d => d.IdCuentaContableNavigation).WithMany(p => p.AsientosDetalles)
-                .HasForeignKey(d => d.IdCuentaContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_asientos_detalles_cuentas_contables");
-        });
-
-        modelBuilder.Entity<ModeloAsiento>(entity =>
-        {
-            entity.HasKey(e => e.IdModeloAsiento);
-
-            entity.ToTable("modelos_asientos");
-
-            entity.Property(e => e.IdModeloAsiento).HasColumnName("id");
-            entity.Property(e => e.Activo).HasColumnName("activo");
-            entity.Property(e => e.Descripcion)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("descripcion");
-            entity.Property(e => e.DetalleResumen)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("detalle_resumen");
-            entity.Property(e => e.IdModulo).HasColumnName("modulo_id");
-            entity.Property(e => e.TipoAsiento)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("tipo_asiento");
-
-            entity.HasOne(d => d.IdModuloNavigation).WithMany(p => p.ModelosAsientos)
-                .HasForeignKey(d => d.IdModulo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_modelos_asientos_modulos");
-        });
-
-        modelBuilder.Entity<ModelosAsientosDetalle>(entity =>
-        {
-            entity.HasKey(e => e.IdModeloAsientoDetalle);
-
-            entity.ToTable("modelos_asientos_detalles");
-
-            entity.Property(e => e.IdModeloAsientoDetalle).HasColumnName("id");
-            entity.Property(e => e.DescripcionItem)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("descripcion_item");
-            entity.Property(e => e.IdCuentaContable).HasColumnName("cuenta_contable_id");
-            entity.Property(e => e.IdModeloAsiento).HasColumnName("modelo_asiento_id");
-            entity.Property(e => e.Item).HasColumnName("item");
-            entity.Property(e => e.TipoMovimiento)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("tipo_movimiento");
-
-            entity.HasOne(d => d.IdCuentaContableNavigation).WithMany(p => p.ModelosAsientosDetalles)
-                .HasForeignKey(d => d.IdCuentaContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_modelos_asientos_detalles_cuentas_contables");
-
-            entity.HasOne(d => d.IdModeloAsientoNavigation).WithMany(p => p.ModelosAsientosDetalles)
-                .HasForeignKey(d => d.IdModeloAsiento)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_modelos_asientos_detalles_modelos_asientos");
-        });
-
-        modelBuilder.Entity<Balance>(entity =>
-        {
-            entity.HasKey(e => e.IdBalance);
-
-            entity.ToTable("balances");
-
-            entity.Property(e => e.IdBalance).HasColumnName("id");
-            entity.Property(e => e.FechaGeneracion)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("fecha_generacion");
-            entity.Property(e => e.IdPeriodoContable).HasColumnName("periodo_contable_id");
-            entity.Property(e => e.TipoBalance)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("tipo_balance");
-
-            entity.HasOne(d => d.IdPeriodoContableNavigation).WithMany(p => p.Balances)
-                .HasForeignKey(d => d.IdPeriodoContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_balances_periodos_contables");
-        });
-
-        modelBuilder.Entity<BalancesDetalle>(entity =>
-        {
-            entity.HasKey(e => e.IdBalanceDetalle);
-
-            entity.ToTable("balances_detalles");
-
-            entity.Property(e => e.IdBalanceDetalle).HasColumnName("id");
-            entity.Property(e => e.IdBalance).HasColumnName("balance_id");
-            entity.Property(e => e.IdCuentaContable).HasColumnName("cuenta_contable_id");
-            entity.Property(e => e.SaldoAcreedor)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("saldo_acreedor");
-            entity.Property(e => e.SaldoDeudor)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("saldo_deudor");
-            entity.Property(e => e.TotalDebe)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("total_debe");
-            entity.Property(e => e.TotalHaber)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("total_haber");
-
-            entity.HasOne(d => d.IdBalanceNavigation).WithMany(p => p.BalancesDetalles)
-                .HasForeignKey(d => d.IdBalance)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_balances_detalles_balances");
-
-            entity.HasOne(d => d.IdCuentaContableNavigation).WithMany(p => p.BalancesDetalles)
-                .HasForeignKey(d => d.IdCuentaContable)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_balances_detalles_cuentas_contables");
         });
 
         modelBuilder.Entity<ProcesoContable>(entity =>
