@@ -35,13 +35,21 @@ public class PresupuestosDetalleService : CrudServiceBase<PresupuestosDetalle, i
 
     public override async Task<PresupuestosDetalle> CreateAsync(PresupuestosDetalle entity)
     {
+<<<<<<< HEAD
         await ApplyBackendCalculatedAmountsAsync(entity);
+=======
+        entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
+>>>>>>> front
         return await base.CreateAsync(entity);
     }
 
     public override async Task<PresupuestosDetalle> UpdateAsync(int id, PresupuestosDetalle entity)
     {
+<<<<<<< HEAD
         await ApplyBackendCalculatedAmountsAsync(entity);
+=======
+        entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
+>>>>>>> front
         return await base.UpdateAsync(id, entity);
     }
 
@@ -61,6 +69,7 @@ public class PresupuestosDetalleService : CrudServiceBase<PresupuestosDetalle, i
             .Include(entity => entity.IdPresupuestoNavigation)
             .Include(entity => entity.IdProductoNavigation);
     }
+<<<<<<< HEAD
 
     private async Task ApplyBackendCalculatedAmountsAsync(PresupuestosDetalle entity)
     {
@@ -86,4 +95,6 @@ public class PresupuestosDetalleService : CrudServiceBase<PresupuestosDetalle, i
         var totalIva = IvaCalculator.CalculateTotal(totalBruto, entity.Iva);
         entity.Subtotal = totalBruto + totalIva;
     }
+=======
+>>>>>>> front
 }

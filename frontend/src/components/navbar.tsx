@@ -1,7 +1,12 @@
 "use client";
 
+<<<<<<< HEAD
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+=======
+import Link from "next/link";
+import { useState, useEffect } from "react";
+>>>>>>> front
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +27,7 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+<<<<<<< HEAD
 import Cookies from "js-cookie";
 import { notify } from "@/lib/notifications";
 
@@ -121,6 +127,87 @@ export default function Navbar() {
   const router = useRouter();
 
   const handleLogout = () => {
+=======
+import Cookies from "js-cookie";
+import { notify } from "@/lib/notifications";
+
+//Para listar los diferentes módulos en el navbar
+const modulos = [
+  {
+    title: "Ventas",
+    items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
+  },
+  {
+    title: "Compras",
+    items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
+  },
+  {
+    title: "Banco y Tesorería",
+    items: [
+      "Bancos",
+      "Cuentas bancarias",
+      "Movimientos bancarios",
+      "Cheques",
+      "Transferencias",
+      "Depósitos Bancarios",
+      "Conciliación bancaria",
+      "Órdenes de pago",
+      "Reportes",
+    ],
+  },
+  { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
+  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
+  {
+    title: "Contabilidad",
+    items: [
+      "Proceso Contable",
+      "Periodo Contable",
+      "Asientos",
+      "Plan de Cuentas",
+    ],
+  },
+];
+
+const routeByItem: Record<string, string> = {
+  Clientes: "/ventas/clientes",
+  Presupuestos: "/ventas/presupuestos",
+  Facturación: "/ventas/facturacion",
+  Devoluciones: "/ventas/devoluciones",
+  Proveedores: "/compras/proveedores",
+  Pedidos: "/compras/pedidos",
+  Cotizaciones: "/compras/cotizaciones",
+  Productos: "/stock/productos",
+  Empleados: "/personas/empleados",
+  Parientes: "/personas/parientes",
+  "Proceso Contable": "/contabilidad/proceso-contable",
+  "Periodo Contable": "/contabilidad/periodo-contable",
+  Asientos: "/contabilidad/asientos",
+  "Plan de Cuentas": "/contabilidad/plan-cuentas",
+  Bancos: "/banco-tesoreria/bancos",
+  "Cuentas bancarias": "/banco-tesoreria/cuentas",
+  "Movimientos bancarios": "/banco-tesoreria/movimientos",
+  Cheques: "/banco-tesoreria/cheques",
+  Transferencias: "/banco-tesoreria/transferencias",
+  "Depósitos Bancarios": "/banco-tesoreria/depositos",
+  "Conciliación bancaria": "/banco-tesoreria/conciliacion",
+  "Órdenes de pago": "/banco-tesoreria/ordenes-pago",
+  Reportes: "/banco-tesoreria/reportes",
+};
+
+export default function Navbar() {
+  const [userName, setUserName] = useState("Usuario");
+  const router = useRouter();
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserName(`${user.firstName} ${user.lastName}`);
+    }
+  }, []);
+
+  const handleLogout = () => {
+>>>>>>> front
     //1. Eliminar la cookie del token
     Cookies.remove("token", { path: "/" }); //Obs: mismo path que al momento de crear la cookie
     //2. Limpiar datos del usuario en el navegador
@@ -163,6 +250,7 @@ export default function Navbar() {
                     {modulo.title}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
+<<<<<<< HEAD
                     <ul className="cursor-pointer grid w-[240px] gap-2 p-4">
                       {modulo.items.map((item) => (
                         <li key={item.href}>
@@ -176,6 +264,21 @@ export default function Navbar() {
                               </div>
                             </Link>
                           </NavigationMenuLink>
+=======
+                    <ul className="cursor-pointer grid w-[200px] gap-2 p-4">
+                      {modulo.items.map((item) => (
+                        <li key={item}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href={routeByItem[item] ?? "#"}
+                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                            >
+                              <div className="text-sm font-medium leading-none">
+                                {item}
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+>>>>>>> front
                         </li>
                       ))}
                     </ul>

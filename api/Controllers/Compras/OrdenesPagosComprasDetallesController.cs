@@ -25,9 +25,9 @@ public class OrdenesPagosComprasDetallesController : CrudControllerBase<OrdenesP
             IdOrdenPagoCompra = entity.IdOrdenPagoCompra,
             IdFacturaCompra = entity.IdFacturaCompra,
             Monto = entity.Monto,
-            FacturaCompra = factura is null 
-                ? null 
-                : new FacturaCompraResumenDto 
+            FacturaCompra = factura is null
+                ? null
+                : new FacturaCompraResumenDto
                 {
                     IdFacturaCompra = factura.IdFacturaCompra,
                     Nro_Comprobante = factura.NroComprobante

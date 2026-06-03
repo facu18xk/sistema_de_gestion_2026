@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 using System;
 using System.Collections.Generic;
 
+=======
+>>>>>>> front
 namespace api.Dtos.OrdenesCompras;
 
 public class OrdenesCompraDto
@@ -11,6 +14,11 @@ public class OrdenesCompraDto
 
     public int NumeroPedidoCotizacion { get; set; }
 
+<<<<<<< HEAD
+=======
+    public int? IdCotizacionCompra { get; set; }
+
+>>>>>>> front
     public int IdProveedor { get; set; }
 
     public string Proveedor { get; set; } = string.Empty;
@@ -22,14 +30,22 @@ public class OrdenesCompraDto
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
+<<<<<<< HEAD
 
     public IReadOnlyCollection<OrdenesComprasDetalleDto> Detalles { get; set; } = Array.Empty<OrdenesComprasDetalleDto>();
+=======
+>>>>>>> front
 }
 
 public class OrdenesCompraUpsertDto
 {
     public int IdPedidoCotizacion { get; set; }
 
+<<<<<<< HEAD
+=======
+    public int? IdCotizacionCompra { get; set; }
+
+>>>>>>> front
     public int IdProveedor { get; set; }
 
     public int IdEstado { get; set; }
@@ -38,6 +54,7 @@ public class OrdenesCompraUpsertDto
 
     public string Descripcion { get; set; } = string.Empty;
 }
+<<<<<<< HEAD
 
 public class OrdenesComprasDetalleDto
 {
@@ -58,3 +75,5 @@ public class ProductoOrdenCompraDetalleDto
     
     public string Descripcion { get; set; } = string.Empty;
 }
+=======
+>>>>>>> front

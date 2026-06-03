@@ -1,9 +1,9 @@
 using api.Dtos.FacturasCompras;
-using api.Dtos.FacturasComprasDetalles; 
+using api.Dtos.FacturasComprasDetalles;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq; 
+using System.Linq;
 using System.Threading.Tasks;
 using System;
 
@@ -30,6 +30,7 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
             NroComprobante = entity.NroComprobante,
             Timbrado = entity.Timbrado,
             Fecha = entity.Fecha,
+<<<<<<< HEAD
             Descripcion = entity.Descripcion,
 
             Detalles = entity.FacturasComprasDetalles?
@@ -43,15 +44,18 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
                     TotalBruto = d.TotalBruto,
                     TotalIva = d.TotalIva,
                     TotalNeto = d.TotalNeto,
-                    Producto = d.IdProductoNavigation is null 
-                        ? null 
-                        : new ProductoFacturaDetalleDto 
+                    Producto = d.IdProductoNavigation is null
+                        ? null
+                        : new ProductoFacturaDetalleDto
                         {
                             IdProducto = d.IdProductoNavigation.IdProducto,
                             Descripcion = d.IdProductoNavigation.Descripcion
                         }
                 })
                 .ToArray() ?? Array.Empty<FacturasComprasDetalleDto>()
+=======
+            Descripcion = entity.Descripcion
+>>>>>>> front
         };
     }
 
@@ -77,4 +81,8 @@ public class FacturasComprasController : CrudControllerBase<FacturasCompra, Fact
     {
         return await CrudService.GetByIdAsync(entity.IdFacturaCompra) ?? entity;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> front

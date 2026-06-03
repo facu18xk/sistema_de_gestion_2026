@@ -9,7 +9,11 @@ public partial class NotasCreditosVenta
 
     public int IdFacturaVenta { get; set; }
 
+<<<<<<< HEAD
     public int? IdNotaDevolucionVenta { get; set; }
+=======
+    public int IdNotaDevolucionVenta { get; set; }
+>>>>>>> front
 
     public int IdTimbrado { get; set; }
 
@@ -21,7 +25,11 @@ public partial class NotasCreditosVenta
 
     public virtual FacturasVenta IdFacturaVentaNavigation { get; set; } = null!;
 
+<<<<<<< HEAD
     public virtual NotasDevolucionesVenta? IdNotaDevolucionVentaNavigation { get; set; }
+=======
+    public virtual NotasDevolucionesVenta IdNotaDevolucionVentaNavigation { get; set; } = null!;
+>>>>>>> front
 
     public virtual Timbrado IdTimbradoNavigation { get; set; } = null!;
 

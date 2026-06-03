@@ -37,9 +37,12 @@ public class ParienteService : CrudServiceBase<Pariente, int>
         existingEntity.TipoRelacion = incomingEntity.TipoRelacion;
         existingEntity.Edad = incomingEntity.Edad;
         existingEntity.FechaNacimiento = incomingEntity.FechaNacimiento;
+<<<<<<< HEAD
         existingEntity.Nombre = incomingEntity.Nombre;
         existingEntity.Apellido = incomingEntity.Apellido;
         existingEntity.Ci = incomingEntity.Ci;
+=======
+>>>>>>> front
     }
 
     public override async Task<Pariente> UpdateAsync(int id, Pariente entity)
@@ -74,4 +77,8 @@ public class ParienteService : CrudServiceBase<Pariente, int>
             .Include(p => p.IdEmpleadoNavigation)
                 .ThenInclude(e => e.IdPersonaNavigation);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> front

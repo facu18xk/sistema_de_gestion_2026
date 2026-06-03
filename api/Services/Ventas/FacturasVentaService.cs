@@ -7,6 +7,7 @@ namespace api.Services;
 public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
 {
     private readonly DblosAmigosContext _context;
+<<<<<<< HEAD
     private readonly TimbradoNumberingService _timbradoNumberingService;
 
     public FacturasVentaService(DblosAmigosContext context, TimbradoNumberingService timbradoNumberingService)
@@ -14,6 +15,13 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
     {
         _context = context;
         _timbradoNumberingService = timbradoNumberingService;
+=======
+
+    public FacturasVentaService(DblosAmigosContext context)
+        : base(context)
+    {
+        _context = context;
+>>>>>>> front
     }
 
     protected override DbSet<FacturasVenta> Set => _context.FacturasVentas;
@@ -33,6 +41,7 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
         return entity => entity.IdFacturaVenta == id;
     }
 
+<<<<<<< HEAD
     public override async Task<FacturasVenta> CreateAsync(FacturasVenta entity)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -49,6 +58,14 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
     {
         existingEntity.IdPresupuesto = incomingEntity.IdPresupuesto;
         existingEntity.IdCliente = incomingEntity.IdCliente;
+=======
+    protected override void UpdateEntity(FacturasVenta existingEntity, FacturasVenta incomingEntity)
+    {
+        existingEntity.IdOrdenVenta = incomingEntity.IdOrdenVenta;
+        existingEntity.IdCliente = incomingEntity.IdCliente;
+        existingEntity.NroComprobante = incomingEntity.NroComprobante;
+        existingEntity.IdTimbrado = incomingEntity.IdTimbrado;
+>>>>>>> front
         existingEntity.Fecha = incomingEntity.Fecha;
         existingEntity.Descripcion = incomingEntity.Descripcion;
         existingEntity.IdMedioPagoCompra = incomingEntity.IdMedioPagoCompra;
@@ -58,7 +75,11 @@ public class FacturasVentaService : CrudServiceBase<FacturasVenta, int>
     private IQueryable<FacturasVenta> BuildQuery()
     {
         return _context.FacturasVentas
+<<<<<<< HEAD
             .Include(entity => entity.IdPresupuestoNavigation)
+=======
+            .Include(entity => entity.IdOrdenVentaNavigation)
+>>>>>>> front
             .Include(entity => entity.IdClienteNavigation)
                 .ThenInclude(cliente => cliente.IdPersonaNavigation)
             .Include(entity => entity.IdMedioPagoCompraNavigation)

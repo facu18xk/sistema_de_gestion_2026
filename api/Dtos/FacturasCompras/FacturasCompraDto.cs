@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 using System;
 using System.Collections.Generic;
 using api.Dtos.FacturasComprasDetalles; 
 
+=======
+>>>>>>> front
 namespace api.Dtos.FacturasCompras;
 
 public class FacturasCompraDto
@@ -23,8 +26,11 @@ public class FacturasCompraDto
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
+<<<<<<< HEAD
 
     public IReadOnlyCollection<FacturasComprasDetalleDto> Detalles { get; set; } = Array.Empty<FacturasComprasDetalleDto>();
+=======
+>>>>>>> front
 }
 
 public class FacturasCompraUpsertDto
@@ -40,4 +46,8 @@ public class FacturasCompraUpsertDto
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> front

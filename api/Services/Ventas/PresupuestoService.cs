@@ -1,5 +1,8 @@
 using System.Linq.Expressions;
+<<<<<<< HEAD
 using api.Dtos.Common;
+=======
+>>>>>>> front
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +27,7 @@ public class PresupuestoService : CrudServiceBase<Presupuesto, int>
 
     protected override IQueryable<Presupuesto> BuildGetByIdQuery()
     {
+<<<<<<< HEAD
         return BuildQuery();
     }
 
@@ -64,6 +68,9 @@ public class PresupuestoService : CrudServiceBase<Presupuesto, int>
 
         await UpdateEstadoByDatesAsync(presupuesto);
         return presupuesto;
+=======
+        return BuildQuery().AsNoTracking();
+>>>>>>> front
     }
 
     protected override Expression<Func<Presupuesto, bool>> BuildKeyPredicate(int id)
@@ -87,6 +94,7 @@ public class PresupuestoService : CrudServiceBase<Presupuesto, int>
                 .ThenInclude(cliente => cliente.IdPersonaNavigation)
             .Include(entity => entity.IdEstadoNavigation);
     }
+<<<<<<< HEAD
 
     private async Task UpdateEstadosByDatesAsync(IEnumerable<Presupuesto> presupuestos)
     {
@@ -137,4 +145,6 @@ public class PresupuestoService : CrudServiceBase<Presupuesto, int>
     {
         return DateTime.Today > fechaVencimiento.Date;
     }
+=======
+>>>>>>> front
 }

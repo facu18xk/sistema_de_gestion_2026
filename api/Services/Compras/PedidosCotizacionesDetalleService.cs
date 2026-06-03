@@ -39,7 +39,10 @@ public class PedidosCotizacionesDetalleService : CrudServiceBase<PedidosCotizaci
         existingEntity.Descripcion = incomingEntity.Descripcion;
         existingEntity.Cantidad = incomingEntity.Cantidad;
         existingEntity.PrecioProducto = incomingEntity.PrecioProducto;
+<<<<<<< HEAD
         existingEntity.Descuento = incomingEntity.Descuento; 
+=======
+>>>>>>> front
     }
 
     private IQueryable<PedidosCotizacionesDetalle> BuildQuery()
@@ -49,4 +52,8 @@ public class PedidosCotizacionesDetalleService : CrudServiceBase<PedidosCotizaci
             .Include(entity => entity.IdPedidoCotizacionNavigation)
             .Include(entity => entity.IdProductoNavigation);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> front

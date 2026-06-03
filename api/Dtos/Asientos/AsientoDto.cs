@@ -20,6 +20,10 @@ public class AsientoDto
 
 public class AsientoUpsertDto
 {
+<<<<<<< HEAD
+=======
+    public int NumeroAsiento { get; set; }
+>>>>>>> front
     public int? IdModulo { get; set; }
     public DateOnly Fecha { get; set; }
     public string? Descripcion { get; set; }

@@ -211,6 +211,7 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("balances_detalles", (string)null);
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.Banco", b =>
                 {
                     b.Property<int>("IdBanco")
@@ -240,6 +241,8 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Bancos", (string)null);
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Categoria", b =>
                 {
                     b.Property<int>("IdCategoria")
@@ -277,6 +280,7 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Categorias_Proveedores", (string)null);
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.ChequeEmitido", b =>
                 {
                     b.Property<int>("IdChequeEmitido")
@@ -434,6 +438,8 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Cheques_Terceros", (string)null);
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Ciudad", b =>
                 {
                     b.Property<int>("IdCiudad")
@@ -573,6 +579,7 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Cotizaciones_Compras_Detalles", (string)null);
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.CuentaBancaria", b =>
                 {
                     b.Property<int>("IdCuentaBancaria")
@@ -634,6 +641,8 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Cuentas_Bancarias", (string)null);
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.CuentaContable", b =>
                 {
                     b.Property<int>("IdCuentaContable")
@@ -709,6 +718,7 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Depositos");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.DepositoBancario", b =>
                 {
                     b.Property<int>("IdDepositoBancario")
@@ -787,6 +797,8 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Detalles_Depositos_Bancarios", (string)null);
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Direccion", b =>
                 {
                     b.Property<int>("IdDireccion")
@@ -1008,9 +1020,15 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Medio_Pago_Compra");
 
+<<<<<<< HEAD
                     b.Property<int>("IdPresupuesto")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Presupuesto");
+=======
+                    b.Property<int>("IdOrdenVenta")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Orden_Venta");
+>>>>>>> front
 
                     b.Property<int>("IdTimbrado")
                         .HasColumnType("integer")
@@ -1029,7 +1047,11 @@ namespace api.Migrations.DblosAmigos
 
                     b.HasIndex("IdMedioPagoCompra");
 
+<<<<<<< HEAD
                     b.HasIndex("IdPresupuesto");
+=======
+                    b.HasIndex("IdOrdenVenta");
+>>>>>>> front
 
                     b.HasIndex("IdTimbrado");
 
@@ -1228,6 +1250,7 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("modulos", (string)null);
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.MovimientoBancario", b =>
                 {
                     b.Property<int>("IdMovimientoBancario")
@@ -1289,6 +1312,8 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Movimientos_Bancarios", (string)null);
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.NotasCreditosCompra", b =>
                 {
                     b.Property<int>("IdNotaCreditoCompra")
@@ -1386,7 +1411,11 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Factura_Venta");
 
+<<<<<<< HEAD
                     b.Property<int?>("IdNotaDevolucionVenta")
+=======
+                    b.Property<int>("IdNotaDevolucionVenta")
+>>>>>>> front
                         .HasColumnType("integer")
                         .HasColumnName("Id_Nota_Devolucion_Venta");
 
@@ -1595,8 +1624,12 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasMaxLength(100)
                         .IsUnicode(false)
+<<<<<<< HEAD
                         .HasColumnType("character varying(100)")
                         .HasColumnName("Descripcion");
+=======
+                        .HasColumnType("character varying(100)");
+>>>>>>> front
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp without time zone");
@@ -2403,17 +2436,31 @@ namespace api.Migrations.DblosAmigos
             modelBuilder.Entity("api.Models.StocksDeposito", b =>
                 {
                     b.Property<int>("IdDeposito")
+<<<<<<< HEAD
                         .HasColumnType("integer")
                         .HasColumnName("Id_Deposito");
 
-                    b.Property<int>("IdProducto")
+=======
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id_Producto");
+                        .HasColumnName("Id_Deposito");
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("integer");
 
+>>>>>>> front
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Producto");
+
+<<<<<<< HEAD
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
                     b.HasKey("IdDeposito", "IdProducto");
+=======
+                    b.HasKey("IdDeposito");
+>>>>>>> front
 
                     b.HasIndex("IdProducto");
 
@@ -2429,6 +2476,7 @@ namespace api.Migrations.DblosAmigos
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTimbrado"));
 
+<<<<<<< HEAD
                     b.Property<bool>("Activo")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -2442,6 +2490,8 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("character varying(3)")
                         .HasDefaultValue("001");
 
+=======
+>>>>>>> front
                     b.Property<DateOnly>("FechaFinal")
                         .HasColumnType("date")
                         .HasColumnName("Fecha_Final");
@@ -2450,6 +2500,7 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("date")
                         .HasColumnName("Fecha_Inicio");
 
+<<<<<<< HEAD
                     b.Property<int>("NumeroFinal")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -2478,6 +2529,8 @@ namespace api.Migrations.DblosAmigos
                         .HasDefaultValue("001")
                         .HasColumnName("Punto_Expedicion");
 
+=======
+>>>>>>> front
                     b.Property<string>("Ruc")
                         .IsRequired()
                         .HasMaxLength(12)
@@ -2485,6 +2538,7 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("character varying(12)")
                         .HasColumnName("RUC");
 
+<<<<<<< HEAD
                     b.Property<string>("TipoComprobante")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -2500,11 +2554,14 @@ namespace api.Migrations.DblosAmigos
                         .HasDefaultValue(0)
                         .HasColumnName("Ultimo_Numero_Usado");
 
+=======
+>>>>>>> front
                     b.HasKey("IdTimbrado");
 
                     b.ToTable("Timbrados");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.TipoCuentaBancaria", b =>
                 {
                     b.Property<int>("IdTipoCuentaBancaria")
@@ -2618,6 +2675,8 @@ namespace api.Migrations.DblosAmigos
                         });
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Asiento", b =>
                 {
                     b.HasOne("api.Models.Modulo", "IdModuloNavigation")
@@ -2704,6 +2763,7 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("Proveedor");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.ChequeEmitido", b =>
                 {
                     b.HasOne("api.Models.CuentaBancaria", "IdCuentaBancariaNavigation")
@@ -2753,6 +2813,8 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdDepositoBancarioNavigation");
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Ciudad", b =>
                 {
                     b.HasOne("api.Models.Pais", "IdPaisNavigation")
@@ -2821,6 +2883,7 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("Producto");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.CuentaBancaria", b =>
                 {
                     b.HasOne("api.Models.Banco", "IdBancoNavigation")
@@ -2847,6 +2910,8 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdTipoCuentaBancariaNavigation");
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.CuentaContable", b =>
                 {
                     b.HasOne("api.Models.CuentaContable", "IdCuentaPadreNavigation")
@@ -2865,6 +2930,7 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdProcesoContableNavigation");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.DepositoBancario", b =>
                 {
                     b.HasOne("api.Models.CuentaBancaria", "IdCuentaBancariaNavigation")
@@ -2903,6 +2969,8 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdDepositoBancarioNavigation");
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Direccion", b =>
                 {
                     b.HasOne("api.Models.Ciudad", "IdCiudadNavigation")
@@ -2977,11 +3045,19 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasConstraintName("FK_Facturas_Ventas_Medios_Pagos_Compras");
 
+<<<<<<< HEAD
                     b.HasOne("api.Models.Presupuesto", "IdPresupuestoNavigation")
                         .WithMany("FacturasVenta")
                         .HasForeignKey("IdPresupuesto")
                         .IsRequired()
                         .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
+=======
+                    b.HasOne("api.Models.OrdenesVenta", "IdOrdenVentaNavigation")
+                        .WithMany("FacturasVenta")
+                        .HasForeignKey("IdOrdenVenta")
+                        .IsRequired()
+                        .HasConstraintName("FK_Facturas_Ventas_Ordenes_Ventas");
+>>>>>>> front
 
                     b.HasOne("api.Models.Timbrado", "IdTimbradoNavigation")
                         .WithMany("FacturasVenta")
@@ -2993,7 +3069,11 @@ namespace api.Migrations.DblosAmigos
 
                     b.Navigation("IdMedioPagoCompraNavigation");
 
+<<<<<<< HEAD
                     b.Navigation("IdPresupuestoNavigation");
+=======
+                    b.Navigation("IdOrdenVentaNavigation");
+>>>>>>> front
 
                     b.Navigation("IdTimbradoNavigation");
                 });
@@ -3047,6 +3127,7 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdModeloAsientoNavigation");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.MovimientoBancario", b =>
                 {
                     b.HasOne("api.Models.ChequeEmitido", "IdChequeEmitidoNavigation")
@@ -3087,6 +3168,8 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdTipoMovimientoBancarioNavigation");
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.NotasCreditosCompra", b =>
                 {
                     b.HasOne("api.Models.FacturasCompra", "IdFacturaCompraNavigation")
@@ -3136,7 +3219,11 @@ namespace api.Migrations.DblosAmigos
                     b.HasOne("api.Models.NotasDevolucionesVenta", "IdNotaDevolucionVentaNavigation")
                         .WithMany("NotasCreditosVenta")
                         .HasForeignKey("IdNotaDevolucionVenta")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.SetNull)
+=======
+                        .IsRequired()
+>>>>>>> front
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Notas_Devoluciones_Ventas");
 
                     b.HasOne("api.Models.Timbrado", "IdTimbradoNavigation")
@@ -3613,8 +3700,13 @@ namespace api.Migrations.DblosAmigos
             modelBuilder.Entity("api.Models.StocksDeposito", b =>
                 {
                     b.HasOne("api.Models.Deposito", "IdDepositoNavigation")
+<<<<<<< HEAD
                         .WithMany("StocksDepositos")
                         .HasForeignKey("IdDeposito")
+=======
+                        .WithOne("StocksDeposito")
+                        .HasForeignKey("api.Models.StocksDeposito", "IdDeposito")
+>>>>>>> front
                         .IsRequired()
                         .HasConstraintName("FK_Stocks_Depositos_Depositos");
 
@@ -3639,11 +3731,14 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("BalancesDetalles");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.Banco", b =>
                 {
                     b.Navigation("CuentasBancarias");
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.Categoria", b =>
                 {
                     b.Navigation("CategoriasProveedores");
@@ -3672,6 +3767,7 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("OrdenesCompras");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("api.Models.CuentaBancaria", b =>
                 {
                     b.Navigation("ChequesEmitidos");
@@ -3681,6 +3777,8 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("MovimientosBancarios");
                 });
 
+=======
+>>>>>>> front
             modelBuilder.Entity("api.Models.CuentaContable", b =>
                 {
                     b.Navigation("AsientosDetalles");
@@ -3694,6 +3792,7 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.Deposito", b =>
                 {
+<<<<<<< HEAD
                     b.Navigation("StocksDepositos");
                 });
 
@@ -3704,6 +3803,9 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("ChequesTerceros");
 
                     b.Navigation("DetallesDepositosBancarios");
+=======
+                    b.Navigation("StocksDeposito");
+>>>>>>> front
                 });
 
             modelBuilder.Entity("api.Models.Direccion", b =>
@@ -3817,6 +3919,11 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.OrdenesVenta", b =>
                 {
+<<<<<<< HEAD
+=======
+                    b.Navigation("FacturasVenta");
+
+>>>>>>> front
                     b.Navigation("OrdenesVentasDetalles");
                 });
 
@@ -3859,8 +3966,11 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.Presupuesto", b =>
                 {
+<<<<<<< HEAD
                     b.Navigation("FacturasVenta");
 
+=======
+>>>>>>> front
                     b.Navigation("OrdenesVenta");
 
                     b.Navigation("PresupuestosDetalles");
@@ -3927,6 +4037,7 @@ namespace api.Migrations.DblosAmigos
 
                     b.Navigation("NotasCreditosVenta");
                 });
+<<<<<<< HEAD
 
             modelBuilder.Entity("api.Models.TipoCuentaBancaria", b =>
                 {
@@ -3942,6 +4053,8 @@ namespace api.Migrations.DblosAmigos
                 {
                     b.Navigation("MovimientosBancarios");
                 });
+=======
+>>>>>>> front
 #pragma warning restore 612, 618
         }
     }

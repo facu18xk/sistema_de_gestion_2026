@@ -131,5 +131,4 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
         var persona = cliente?.IdPersonaNavigation;
         return persona is null ? string.Empty : $"{persona.Nombres} {persona.Apellidos}".Trim();
     }
-
 }

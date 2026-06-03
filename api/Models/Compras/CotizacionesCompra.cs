@@ -24,5 +24,11 @@ public partial class CotizacionesCompra
     public virtual PedidosCotizaciones SolicitudCotizacion { get; set; } = null!;
 
     public virtual ICollection<CotizacionesComprasDetalle> CotizacionesComprasDetalles { get; set; } = new List<CotizacionesComprasDetalle>();
+<<<<<<< HEAD
 }
 
+=======
+
+    public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
+}
+>>>>>>> front

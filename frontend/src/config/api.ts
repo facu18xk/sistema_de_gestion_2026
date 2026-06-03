@@ -1,7 +1,11 @@
 export const API_CONFIG = {
+<<<<<<< HEAD
   BASE_URL:
     process.env.NEXT_PUBLIC_API_URL ??
     "https://sistemadegestion2026-production.up.railway.app",
+=======
+  BASE_URL: "https://sistemadegestion2026-production.up.railway.app",
+>>>>>>> front
   ENDPOINTS: {
     LOGIN: "/api/Auth/iniciar",
     PRODUCTS: "/api/Productos",
@@ -35,6 +39,11 @@ export const API_CONFIG = {
     TIPOS_CUENTAS_BANCARIAS: "/api/TiposCuentasBancarias",
     MOVIMIENTOS_BANCARIOS: "/api/MovimientosBancarios",
     CHEQUES_EMITIDOS: "/api/ChequesEmitidos",
+<<<<<<< HEAD
+=======
+    CHEQUES_TERCEROS: "/api/ChequesTerceros",
+    CHEQUES_MISMO_BANCO: "/api/ChequesMismoBanco",
+>>>>>>> front
     DEPOSITOS_BANCARIOS: "/api/DepositosBancarios",
     TIPOS_DEPOSITOS_BANCARIOS: "/api/TiposDepositosBancarios",
     TIPOS_MOVIMIENTOS_BANCARIOS: "/api/TiposMovimientosBancarios",

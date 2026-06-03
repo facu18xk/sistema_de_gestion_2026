@@ -31,9 +31,9 @@ public class ParientesController : CrudControllerBase<Pariente, ParienteDto, Par
             Apellido = entity.Apellido,
             Ci = entity.Ci,
 
-            Empleado = empleado is null 
-                ? null 
-                : new EmpleadoParienteDto 
+            Empleado = empleado is null
+                ? null
+                : new EmpleadoParienteDto
                 {
                     IdEmpleado = empleado.IdEmpleado,
                     Nombres = persona?.Nombres ?? string.Empty,

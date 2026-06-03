@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ChequeEmitido } from "@/types/types";
 import { formatMoney } from "@/lib/format-currency";
+<<<<<<< HEAD
 import { formatDate } from "@/lib/format-date";
 
 function todayInputDate() {
@@ -17,6 +18,9 @@ function todayInputDate() {
 function toLocalIsoDate(date: string) {
   return `${date}T00:00:00`;
 }
+=======
+import { formatDate, toInputDate } from "@/lib/format-date";
+>>>>>>> front
 
 interface ConciliarChequeFormProps {
   cheque: ChequeEmitido;
@@ -32,17 +36,32 @@ export function ConciliarChequeForm({
   onCancel,
 }: ConciliarChequeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+<<<<<<< HEAD
   const [fechaPago, setFechaPago] = useState(todayInputDate());
 
   useEffect(() => {
     setFechaPago(todayInputDate());
+=======
+  const [fechaPago, setFechaPago] = useState(
+    toInputDate(cheque.fechaPago) || new Date().toISOString().substring(0, 10),
+  );
+
+  useEffect(() => {
+    setFechaPago(
+      toInputDate(cheque.fechaPago) || new Date().toISOString().substring(0, 10),
+    );
+>>>>>>> front
   }, [cheque]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+<<<<<<< HEAD
       await onSubmit(toLocalIsoDate(fechaPago));
+=======
+      await onSubmit(new Date(fechaPago).toISOString());
+>>>>>>> front
     } finally {
       setIsSubmitting(false);
     }

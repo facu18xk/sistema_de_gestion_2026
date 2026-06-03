@@ -10,7 +10,8 @@ Frontend:
 
 - next.js
 - react.js
-- Componentes: https://primereact.org/
+- tailwind
+- Componentes: https://ui.shadcn.com/
 
 Backend:
 

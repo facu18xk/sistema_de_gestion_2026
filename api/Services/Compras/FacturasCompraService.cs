@@ -45,8 +45,14 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
     {
         return _context.FacturasCompras
             .Include(factura => factura.IdOrdenCompraNavigation)
+<<<<<<< HEAD
             .Include(factura => factura.IdProveedorNavigation)
             .Include(factura => factura.FacturasComprasDetalles)
                 .ThenInclude(detalle => detalle.IdProductoNavigation); 
     }
 }
+=======
+            .Include(factura => factura.IdProveedorNavigation);
+    }
+}
+>>>>>>> front

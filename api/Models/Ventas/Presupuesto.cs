@@ -23,7 +23,10 @@ public partial class Presupuesto
 
     public virtual ICollection<OrdenesVenta> OrdenesVenta { get; set; } = new List<OrdenesVenta>();
 
+<<<<<<< HEAD
     public virtual ICollection<FacturasVenta> FacturasVenta { get; set; } = new List<FacturasVenta>();
 
+=======
+>>>>>>> front
     public virtual ICollection<PresupuestosDetalle> PresupuestosDetalles { get; set; } = new List<PresupuestosDetalle>();
 }

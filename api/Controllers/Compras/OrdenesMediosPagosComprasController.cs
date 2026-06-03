@@ -28,9 +28,9 @@ public class OrdenesMediosPagosComprasController : CrudControllerBase<OrdenesMed
             IdCuentaBancaria = entity.IdCuentaBancaria,
             IdMovimientoBancario = entity.IdMovimientoBancario,
             IdChequeEmitido = entity.IdChequeEmitido,
-            MedioPago = medioPago is null 
-                ? null 
-                : new MedioPagoResumenDto 
+            MedioPago = medioPago is null
+                ? null
+                : new MedioPagoResumenDto
                 {
                     IdMedioPagoCompra = medioPago.IdMedioPagoCompra,
                     Nombre = medioPago.Nombre

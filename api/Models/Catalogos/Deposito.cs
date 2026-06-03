@@ -9,5 +9,9 @@ public partial class Deposito
 
     public string Nombre { get; set; } = null!;
 
+<<<<<<< HEAD
     public virtual ICollection<StocksDeposito> StocksDepositos { get; set; } = new List<StocksDeposito>();
+=======
+    public virtual StocksDeposito? StocksDeposito { get; set; }
+>>>>>>> front
 }

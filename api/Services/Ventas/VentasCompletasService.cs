@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 using api.Dtos.AsientosDetalles;
 using api.Dtos.Contabilidad;
+=======
+>>>>>>> front
 using api.Dtos.Ventas;
 using api.Dtos.Common;
 using api.Models;
@@ -11,6 +14,7 @@ public class VentasCompletasService
 {
     private readonly DblosAmigosContext _context;
     private readonly SalesPriceResolver _salesPriceResolver;
+<<<<<<< HEAD
     private readonly TimbradoNumberingService _timbradoNumberingService;
     private readonly IAsientoContableService _asientoContableService;
 
@@ -24,6 +28,13 @@ public class VentasCompletasService
         _salesPriceResolver = salesPriceResolver;
         _timbradoNumberingService = timbradoNumberingService;
         _asientoContableService = asientoContableService;
+=======
+
+    public VentasCompletasService(DblosAmigosContext context, SalesPriceResolver salesPriceResolver)
+    {
+        _context = context;
+        _salesPriceResolver = salesPriceResolver;
+>>>>>>> front
     }
 
     public async Task<Presupuesto> CreatePresupuestoAsync(PresupuestoCompletoCreateDto dto)
@@ -57,7 +68,11 @@ public class VentasCompletasService
                 IdProducto = item.IdProducto,
                 Cantidad = item.Cantidad,
                 PrecioUnitario = precioUnitario,
+<<<<<<< HEAD
                 Iva = producto.PorcentajeIva,
+=======
+                Iva = totalIva,
+>>>>>>> front
                 Subtotal = totalBruto + totalIva
             });
         }
@@ -68,6 +83,7 @@ public class VentasCompletasService
         return await GetPresupuestoAsync(presupuesto.IdPresupuesto) ?? presupuesto;
     }
 
+<<<<<<< HEAD
     public async Task<PresupuestoCompletoDto> UpdatePresupuestoAsync(int id, PresupuestoCompletoCreateDto dto)
     {
         var presupuesto = await _context.Presupuestos
@@ -146,19 +162,28 @@ public class VentasCompletasService
         await transaction.CommitAsync();
     }
 
+=======
+>>>>>>> front
     public async Task<PagedResultDto<PresupuestoCompletoDto>> GetPresupuestosCompletosAsync(PaginationQueryDto pagination)
     {
         var page = pagination.GetNormalizedPage();
         var pageSize = pagination.GetNormalizedPageSize();
+<<<<<<< HEAD
         var query = BuildTrackedPresupuestosCompletosQuery();
+=======
+        var query = BuildPresupuestosCompletosQuery();
+>>>>>>> front
         var totalCount = await query.CountAsync();
         var presupuestos = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+<<<<<<< HEAD
 
         await UpdateEstadosByDatesAsync(presupuestos);
 
+=======
+>>>>>>> front
         var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
 
         return new PagedResultDto<PresupuestoCompletoDto>
@@ -175,6 +200,7 @@ public class VentasCompletasService
 
     public async Task<PresupuestoCompletoDto?> GetPresupuestoCompletoAsync(int idPresupuesto)
     {
+<<<<<<< HEAD
         var presupuesto = await BuildTrackedPresupuestosCompletosQuery()
             .FirstOrDefaultAsync(entity => entity.IdPresupuesto == idPresupuesto);
 
@@ -185,6 +211,12 @@ public class VentasCompletasService
 
         await UpdateEstadoByDatesAsync(presupuesto);
         return ToPresupuestoCompletoDto(presupuesto);
+=======
+        var presupuesto = await BuildPresupuestosCompletosQuery()
+            .FirstOrDefaultAsync(entity => entity.IdPresupuesto == idPresupuesto);
+
+        return presupuesto is null ? null : ToPresupuestoCompletoDto(presupuesto);
+>>>>>>> front
     }
 
     public async Task<OrdenesVenta> CreateOrdenVentaAsync(OrdenVentaCompletaCreateDto dto)
@@ -230,15 +262,25 @@ public class VentasCompletasService
 
         var facturaVenta = new FacturasVenta
         {
+<<<<<<< HEAD
             IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
+=======
+            IdOrdenVenta = dto.IdOrdenVenta,
+            IdCliente = dto.IdCliente,
+            NroComprobante = dto.NroComprobante,
+            IdTimbrado = dto.IdTimbrado,
+>>>>>>> front
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,
             FechaPago = dto.FechaPago
         };
 
+<<<<<<< HEAD
         await _timbradoNumberingService.ApplyNextFacturaVentaNumberAsync(facturaVenta);
+=======
+>>>>>>> front
         _context.FacturasVentas.Add(facturaVenta);
         await _context.SaveChangesAsync();
 
@@ -261,6 +303,7 @@ public class VentasCompletasService
             });
         }
 
+<<<<<<< HEAD
         await DecreaseStockAsync(dto.Items);
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -540,6 +583,14 @@ public class VentasCompletasService
         return facturaVenta is null ? null : ToFacturaVentaCompletaDto(facturaVenta);
     }
 
+=======
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return await GetFacturaVentaAsync(facturaVenta.IdFacturaVenta) ?? facturaVenta;
+    }
+
+>>>>>>> front
     private async Task<Dictionary<int, Producto>> ValidateItemsAsync(IReadOnlyCollection<VentaItemCreateDto> items)
     {
         if (items.Count == 0)
@@ -591,6 +642,7 @@ public class VentasCompletasService
         return products;
     }
 
+<<<<<<< HEAD
     private static void ValidateNotaCreditoFecha(FacturasVenta facturaVenta, DateTime fechaEmision)
     {
         if (fechaEmision < facturaVenta.Fecha)
@@ -689,6 +741,8 @@ public class VentasCompletasService
         }
     }
 
+=======
+>>>>>>> front
     private async Task<Presupuesto?> GetPresupuestoAsync(int id)
     {
         return await BuildPresupuestosCompletosQuery()
@@ -706,6 +760,7 @@ public class VentasCompletasService
                 .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 
+<<<<<<< HEAD
     private IQueryable<Presupuesto> BuildTrackedPresupuestosCompletosQuery()
     {
         return _context.Presupuestos
@@ -716,6 +771,8 @@ public class VentasCompletasService
                 .ThenInclude(detalle => detalle.IdProductoNavigation);
     }
 
+=======
+>>>>>>> front
     private async Task<OrdenesVenta?> GetOrdenVentaAsync(int id)
     {
         return await _context.OrdenesVentas
@@ -731,6 +788,7 @@ public class VentasCompletasService
 
     private async Task<FacturasVenta?> GetFacturaVentaAsync(int id)
     {
+<<<<<<< HEAD
         return await BuildFacturasVentasCompletasQuery()
             .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == id);
     }
@@ -752,12 +810,22 @@ public class VentasCompletasService
         return _context.FacturasVentas
             .AsNoTracking()
             .Include(entity => entity.IdPresupuestoNavigation)
+=======
+        return await _context.FacturasVentas
+            .AsNoTracking()
+            .Include(entity => entity.IdOrdenVentaNavigation)
+>>>>>>> front
             .Include(entity => entity.IdClienteNavigation)
                 .ThenInclude(cliente => cliente.IdPersonaNavigation)
             .Include(entity => entity.IdMedioPagoCompraNavigation)
             .Include(entity => entity.IdTimbradoNavigation)
             .Include(entity => entity.FacturasVentasDetalles)
+<<<<<<< HEAD
                 .ThenInclude(detalle => detalle.IdProductoNavigation);
+=======
+                .ThenInclude(detalle => detalle.IdProductoNavigation)
+            .FirstOrDefaultAsync(entity => entity.IdFacturaVenta == id);
+>>>>>>> front
     }
 
     private static decimal CalcularTotalBruto(int cantidad, decimal precioUnitario)
@@ -767,7 +835,11 @@ public class VentasCompletasService
 
     private static decimal CalcularTotalIva(decimal totalBruto, decimal porcentajeIva)
     {
+<<<<<<< HEAD
         return IvaCalculator.CalculateTotal(totalBruto, porcentajeIva);
+=======
+        return Math.Round(totalBruto * porcentajeIva / 100, 2, MidpointRounding.AwayFromZero);
+>>>>>>> front
     }
 
     private static PresupuestoCompletoDto ToPresupuestoCompletoDto(Presupuesto presupuesto)
@@ -788,13 +860,17 @@ public class VentasCompletasService
                 Producto = detalle.IdProductoNavigation?.Descripcion ?? string.Empty,
                 Cantidad = detalle.Cantidad,
                 PrecioUnitario = detalle.PrecioUnitario,
+<<<<<<< HEAD
                 PrecioVenta = detalle.PrecioUnitario,
+=======
+>>>>>>> front
                 Iva = detalle.Iva,
                 Subtotal = detalle.Subtotal
             }).ToArray()
         };
     }
 
+<<<<<<< HEAD
     private static FacturaVentaCompletaDto ToFacturaVentaCompletaDto(FacturasVenta facturaVenta)
     {
         return new FacturaVentaCompletaDto
@@ -1074,15 +1150,20 @@ public class VentasCompletasService
         return DateTime.Today > fechaVencimiento.Date;
     }
 
+=======
+>>>>>>> front
     private static string FormatCliente(Cliente? cliente)
     {
         var persona = cliente?.IdPersonaNavigation;
         return persona is null ? string.Empty : $"{persona.Nombres} {persona.Apellidos}".Trim();
     }
+<<<<<<< HEAD
 
     private sealed record VentasAccountingAccounts(
         int IdModuloVentas,
         int Caja,
         int VentasMercaderias,
         int IvaDebitoFiscal);
+=======
+>>>>>>> front
 }

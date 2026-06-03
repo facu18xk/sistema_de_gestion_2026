@@ -29,6 +29,10 @@ import { notify } from "@/lib/notifications";
 import type { ChequeEmitido, CuentaBancaria, MovimientoBancario } from "@/types/types";
 
 function esChequePendiente(cheque: ChequeEmitido): boolean {
+<<<<<<< HEAD
+=======
+  if (!cheque.fechaPago) return true;
+>>>>>>> front
   const estado = cheque.estado?.toLowerCase() ?? "";
   return estado.includes("emitido") || estado.includes("pendiente");
 }
@@ -321,7 +325,11 @@ export default function ConciliacionBancariaPage() {
                             </Button>
                           ) : (
                             <span className="text-xs text-emerald-600">
+<<<<<<< HEAD
                               Pagado
+=======
+                              {c.fechaPago ? formatDate(c.fechaPago) : "Pagado"}
+>>>>>>> front
                             </span>
                           )}
                         </TableCell>
