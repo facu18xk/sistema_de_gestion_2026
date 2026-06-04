@@ -10,7 +10,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -31,8 +30,6 @@ import {
   ParienteFormState,
   ParienteSaveDTO,
 } from "@/types/types";
-
-import { notify } from "@/lib/notifications";
 
 interface ParienteFormProps {
   parienteEditado?: Pariente | null;
@@ -56,6 +53,9 @@ export function ParienteForm({
     tipoRelacion: "",
     edad: "",
     fechaNacimiento: "",
+    nombre: "",
+    apellido: "",
+    ci: "",
   });
 
   const empleadosOrdenados = [...empleados].sort((a, b) =>
@@ -92,12 +92,14 @@ export function ParienteForm({
 
   useEffect(() => {
     if (parienteEditado) {
-      console.log(parienteEditado);
       setFormData({
         idEmpleado: parienteEditado.idEmpleado.toString(),
         tipoRelacion: parienteEditado.tipoRelacion,
         edad: parienteEditado.edad.toString(),
         fechaNacimiento: parienteEditado.fechaNacimiento.substring(0, 10),
+        nombre: parienteEditado.nombre ?? "",
+        apellido: parienteEditado.apellido ?? "",
+        ci: parienteEditado.ci ?? "",
       });
     } else {
       setFormData({
@@ -105,6 +107,9 @@ export function ParienteForm({
         tipoRelacion: "",
         edad: "",
         fechaNacimiento: "",
+        nombre: "",
+        apellido: "",
+        ci: "",
       });
     }
   }, [parienteEditado]);
@@ -118,8 +123,11 @@ export function ParienteForm({
         tipoRelacion: formData.tipoRelacion,
         edad: Number(formData.edad),
         fechaNacimiento: formData.fechaNacimiento,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        ci: formData.ci,
       });
-    } catch (error) {
+    } catch {
       setIsSubmitting(false);
     } finally {
       setShowConfirmDialog(false);
@@ -159,6 +167,41 @@ export function ParienteForm({
         </div>
 
         <div className="grid gap-2">
+          <Label htmlFor="nombre">Nombre del familiar</Label>
+
+          <Input
+            id="nombre"
+            value={formData.nombre}
+            onChange={(event) => updateField("nombre", event.target.value)}
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="apellido">Apellido</Label>
+
+            <Input
+              id="apellido"
+              value={formData.apellido}
+              onChange={(event) => updateField("apellido", event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="ci">CI</Label>
+
+            <Input
+              id="ci"
+              value={formData.ci}
+              onChange={(event) => updateField("ci", event.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
           <Label>Tipo de Relación</Label>
 
           <Select
@@ -170,15 +213,15 @@ export function ParienteForm({
             </SelectTrigger>
 
             <SelectContent className="max-h-[300px]">
-              <SelectItem value="Hijo/a">Hijo/a</SelectItem>
+              <SelectItem value="H">Hijo/a</SelectItem>
 
-              <SelectItem value="Esposo/a">Esposo/a</SelectItem>
+              <SelectItem value="E">Esposo/a</SelectItem>
 
-              <SelectItem value="Padre">Padre</SelectItem>
+              <SelectItem value="P">Padre</SelectItem>
 
-              <SelectItem value="Madre">Madre</SelectItem>
+              <SelectItem value="M">Madre</SelectItem>
 
-              <SelectItem value="Otro">Otro</SelectItem>
+              <SelectItem value="O">Otro</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -27,6 +27,14 @@ import { formatearFecha } from "@/utils/date-utils";
 import { Empleado, Pariente, ParienteSaveDTO } from "@/types/types";
 import { notify } from "@/lib/notifications";
 
+const relacionLabel: Record<string, string> = {
+  H: "Hijo/a",
+  E: "Esposo/a",
+  P: "Padre",
+  M: "Madre",
+  O: "Otro",
+};
+
 export default function ParientesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -77,10 +85,14 @@ export default function ParientesPage() {
           .toLowerCase()
           .trim();
       const tipo = (p.tipoRelacion ?? "").toLowerCase();
+      const familiar = `${p.nombre ?? ""} ${p.apellido ?? ""} ${p.ci ?? ""}`
+        .toLowerCase()
+        .trim();
       const edad = String(p.edad ?? "").toLowerCase();
       const fecha = (p.fechaNacimiento ?? "").toLowerCase();
       return (
         empleado.includes(query) ||
+        familiar.includes(query) ||
         tipo.includes(query) ||
         edad.includes(query) ||
         fecha.includes(query)
@@ -229,9 +241,9 @@ export default function ParientesPage() {
           onPageChange={(page) => setCurrentPage(page)}
           headerRow={
             <TableRow>
-              <TableHead>Nombre</TableHead>
+              <TableHead>Familiar</TableHead>
 
-              <TableHead>Apellido</TableHead>
+              <TableHead>Empleado</TableHead>
 
               <TableHead>Tipo Relación</TableHead>
 
@@ -245,10 +257,21 @@ export default function ParientesPage() {
         >
           {parientesVisiblesEnPagina.map((p) => (
             <TableRow key={p.idPariente}>
-              <TableCell>{p.empleado.nombres}</TableCell>
-              <TableCell> {p.empleado.apellidos}</TableCell>
+              <TableCell>
+                <div className="font-medium">
+                  {`${p.nombre ?? ""} ${p.apellido ?? ""}`.trim() || "Sin nombre"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  CI {p.ci || "—"}
+                </div>
+              </TableCell>
+              <TableCell>
+                {p.empleado.nombres} {p.empleado.apellidos}
+              </TableCell>
 
-              <TableCell>{p.tipoRelacion}</TableCell>
+              <TableCell>
+                {relacionLabel[p.tipoRelacion] ?? p.tipoRelacion}
+              </TableCell>
 
               <TableCell>{p.edad}</TableCell>
 
@@ -283,7 +306,7 @@ export default function ParientesPage() {
           {parientesVisiblesEnPagina.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={6}
                 className="py-10 text-center text-muted-foreground text-sm"
               >
                 {searchTerm.trim()

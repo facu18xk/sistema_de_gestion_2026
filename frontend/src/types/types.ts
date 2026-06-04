@@ -852,6 +852,9 @@ export interface Pariente {
     tipoRelacion: string
     edad: number
     fechaNacimiento: string
+    nombre?: string
+    apellido?: string
+    ci?: string
 
     empleado: {
         idEmpleado: number
@@ -865,6 +868,9 @@ export interface ParienteSaveDTO {
     tipoRelacion: string
     edad: number
     fechaNacimiento: string
+    nombre: string
+    apellido: string
+    ci: string
 }
 
 export interface ParienteFormState {
@@ -872,6 +878,162 @@ export interface ParienteFormState {
     tipoRelacion: string
     edad: string
     fechaNacimiento: string
+    nombre: string
+    apellido: string
+    ci: string
+}
+
+export interface Cargo {
+    idCargo: number
+    nombre: string
+    descripcion: string | null
+    activo: boolean
+}
+
+export type CargoSaveDTO = Omit<Cargo, "idCargo">
+
+export interface EmpleadoCargo {
+    idEmpleadoCargo: number
+    idEmpleado: number
+    idCargo: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+    empleado?: string | Empleado
+    cargo?: string | Cargo
+}
+
+export interface EmpleadoCargoSaveDTO {
+    idEmpleado: number
+    idCargo: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+}
+
+export type TipoConceptoSalario = "Ingreso" | "Egreso"
+
+export interface ConceptoSalario {
+    idConceptoSalario: number
+    codigo: string
+    descripcion: string
+    tipo: TipoConceptoSalario | string
+    deducibleIps: boolean
+    esSalarioBase: boolean
+    esIps: boolean
+    esBonificacionFamiliar: boolean
+    activo: boolean
+}
+
+export type ConceptoSalarioSaveDTO = Omit<ConceptoSalario, "idConceptoSalario">
+
+export interface ParametroSalario {
+    idParametroSalario: number
+    fechaDesde: string
+    fechaHasta: string | null
+    salarioMinimo: number
+    porcentajeIpsEmpleado: number
+    porcentajeBonificacionFamiliar: number
+    activo: boolean
+}
+
+export type ParametroSalarioSaveDTO = Omit<ParametroSalario, "idParametroSalario">
+
+export interface EmpleadoConceptoMensual {
+    idEmpleadoConceptoMensual: number
+    idEmpleado: number
+    idConceptoSalario: number
+    monto: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+    empleado?: string | Empleado
+    conceptoSalario?: string | ConceptoSalario
+}
+
+export interface EmpleadoConceptoMensualSaveDTO {
+    idEmpleado: number
+    idConceptoSalario: number
+    monto: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+}
+
+export type EstadoProcesoPagoSalario = "Abierto" | "Verificado" | "Cerrado"
+
+export interface ProcesoPagoSalario {
+    idProcesoPagoSalario: number
+    periodoAnho: number
+    periodoMes: number
+    fechaPago: string
+    estado: EstadoProcesoPagoSalario | string
+    idAsiento: number | null
+    totalIngresos: number
+    totalEgresos: number
+    totalNeto: number
+    createdAt?: string
+    cerradoAt?: string | null
+}
+
+export interface ProcesoPagoSalarioSaveDTO {
+    periodoAnho: number
+    periodoMes: number
+    fechaPago: string
+}
+
+export interface PagoSalarioDetalle {
+    idPagoSalarioDetalle: number
+    idProcesoPagoSalario: number
+    idEmpleado: number
+    empleado: string
+    idConceptoSalario: number
+    conceptoSalario: string
+    tipo: TipoConceptoSalario | string
+    monto: number
+    deducibleIps: boolean
+    esAutomatico: boolean
+    observacion: string | null
+}
+
+export interface PagoSalarioDetalleSaveDTO {
+    idEmpleado: number
+    idConceptoSalario: number
+    monto: number
+    observacion: string | null
+}
+
+export interface CerrarProcesoPagoSalarioDTO {
+    idModulo: number
+    idCuentaGastoSalarios: number
+    idCuentaPago: number
+    idCuentaIpsPagar?: number | null
+    idCuentaOtrosEgresosPagar?: number | null
+    descripcionAsiento: string
+}
+
+export interface ReciboSalarioItem {
+    conceptoSalario?: string
+    concepto?: string
+    descripcion?: string
+    monto: number
+}
+
+export interface ReciboSalario {
+    copia: "Original" | "Duplicado" | string
+    idProcesoPagoSalario: number
+    idEmpleado: number
+    empleado: string
+    ci: string
+    ruc: string
+    periodoAnho: number
+    periodoMes: number
+    fechaPago: string
+    ingresos: ReciboSalarioItem[]
+    egresos: ReciboSalarioItem[]
+    totalIngresos: number
+    totalEgresos: number
+    netoPagar: number
 }
 
 export interface CotizacionDTO {

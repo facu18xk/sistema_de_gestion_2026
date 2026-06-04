@@ -111,7 +111,6 @@ export default function EmpleadosPage() {
   };
 
   const handleEditar = (empleado: Empleado) => {
-    console.log(empleado)
     setEmpleadoAEditar(empleado);
     setIsSheetOpen(true);
   };

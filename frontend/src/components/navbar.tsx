@@ -50,7 +50,19 @@ const modulos = [
     ],
   },
   { title: "Stock", items: ["Productos", "Servicios", "Depósitos", "Movimientos"] },
-  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
+  {
+    title: "RRHH",
+    items: [
+      "Empleados",
+      "Parientes",
+      "Cargos",
+      "Historial de cargos",
+      "Conceptos salariales",
+      "Parámetros salariales",
+      "Conceptos mensuales",
+      "Nómina",
+    ],
+  },
   {
     title: "Contabilidad",
     items: [
@@ -79,6 +91,12 @@ const routeByItem: Record<string, string> = {
   Servicios: "/stock/servicios",
   Empleados: "/personas/empleados",
   Parientes: "/personas/parientes",
+  Cargos: "/personas/cargos",
+  "Historial de cargos": "/personas/empleados-cargos",
+  "Conceptos salariales": "/personas/conceptos-salarios",
+  "Parámetros salariales": "/personas/parametros-salarios",
+  "Conceptos mensuales": "/personas/conceptos-mensuales",
+  Nómina: "/personas/nomina",
   "Proceso Contable": "/contabilidad/proceso-contable",
   "Periodo Contable": "/contabilidad/periodo-contable",
   Asientos: "/contabilidad/asientos",
@@ -110,11 +128,15 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUserName(`${user.firstName} ${user.lastName}`);
-    }
+    const timeoutId = window.setTimeout(() => {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        setUserName(`${user.firstName} ${user.lastName}`);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const handleLogout = () => {
