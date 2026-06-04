@@ -32,6 +32,16 @@ interface MovimientoBancarioFormProps {
   onCancel: () => void;
 }
 
+const ID_ESTADO_PENDIENTE = 1;
+const DEFAULT_ID_ESTADO = ID_ESTADO_PENDIENTE.toString();
+
+const parseIdEstado = (value: string) => {
+  const idEstado = Number(value);
+  return Number.isFinite(idEstado) && idEstado > 0
+    ? idEstado
+    : ID_ESTADO_PENDIENTE;
+};
+
 export function MovimientoBancarioForm({
   movimientoEditado,
   cuentas,
@@ -44,7 +54,7 @@ export function MovimientoBancarioForm({
   const [formData, setFormData] = useState({
     idCuentaBancaria: "",
     idTipoMovimientoBancario: "",
-    idEstado: "",
+    idEstado: DEFAULT_ID_ESTADO,
     fecha: new Date().toISOString().substring(0, 10),
     monto: 0,
     concepto: "",
@@ -57,7 +67,9 @@ export function MovimientoBancarioForm({
         idCuentaBancaria: (movimientoEditado.idCuentaBancaria ?? "").toString(),
         idTipoMovimientoBancario:
           (movimientoEditado.idTipoMovimientoBancario ?? "").toString(),
-        idEstado: (movimientoEditado.idEstado ?? "").toString(),
+        idEstado: movimientoEditado.idEstado
+          ? movimientoEditado.idEstado.toString()
+          : DEFAULT_ID_ESTADO,
         fecha: toInputDate(movimientoEditado.fecha),
         monto: movimientoEditado.monto ?? 0,
         concepto: movimientoEditado.concepto ?? "",
@@ -72,7 +84,7 @@ export function MovimientoBancarioForm({
     const payload: MovimientoBancarioSaveDTO = {
       idCuentaBancaria: Number(formData.idCuentaBancaria),
       idTipoMovimientoBancario: Number(formData.idTipoMovimientoBancario),
-      idEstado: Number(formData.idEstado),
+      idEstado: parseIdEstado(formData.idEstado),
       idOrdenMedioPagoCompra: movimientoEditado?.idOrdenMedioPagoCompra ?? null,
       idChequeEmitido: movimientoEditado?.idChequeEmitido ?? null,
       fecha: formData.fecha,

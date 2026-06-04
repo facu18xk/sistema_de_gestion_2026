@@ -138,6 +138,17 @@ export default function MovimientosBancariosPage() {
   const monedaPorCuenta = (idCuenta: number) =>
     cuentas.find((c) => c.idCuentaBancaria === idCuenta)?.moneda ?? "PYG";
 
+  const getEstadoLabel = (estado?: string | null) =>
+    estado?.trim() || "Sin estado";
+
+  const getEstadoBadgeVariant = (estado?: string | null) => {
+    const estadoLabel = estado?.trim();
+
+    if (estadoLabel === "Aprobado") return "activo";
+    if (estadoLabel === "Rechazado") return "destructive";
+    return "secondary";
+  };
+
   const handleCrearNuevo = () => {
     setMovimientoAEditar(null);
     setIsSheetOpen(true);
@@ -176,7 +187,7 @@ export default function MovimientosBancariosPage() {
       );
       notify.success("Eliminado", "Movimiento bancario eliminado.");
       await cargarPagina();
-    } catch (error) {
+    } catch {
       notify.error("Error", "No se pudo eliminar el movimiento.");
     } finally {
       setIsAlertOpen(false);
@@ -198,7 +209,7 @@ export default function MovimientosBancariosPage() {
       }
       setIsSheetOpen(false);
       await cargarPagina();
-    } catch (error) {
+    } catch {
       notify.error("Error", "No se pudo guardar el movimiento.");
     }
   };
@@ -319,16 +330,11 @@ export default function MovimientosBancariosPage() {
                 </TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      m.estado === "Aprobado"
-                        ? "activo"
-                        : m.estado === "Rechazado"
-                          ? "destructive"
-                          : "secondary"
-                    }
+                    variant={getEstadoBadgeVariant(m.estado)}
                   >
-                    {m.estado}
-                  </Badge></TableCell>
+                    {getEstadoLabel(m.estado)}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
                     variant="ghost"
