@@ -477,6 +477,14 @@ export interface ProductoNotaDevolucionDetalleDTO {
     descripcion: string;
 }
 
+export interface NotaDevolucionCompraDetalleSaveDTO {
+    idNotaDevolucionCompra: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
 export interface NotasDevolucionesComprasDetalleDTO {
     idNotaDevolucionCompraDetalle: number;
     idNotaDevolucionCompra: number;

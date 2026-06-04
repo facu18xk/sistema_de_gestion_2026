@@ -1,6 +1,6 @@
 import api from "./api"
 import { API_CONFIG } from "../config/api"
-import { NotaDevolucionCompraDTO, NotaDevolucionCompraSaveDTO } from "@/types/types"
+import { NotaDevolucionCompraDTO, NotaDevolucionCompraSaveDTO, NotaDevolucionCompraDetalleSaveDTO, NotasDevolucionesComprasDetalleDTO } from "@/types/types"
 
 export const notasDevolucionesCompraAPI = {
   getAll: async (page: number, pageSize: number) => {
@@ -20,12 +20,12 @@ export const notasDevolucionesCompraAPI = {
     return response.data
   },
 
-  createDetalle: async (data: any): Promise<any> => {
+  createDetalle: async (data: NotaDevolucionCompraDetalleSaveDTO): Promise<NotasDevolucionesComprasDetalleDTO> => {
     const response = await api.post(API_CONFIG.ENDPOINTS.NOTAS_DEVOLUCION_COMPRA_DETALLES, data)
     return response.data
   },
 
-  update: async (id: number | string, data: any) => {
+  update: async (id: number | string, data: Partial<NotaDevolucionCompraSaveDTO>) => {
     const response = await api.put(`${API_CONFIG.ENDPOINTS.NOTAS_DEVOLUCION_COMPRA}/${id}`, data)
     return response.data
   },
