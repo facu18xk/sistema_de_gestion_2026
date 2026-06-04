@@ -11,6 +11,7 @@ import { proveedoresAPI } from "@/services/proveedoresAPI";
 import { FilterBar, FilterField } from "@/components/shared/filter-bar";
 import { CotizacionDTO, Proveedor } from "@/types/types";
 import { notify } from "@/lib/notifications";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -34,6 +35,8 @@ export default function CotizacionesPage() {
   const [cotizaciones, setCotizaciones] = useState<CotizacionDTO[]>([]);
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [cotizacionAEliminar, setCotizacionAEliminar] = useState<CotizacionDTO | null>(null);
 
   const [pagina, setPagina] = useState(() => {
     if (typeof window !== "undefined") {
@@ -187,17 +190,19 @@ export default function CotizacionesPage() {
     }
   };
 
-  const handleEliminar = async (id: number) => {
-    if (!window.confirm(`¿Está seguro de eliminar de forma permanente la cotización ${formatCotizacionNro(id)}?`)) {
-      return;
-    }
-    try {
-      await cotizacionesAPI.delete(id);
-      notify.success("Eliminado", "La cotización fue removida exitosamente.");
-      cargarPagina(pagina);
-    } catch (error) {
-      console.error("Error al eliminar cotización:", error);
-      notify.error("Error", "No se pudo eliminar el registro por dependencias de integridad referencial.");
+  const handleEliminar = async () => {
+    if (cotizacionAEliminar) {
+      try {
+        await cotizacionesAPI.delete(cotizacionAEliminar.idPedidoCotizacion)
+        notify.success("Eliminado", "La cotización fue removida exitosamente.")
+        await cargarPagina(1)
+      } catch (error) {
+        console.error(error)
+        notify.error("Error de integridad", "No se puede eliminar la cotización por dependencias jerárquicas.")
+      } finally {
+        setIsAlertOpen(false)
+        setCotizacionAEliminar(null)
+      }
     }
   };
 
@@ -297,7 +302,24 @@ export default function CotizacionesPage() {
             </Button>
           )}
         </div>
-
+        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Está completamente seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Se eliminará la orden de compra <span className="font-bold text-foreground">
+                  "{cotizacionAEliminar ? formatCotizacionNro(cotizacionAEliminar.idPedidoCotizacion) : ""}"
+                </span>.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleEliminar} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Eliminar Registro
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -335,13 +357,13 @@ export default function CotizacionesPage() {
 
                     return (
                       <TableRow key={c.idPedidoCotizacion} className="hover:bg-muted/40 transition-colors">
-                        <TableCell className="font-mono text-xs font-bold text-primary">
+                        <TableCell className="font-mono text-xs text-primary">
                           {formatCotizacionNro(c.idPedidoCotizacion)}
                         </TableCell>
                         <TableCell className="text-xs font-mono">
                           {c.idPedidoCompra ? (
                             <Link href={`/compras/pedidos/${c.idPedidoCompra}/editar?view=true`}>
-                              <span className="text-primary hover:underline font-bold bg-muted px-1.5 py-0.5 rounded cursor-pointer transition-all">
+                              <span className="text-blue-600 dark:text-blue-400 font-bold hover:underline bg-blue-50/50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/30 text-left cursor-pointer">
                                 {formatPedidoNro(c.idPedidoCompra)}
                               </span>
                             </Link>
@@ -364,7 +386,7 @@ export default function CotizacionesPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          <div className="flex justify-center gap-1">
+                          <div className="flex items-center justify-end gap-1">
                             {mostrarBotonOrden && (
                               <Link href={`/compras/ordenes?idPedidoCotizacion=${c.idPedidoCotizacion}`}>
                                 <Button
@@ -396,7 +418,10 @@ export default function CotizacionesPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                  onClick={() => handleEliminar(c.idPedidoCotizacion)}
+                                  onClick={() => {
+                                    setCotizacionAEliminar(c)
+                                    setIsAlertOpen(true)
+                                  }}
                                   title="Eliminar"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />

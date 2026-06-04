@@ -405,8 +405,8 @@ function FacturaDetalleContent() {
                     </h5>
 
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        {isViewMode && factura?.estado?.toUpperCase() !== "PAGADO" && factura?.estado?.toUpperCase() !== "ANULADO" && (
-                            <Button variant="default" size="sm" onClick={handleIrAPagar} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+                        {isViewMode && factura?.estado?.toUpperCase() && factura?.estado?.toUpperCase() !== "ANULADO" && (
+                            <Button variant="default" size="sm" onClick={handleIrAPagar} className="">
                                 <CreditCard className="h-4 w-4" /> Pagar Factura
                             </Button>
                         )}
@@ -494,7 +494,7 @@ function FacturaDetalleContent() {
                             {isViewMode ? (
                                 <span className={cn(
                                     "inline-flex items-center justify-center h-9 px-3 rounded-md text-xs font-bold w-full border",
-                                    factura?.estado?.toUpperCase() === 'PAGADO' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                    factura?.estado?.toUpperCase() === 'APROBADO' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                     factura?.estado?.toUpperCase() === 'ANULADO' && 'bg-destructive/10 text-destructive border-destructive/20',
                                     factura?.estado?.toUpperCase() === 'PENDIENTE' && 'bg-amber-50 text-amber-700 border-amber-200'
                                 )}>

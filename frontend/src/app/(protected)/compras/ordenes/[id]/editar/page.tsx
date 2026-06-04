@@ -301,11 +301,11 @@ export default function EditarOrdenPage() {
 
             await Promise.all(promesasDetalles)
 
-            notify.success("Éxito", "Orden de compra guardada sin duplicados.")
+            notify.success("Éxito", "Modificacion de orden de compra guardada.")
             router.push("/compras/ordenes")
         } catch (error: any) {
             console.error(error)
-            notify.error("Error al guardar", "Fallo de consistencia con el servidor.")
+            notify.error("Error", "No se pudieron guardar los cambios en la orden")
         } finally {
             setIsProcesando(false)
         }

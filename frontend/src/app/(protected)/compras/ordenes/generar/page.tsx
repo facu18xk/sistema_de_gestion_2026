@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, CheckCircle2, Trash2, ShoppingCart, Search, SlidersHorizontal, Sparkles } from "lucide-react"
 import { pedidosAPI } from "@/services/pedidosAPI"
 import { cotizacionesAPI } from "@/services/cotizacionesAPI"
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
@@ -17,6 +16,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FieldWrapper } from "@/components/FieldWrapper"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OrdenCompraSaveDTO, OrdenCompraDetalleSaveDTO } from "@/types/types"
+import { Check, ChevronsUpDown, Loader2, CheckCircle2, Trash2, ShoppingCart, Search, SlidersHorizontal, Sparkles } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 interface ItemPropuesto {
     idProducto: number
@@ -53,9 +56,10 @@ export default function GenerarOrdenesPage() {
     const [isLoadingData, setIsLoadingData] = useState(false)
     const [isProcesando, setIsProcesando] = useState(false)
     const [procesandoId, setProcesandoId] = useState<number | null>(null)
-
     // Estado maestro de órdenes en preparación (mutables por el usuario)
     const [ordenesSugeridas, setOrdenesSugeridas] = useState<SugerenciaOrden[]>([])
+    const [isComboboxCotizOpen, setIsComboboxCotizOpen] = useState(false)
+    const [isComboboxPedidoOpen, setIsComboboxPedidoOpen] = useState(false)
 
     // Cargar pedidos iniciales válidos
     useEffect(() => {
@@ -378,9 +382,9 @@ export default function GenerarOrdenesPage() {
                 ]}
             />
 
-            <main className="container mx-auto p-4 max-w-5xl">
+            <main className="container mx-auto">
                 {/* Título y botón alineados horizontalmente, pegados al nivel del breadcrumb */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-2">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Generar Órdenes</h2>
                     </div>
@@ -395,7 +399,7 @@ export default function GenerarOrdenesPage() {
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Card className="md:col-span-2">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -404,39 +408,83 @@ export default function GenerarOrdenesPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-col sm:flex-row items-end gap-4">
-                                {/* Input de Filtro - Ocupa el 40% */}
-                                <div className="space-y-1.5 w-full sm:basis-2/5">
-                                    <label className="text-[11px] font-medium text-muted-foreground">Buscar Nro Pedido</label>
-                                    <div className="relative">
-                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Nro de pedido..."
-                                            className="pl-8 h-9 text-xs"
-                                            value={filtroBusquedaPedido}
-                                            onChange={(e) => setFiltroBusquedaPedido(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
+                            <div className="w-full space-y-1.5">
+                                <label className="text-[11px] font-medium text-muted-foreground">
+                                    Seleccionar Pedido de Compra
+                                </label>
 
-                                {/* Select de Pedido - Ocupa el 60% */}
-                                <div className="w-full sm:basis-3/5">
-                                    <FieldWrapper label="Nro. Pedido" id="pedidoSelect">
-                                        <select
-                                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs focus:ring-2 focus:ring-primary cursor-pointer"
-                                            value={idPedidoSeleccionado}
-                                            onChange={(e) => handleCambioPedido(e.target.value)}
+                                <Popover open={isComboboxPedidoOpen} onOpenChange={setIsComboboxPedidoOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={isComboboxPedidoOpen}
                                             disabled={isProcesando}
+                                            className="w-full h-9 text-xs justify-between font-normal bg-background shadow-sm hover:bg-accent/50"
                                         >
-                                            <option value="">Seleccione un pedido...</option>
-                                            {pedidosFiltrados.map((p) => (
-                                                <option key={p.idPedidoCompra} value={String(p.idPedidoCompra)}>
-                                                    Pedido Nro. {p.idPedidoCompra}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </FieldWrapper>
-                                </div>
+                                            {idPedidoSeleccionado ? (
+                                                `Pedido de Compra Nro. ${idPedidoSeleccionado}`
+                                            ) : (
+                                                <span className="text-muted-foreground">Buscar número de pedido...</span>
+                                            )}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+
+                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                        <Command className="text-xs">
+                                            <CommandInput
+                                                placeholder="Escriba el número de pedido..."
+                                                className="h-9 text-xs"
+                                            />
+                                            <CommandList className="max-h-[200px]">
+                                                <CommandEmpty className="py-3 text-center text-xs text-muted-foreground">
+                                                    No se encontró el pedido solicitado.
+                                                </CommandEmpty>
+                                                <CommandGroup heading="Pedidos Internos Abiertos">
+                                                    {pedidos.map((p) => {
+                                                        const idPedidoStr = String(p.idPedidoCompra);
+
+                                                        // Si tu objeto pedido tiene fecha o sector, podés concatenarlo acá para enriquecer la búsqueda
+                                                        const detalleExtra = p.fecha ? ` - ${p.fecha}` : "";
+                                                        const busquedaConcatenada = `pedido nro ${idPedidoStr} ${detalleExtra}`.toLowerCase();
+
+                                                        return (
+                                                            <CommandItem
+                                                                key={p.idPedidoCompra}
+                                                                value={busquedaConcatenada}
+                                                                onSelect={() => {
+                                                                    handleCambioPedido(idPedidoStr)
+                                                                    setIsComboboxPedidoOpen(false)
+                                                                }}
+                                                                className="text-xs flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-accent"
+                                                            >
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <span className="font-semibold text-foreground">
+                                                                        Pedido Nro. {p.idPedidoCompra}
+                                                                    </span>
+                                                                    {p.fecha && (
+                                                                        <span className="text-[10px] text-muted-foreground">
+                                                                            Fecha Emisión: {p.fecha}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <Check
+                                                                    className={cn(
+                                                                        "h-4 w-4 text-primary transition-opacity",
+                                                                        String(idPedidoSeleccionado) === idPedidoStr
+                                                                            ? "opacity-100"
+                                                                            : "opacity-0"
+                                                                    )}
+                                                                />
+                                                            </CommandItem>
+                                                        )
+                                                    })}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                         </CardContent>
                     </Card>
@@ -466,29 +514,88 @@ export default function GenerarOrdenesPage() {
                             </Tabs>
 
                             {modoGeneracion === "manual" && (
-                                <FieldWrapper label="Cotización Adjudicada" id="cotizacionManualSelect">
-                                    <select
-                                        className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs focus:ring-2 focus:ring-primary disabled:opacity-60 cursor-pointer"
-                                        value={idCotizacionManual}
-                                        onChange={(e) => handleSeleccionarCotizacionManual(e.target.value)}
-                                        disabled={!idPedidoSeleccionado || isProcesando}
-                                    >
-                                        <option value="">Seleccione una cotización...</option>
-                                        {cotizacionesDisponibles.map((c) => {
-                                            const provNombre = typeof c.proveedor === 'object' ? c.proveedor?.razonSocial : c.proveedor
-                                            return (
-                                                <option key={c.idPedidoCotizacion || c.id} value={String(c.idPedidoCotizacion || c.id)}>
-                                                    Cotiz. #{c.idPedidoCotizacion || c.id} — {provNombre || `Prov. #${c.idProveedor}`}
-                                                </option>
-                                            )
-                                        })}
-                                    </select>
+                                <FieldWrapper label="Cotización / Proveedor Adjudicado" id="cotizacionManualSelect">
+                                    <Popover open={isComboboxCotizOpen} onOpenChange={setIsComboboxCotizOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={isComboboxCotizOpen}
+                                                disabled={!idPedidoSeleccionado || isProcesando}
+                                                className="w-full h-9 text-xs justify-between font-normal bg-background shadow-sm hover:bg-accent/50"
+                                            >
+                                                {idCotizacionManual ? (
+                                                    (() => {
+                                                        const c = cotizacionesDisponibles.find(cot => String(cot.idPedidoCotizacion || cot.id) === String(idCotizacionManual));
+                                                        const provNombre = typeof c?.proveedor === 'object' ? c?.proveedor?.razonSocial : c?.proveedor;
+                                                        return `Cotiz. #${idCotizacionManual} — ${provNombre || `Prov. #${c?.idProveedor}`}`;
+                                                    })()
+                                                ) : (
+                                                    <span className="text-muted-foreground">Buscar cotización o proveedor...</span>
+                                                )}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+
+                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                            <Command className="text-xs">
+                                                <CommandInput
+                                                    placeholder="Escriba Nro. Cotización, RUC o Proveedor..."
+                                                    className="h-9 text-xs"
+                                                />
+                                                <CommandList className="max-h-[200px]">
+                                                    <CommandEmpty className="py-3 text-center text-xs text-muted-foreground">
+                                                        No se encontraron cotizaciones.
+                                                    </CommandEmpty>
+                                                    <CommandGroup heading="Cotizaciones del Pedido">
+                                                        {cotizacionesDisponibles.map((c) => {
+                                                            const idCotiz = String(c.idPedidoCotizacion || c.id);
+                                                            const ruc = c.proveedor?.ruc || "";
+                                                            const razonSocial = typeof c.proveedor === 'object' ? c.proveedor?.razonSocial : (c.proveedor || "");
+
+                                                            // Creamos el string de búsqueda interactiva para Command
+                                                            const busquedaConcatenada = `cotiz nro ${idCotiz} ${razonSocial} ${ruc}`.toLowerCase();
+
+                                                            return (
+                                                                <CommandItem
+                                                                    key={idCotiz}
+                                                                    value={busquedaConcatenada}
+                                                                    onSelect={() => {
+                                                                        handleSeleccionarCotizacionManual(idCotiz)
+                                                                        setIsComboboxCotizOpen(false)
+                                                                    }}
+                                                                    className="text-xs flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-accent"
+                                                                >
+                                                                    <div className="flex flex-col gap-0.5">
+                                                                        <span className="font-semibold text-foreground">
+                                                                            Cotización Nro. {idCotiz}
+                                                                        </span>
+                                                                        <span className="text-[11px] text-muted-foreground">
+                                                                            {razonSocial} {ruc ? `(RUC: ${ruc})` : ""}
+                                                                        </span>
+                                                                    </div>
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "h-4 w-4 text-primary transition-opacity",
+                                                                            String(idCotizacionManual) === idCotiz
+                                                                                ? "opacity-100"
+                                                                                : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                </CommandItem>
+                                                            )
+                                                        })}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                 </FieldWrapper>
                             )}
 
                             {modoGeneracion === "automatico" && idPedidoSeleccionado && (
                                 <p className="text-[11px] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-2 rounded">
-                                    ✨ Menor Costo: Distribución automática por precio neto mínimo por ítem.
+                                    Menor Costo: Distribución automática por precio neto mínimo por ítem.
                                 </p>
                             )}
                         </CardContent>

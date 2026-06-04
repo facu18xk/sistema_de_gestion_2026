@@ -11,6 +11,7 @@ import { proveedoresAPI } from "@/services/proveedoresAPI"
 import { FilterBar, FilterField } from "@/components/shared/filter-bar"
 import { FacturaCompra, Proveedor } from "@/types/types"
 import { notify } from "@/lib/notifications"
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog"
 import {
     Table,
     TableBody,
@@ -63,6 +64,8 @@ export default function FacturasPage() {
     })
 
     const [totalPaginas, setTotalPaginas] = useState(1)
+    const [isAlertOpen, setIsAlertOpen] = useState(false)
+    const [facturaAEliminar, setFacturaAEliminar] = useState<FacturaCompra | null>(null)
 
     // Cargar parámetros de URL si viene redirigido desde Órdenes de Compra
     useEffect(() => {
@@ -136,8 +139,8 @@ export default function FacturasPage() {
                     if (filters.estado === "1") {
                         return idStr === "1" || estLower.includes("pend")
                     }
-                    if (filters.estado === "12") {
-                        return idStr === "12" || estLower.includes("pag")
+                    if (filters.estado === "2") {
+                        return idStr === "2" || estLower.includes("aprob")
                     }
                     if (filters.estado === "8") {
                         return idStr === "8" || estLower.includes("anul")
@@ -192,21 +195,18 @@ export default function FacturasPage() {
         }
     }
 
-    const handleEliminar = async (id: number, nroComprobante: string) => {
-        const confirmacion = window.confirm(
-            `¿Está seguro de eliminar de forma permanente la factura ${nroComprobante}?\n\n` +
-            `Nota: Si esta era la única factura asociada a la orden de compra origen, esta volverá automáticamente a estado "Pendiente" y se recalcularán las cantidades entregadas en el sistema.`
-        )
-
-        if (!confirmacion) return
+    const handleEliminar = async () => {
 
         try {
-            await FacturasCompraAPI.delete(id)
+            await FacturasCompraAPI.delete(facturaAEliminar?.idFacturaCompra || 0)
             notify.success("Eliminado", "La factura fue removida y la orden origen fue actualizada correctamente.")
             cargarPagina(pagina)
         } catch (error) {
             console.error("Error al eliminar factura:", error)
             notify.error("Error", "No se pudo eliminar el registro debido a dependencias con pagos o notas de crédito.")
+        } finally {
+            setIsAlertOpen(false)
+            setFacturaAEliminar(null)
         }
     }
 
@@ -241,7 +241,7 @@ export default function FacturasPage() {
             placeholder: "Todos los estados",
             options: [
                 { label: "Pendiente", value: "1" },
-                { label: "Pagado", value: "12" },
+                { label: "Aprobado", value: "2" },
                 { label: "Anulado", value: "8" },
             ],
         },
@@ -256,7 +256,7 @@ export default function FacturasPage() {
         if (idStr === "1" || est.includes("pend")) {
             return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/50"
         }
-        if (idStr === "12" || est.includes("pag")) {
+        if (idStr === "2" || est.includes("aprob")) {
             return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50"
         }
         if (idStr === "8" || est.includes("anul")) {
@@ -268,7 +268,7 @@ export default function FacturasPage() {
     const getEstadoLiteral = (estado: string, idEstado?: number) => {
         if (estado) return estado
         if (idEstado === 1) return "Pendiente"
-        if (idEstado === 12) return "Pagado"
+        if (idEstado === 2) return "Aprobado"
         if (idEstado === 8) return "Anulado"
         return `Estado ${idEstado}`
     }
@@ -306,7 +306,24 @@ export default function FacturasPage() {
                         </Button>
                     )}
                 </div>
-
+                <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Está completamente seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Se eliminará la factura de compra con comprobante Nro<span className="font-bold text-foreground">
+                                    "{facturaAEliminar ? (facturaAEliminar.nroComprobante) : ""}"
+                                </span>.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleEliminar} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Eliminar Registro
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 space-y-4">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -356,12 +373,11 @@ export default function FacturasPage() {
                                                         {f.timbrado || "—"}
                                                     </TableCell>
 
-                                                    <TableCell className="text-center">
+                                                    <TableCell className="text-xs font-mono">
                                                         {f.idOrdenCompra ? (
                                                             <Link href={`/compras/ordenes/${f.idOrdenCompra}/editar?view=true`}>
-                                                                <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-bold text-primary ring-1 ring-inset ring-primary/10 hover:bg-primary/10 transition cursor-pointer">
+                                                                <span className="text-blue-600 dark:text-blue-400 font-bold hover:underline bg-blue-50/50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/30 text-left cursor-pointer">
                                                                     {formatOrdenNro(f.idOrdenCompra)}
-                                                                    <ArrowUpRight className="h-3 w-3 opacity-70" />
                                                                 </span>
                                                             </Link>
                                                         ) : (
@@ -386,7 +402,7 @@ export default function FacturasPage() {
                                                     </TableCell>
 
                                                     <TableCell className="text-center">
-                                                        <div className="flex justify-center gap-1">
+                                                        <div className="flex items-center justify-end  gap-1">
                                                             <Link href={`/compras/facturas/${f.idFacturaCompra}/editar?view=true`}>
                                                                 <Button
                                                                     variant="ghost"
@@ -413,7 +429,10 @@ export default function FacturasPage() {
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="icon"
-                                                                        onClick={() => handleEliminar(f.idFacturaCompra, f.nroComprobante)}
+                                                                        onClick={() => {
+                                                                            setFacturaAEliminar(f)
+                                                                            setIsAlertOpen(true)
+                                                                        }}
                                                                         className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                                                                         title="Eliminar Factura"
                                                                     >
@@ -431,7 +450,7 @@ export default function FacturasPage() {
                             </Table>
                         </div>
 
-                        {/* Bloque de Paginar Añadido */}
+                        {/* Bloque de Paginar */}
                         {totalPaginas > 1 && (
                             <div className="flex items-center justify-between border rounded-lg bg-card p-2 shadow-xs w-full">
                                 <div className="text-xs text-muted-foreground pl-1">

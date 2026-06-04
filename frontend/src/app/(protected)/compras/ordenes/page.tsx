@@ -305,9 +305,7 @@ export default function OrdenesPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Está completamente seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción revocará la orden de compra de forma permanente en el servidor.
-                            No podrá deshacer los cambios sobre el registro{" "}
-                            <span className="font-bold text-foreground">
+                            Se eliminará la orden de compra <span className="font-bold text-foreground">
                                 "{ordenAEliminar ? formatearNumeroOrden(ordenAEliminar.idOrdenCompra) : ""}"
                             </span>.
                         </AlertDialogDescription>
@@ -354,7 +352,7 @@ export default function OrdenesPage() {
                                 <TableCell className="text-xs text-muted-foreground font-medium">
                                     {o.fecha ? o.fecha.substring(0, 10) : "—"}
                                 </TableCell>
-                                <TableCell className="font-mono text-xs font-bold text-primary">
+                                <TableCell className="font-mono text-xs text-primary">
                                     {formatearNumeroOrden(o.idOrdenCompra)}
                                 </TableCell>
                                 <TableCell className="text-xs font-mono">
