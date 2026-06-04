@@ -469,3 +469,27 @@ export interface NotaCreditoFormState {
     fechaEmision: string;
     items: NotaCreditoItemForm[];
 }
+
+export interface NotaDevolucionCompraDTO {
+    idNotaDevolucionCompra: number;
+    idFacturaCompra: number;  
+    idProveedor: number;
+    proveedor?: string;
+    fecha: string;
+    motivo: string;
+    estado: string;
+    detalles?: any[];
+}
+
+export interface NotaDevolucionCompraSaveDTO {
+    idFacturaCompra: number;
+    idEstado: number;
+    fecha: string;
+    motivo: string;
+    detalles: {
+        idProducto: number;
+        cantidad: number;
+        precioUnitario: number;
+        subtotal: number;
+    }[];
+}
