@@ -17,8 +17,6 @@ public partial class OrdenesVenta
 
     public string Descripcion { get; set; } = null!;
 
-    public virtual ICollection<FacturasVenta> FacturasVenta { get; set; } = new List<FacturasVenta>();
-
     public virtual Cliente IdClienteNavigation { get; set; } = null!;
 
     public virtual Estado IdEstadoNavigation { get; set; } = null!;

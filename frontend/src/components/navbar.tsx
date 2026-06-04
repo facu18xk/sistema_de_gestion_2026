@@ -33,7 +33,7 @@ const modulos = [
   },
   {
     title: "Compras",
-    items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Pagos"],
+    items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Facturas", "Pagos", "Devoluciones", "Notas de Crédito"],
   },
   {
     title: "Banco y Tesorería",
@@ -71,6 +71,10 @@ const routeByItem: Record<string, string> = {
   Proveedores: "/compras/proveedores",
   Pedidos: "/compras/pedidos",
   Cotizaciones: "/compras/cotizaciones",
+  Órdenes: "/compras/ordenes",
+  Facturas: "/compras/facturas",
+  Pagos: "/compras/pagos",
+  "Notas de Crédito": "/compras/notas-de-credito",
   Productos: "/stock/productos",
   Servicios: "/stock/servicios",
   Empleados: "/personas/empleados",
@@ -90,6 +94,16 @@ const routeByItem: Record<string, string> = {
   "Órdenes de pago": "/banco-tesoreria/ordenes-pago",
   Reportes: "/banco-tesoreria/reportes",
 };
+
+const moduleRouteByItem: Record<string, Record<string, string>> = {
+  Compras: {
+    Devoluciones: "/compras/notas-de-devolucion",
+  },
+};
+
+function getRoute(moduloTitle: string, item: string) {
+  return moduleRouteByItem[moduloTitle]?.[item] ?? routeByItem[item] ?? "#";
+}
 
 export default function Navbar() {
   const [userName, setUserName] = useState("Usuario");
@@ -151,7 +165,7 @@ export default function Navbar() {
                         <li key={item}>
                           <NavigationMenuLink asChild>
                             <Link
-                              href={routeByItem[item] ?? "#"}
+                              href={getRoute(modulo.title, item)}
                               className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
                               <div className="text-sm font-medium leading-none">

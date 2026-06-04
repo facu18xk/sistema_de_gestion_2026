@@ -35,13 +35,13 @@ public class PresupuestosDetalleService : CrudServiceBase<PresupuestosDetalle, i
 
     public override async Task<PresupuestosDetalle> CreateAsync(PresupuestosDetalle entity)
     {
-        entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
+        await ApplyBackendCalculatedAmountsAsync(entity);
         return await base.CreateAsync(entity);
     }
 
     public override async Task<PresupuestosDetalle> UpdateAsync(int id, PresupuestosDetalle entity)
     {
-        entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
+        await ApplyBackendCalculatedAmountsAsync(entity);
         return await base.UpdateAsync(id, entity);
     }
 
@@ -60,5 +60,30 @@ public class PresupuestosDetalleService : CrudServiceBase<PresupuestosDetalle, i
         return _context.PresupuestosDetalles
             .Include(entity => entity.IdPresupuestoNavigation)
             .Include(entity => entity.IdProductoNavigation);
+    }
+
+    private async Task ApplyBackendCalculatedAmountsAsync(PresupuestosDetalle entity)
+    {
+        if (entity.Cantidad <= 0)
+        {
+            throw new InvalidOperationException("La cantidad debe ser mayor a cero.");
+        }
+
+        var porcentajeIva = await _context.Productos
+            .Where(producto => producto.IdProducto == entity.IdProducto)
+            .Select(producto => (decimal?)producto.PorcentajeIva)
+            .FirstOrDefaultAsync();
+
+        if (porcentajeIva is null)
+        {
+            throw new InvalidOperationException($"No existe el producto {entity.IdProducto}.");
+        }
+
+        entity.PrecioUnitario = await _salesPriceResolver.ResolvePrecioUnitarioAsync(entity.IdProducto, entity.PrecioUnitario);
+        entity.Iva = porcentajeIva.Value;
+
+        var totalBruto = Math.Round(entity.Cantidad * entity.PrecioUnitario, 2, MidpointRounding.AwayFromZero);
+        var totalIva = IvaCalculator.CalculateTotal(totalBruto, entity.Iva);
+        entity.Subtotal = totalBruto + totalIva;
     }
 }

@@ -1,4 +1,5 @@
 using api.Dtos.FacturasVentas;
+using api.Dtos.Common;
 using api.Dtos.Ventas;
 using api.Models;
 using api.Services;
@@ -18,6 +19,39 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         _ventasCompletasService = ventasCompletasService;
     }
 
+    [HttpPost]
+    public async Task<ActionResult<FacturasVentaDto>> Create(FacturasVentaCreateDto dto)
+    {
+        FacturasVenta createdEntity;
+        try
+        {
+            createdEntity = await CrudService.CreateAsync(ToEntity(new FacturasVentaUpsertDto
+            {
+                IdPresupuesto = dto.IdPresupuesto,
+                IdCliente = dto.IdCliente,
+                IdEstado = dto.IdEstado,
+                Fecha = dto.Fecha,
+                Descripcion = dto.Descripcion,
+                IdMedioPagoCompra = dto.IdMedioPagoCompra,
+                FechaPago = dto.FechaPago
+            }));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        var responseEntity = await RefreshCreatedEntityAsync(createdEntity);
+
+        return CreatedAtAction(nameof(GetById), new { id = responseEntity.IdFacturaVenta }, ToReadDto(responseEntity));
+    }
+
+    [NonAction]
+    public override Task<ActionResult<FacturasVentaDto>> Create(FacturasVentaUpsertDto dto)
+    {
+        return base.Create(dto);
+    }
+
     [HttpPost("completo")]
     public async Task<ActionResult<FacturasVentaDto>> CreateCompleto(FacturaVentaCompletaCreateDto dto)
     {
@@ -32,17 +66,41 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         }
     }
 
+    [HttpGet("completo")]
+    public async Task<ActionResult<PagedResultDto<FacturaVentaCompletaDto>>> GetAllCompleto([FromQuery] PaginationQueryDto pagination)
+    {
+        var result = await _ventasCompletasService.GetFacturasVentasCompletasAsync(pagination);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}/completo")]
+    public async Task<ActionResult<FacturaVentaCompletaDto>> GetByIdCompleto(int id)
+    {
+        var facturaVenta = await _ventasCompletasService.GetFacturaVentaCompletaAsync(id);
+        if (facturaVenta is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(facturaVenta);
+    }
+
     protected override FacturasVentaDto ToReadDto(FacturasVenta entity)
     {
         return new FacturasVentaDto
         {
             IdFacturaVenta = entity.IdFacturaVenta,
-            IdOrdenVenta = entity.IdOrdenVenta,
-            OrdenVentaDescripcion = entity.IdOrdenVentaNavigation?.Descripcion ?? string.Empty,
+            IdPresupuesto = entity.IdPresupuesto,
+            PresupuestoDescripcion = entity.IdPresupuestoNavigation?.Descripcion ?? string.Empty,
             IdCliente = entity.IdCliente,
             Cliente = FormatCliente(entity.IdClienteNavigation),
             NroComprobante = entity.NroComprobante,
+            IdEstado = entity.IdEstado,
+            Estado = entity.IdEstadoNavigation?.Nombre ?? string.Empty,
             IdTimbrado = entity.IdTimbrado,
+            Timbrado = entity.IdTimbradoNavigation?.NumeroTimbrado ?? string.Empty,
+            TimbradoRuc = entity.IdTimbradoNavigation?.Ruc ?? string.Empty,
             Fecha = entity.Fecha,
             Descripcion = entity.Descripcion,
             IdMedioPagoCompra = entity.IdMedioPagoCompra,
@@ -55,9 +113,10 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
     {
         return new FacturasVenta
         {
-            IdOrdenVenta = dto.IdOrdenVenta,
+            IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
-            NroComprobante = dto.NroComprobante,
+            NroComprobante = dto.NroComprobante ?? string.Empty,
+            IdEstado = dto.IdEstado,
             IdTimbrado = dto.IdTimbrado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,

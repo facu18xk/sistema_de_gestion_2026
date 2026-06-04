@@ -20,7 +20,6 @@ public class AsientoDto
 
 public class AsientoUpsertDto
 {
-    public int NumeroAsiento { get; set; }
     public int? IdModulo { get; set; }
     public DateOnly Fecha { get; set; }
     public string? Descripcion { get; set; }

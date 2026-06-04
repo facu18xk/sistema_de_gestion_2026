@@ -156,7 +156,7 @@ export interface PresupuestoCabecera {
     idCliente: number;
     cliente: string;
     idEstado: number;
-    estado: string;
+    estado?: string;
     fecha: string;
     descripcion: string;
     fechaVencimiento: string;
@@ -1015,7 +1015,7 @@ export interface FacturaCompraSaveDTO {
     timbrado: string;
     fecha: string;
     descripcion?: string;
-    estado: string;
+    estado?: string;
     detalles?: FacturaCompraDetalleSaveDTO[];
 }
 
@@ -1089,11 +1089,14 @@ export interface NotaCreditoCompraDetalleDTO {
 export interface NotaCreditoCompraDTO {
     idNotaCreditoCompra: number;
     idFacturaCompra: number;
+    nroComprobanteFactura?: string;
     idNotaDevolucionCompra?: number;
     timbrado: string;
     motivo: string;
     fechaEmision: string;
     total?: number;
+    idProveedor?: number;
+    proveedor?: string;
     detalles?: NotaCreditoCompraDetalleDTO[];
 }
 
@@ -1103,7 +1106,47 @@ export interface NotaCreditoCompraSaveDTO {
     timbrado: string;
     motivo: string;
     fechaEmision: string;
+    total?: number;
     items: NotaCreditoItemForm[];
+}
+
+export interface ProductoNotaDevolucionDetalleDTO {
+    idProducto: number;
+    descripcion: string;
+}
+
+export interface NotasDevolucionesComprasDetalleDTO {
+    idNotaDevolucionCompraDetalle: number;
+    idNotaDevolucionCompra: number;
+    idProducto: number;
+    cantidad?: number;
+    precioUnitario: number;
+    subtotal: number;
+    producto?: ProductoNotaDevolucionDetalleDTO | null;
+}
+
+export interface NotaDevolucionCompraDTO {
+    idNotaDevolucionCompra: number;
+    idFacturaCompra: number;
+    idProveedor: number;
+    proveedor?: string;
+    fecha: string;
+    motivo: string;
+    estado: string;
+    detalles?: NotasDevolucionesComprasDetalleDTO[];
+}
+
+export interface NotaDevolucionCompraSaveDTO {
+    idFacturaCompra: number;
+    idEstado: number;
+    fecha: string;
+    motivo: string;
+    detalles: {
+        idProducto: number;
+        cantidad: number;
+        precioUnitario: number;
+        subtotal: number;
+    }[];
 }
 
 // Banco y Tesorería

@@ -37,6 +37,9 @@ public class ParienteService : CrudServiceBase<Pariente, int>
         existingEntity.TipoRelacion = incomingEntity.TipoRelacion;
         existingEntity.Edad = incomingEntity.Edad;
         existingEntity.FechaNacimiento = incomingEntity.FechaNacimiento;
+        existingEntity.Nombre = incomingEntity.Nombre;
+        existingEntity.Apellido = incomingEntity.Apellido;
+        existingEntity.Ci = incomingEntity.Ci;
     }
 
     public override async Task<Pariente> UpdateAsync(int id, Pariente entity)

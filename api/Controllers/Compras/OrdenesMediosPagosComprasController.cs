@@ -25,6 +25,9 @@ public class OrdenesMediosPagosComprasController : CrudControllerBase<OrdenesMed
             IdOrdenPagoCompra = entity.IdOrdenPagoCompra,
             IdMedioPagoCompra = entity.IdMedioPagoCompra,
             Monto = entity.Monto,
+            IdCuentaBancaria = entity.IdCuentaBancaria,
+            IdMovimientoBancario = entity.IdMovimientoBancario,
+            IdChequeEmitido = entity.IdChequeEmitido,
             MedioPago = medioPago is null 
                 ? null 
                 : new MedioPagoResumenDto 
@@ -42,7 +45,11 @@ public class OrdenesMediosPagosComprasController : CrudControllerBase<OrdenesMed
             IdOrdenMedioPagoCompra = dto.IdOrdenMedioPagoCompra,
             IdOrdenPagoCompra = dto.IdOrdenPagoCompra,
             IdMedioPagoCompra = dto.IdMedioPagoCompra,
-            Monto = dto.Monto
+            Monto = dto.Monto,
+            IdCuentaBancaria = dto.IdCuentaBancaria,
+            NumeroCheque = dto.NumeroCheque,
+            Beneficiario = dto.Beneficiario,
+            ReferenciaBancaria = dto.ReferenciaBancaria
         };
     }
 

@@ -13,6 +13,8 @@ public partial class FacturasVentasDetalle
 
     public int Cantidad { get; set; }
 
+    public int CantidadDevuelta { get; set; }
+
     public decimal PrecioUnitario { get; set; }
 
     public decimal TotalBruto { get; set; }

@@ -13,7 +13,7 @@ export const FacturasCompraAPI = {
   },
 
   // GET /api/FacturasCompras/{id}
-  getById: async (id: number): Promise<types.FacturaCompraSaveDTO> => {
+  getById: async (id: number): Promise<types.FacturaCompra> => {
     const response = await api.get(`${API_CONFIG.ENDPOINTS.FACTURAS_COMPRA}/${id}`)
     return response.data
   },

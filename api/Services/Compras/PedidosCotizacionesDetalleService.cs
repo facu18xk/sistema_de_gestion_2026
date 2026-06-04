@@ -39,6 +39,7 @@ public class PedidosCotizacionesDetalleService : CrudServiceBase<PedidosCotizaci
         existingEntity.Descripcion = incomingEntity.Descripcion;
         existingEntity.Cantidad = incomingEntity.Cantidad;
         existingEntity.PrecioProducto = incomingEntity.PrecioProducto;
+        existingEntity.Descuento = incomingEntity.Descuento; 
     }
 
     private IQueryable<PedidosCotizacionesDetalle> BuildQuery()

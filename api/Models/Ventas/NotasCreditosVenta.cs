@@ -9,9 +9,13 @@ public partial class NotasCreditosVenta
 
     public int IdFacturaVenta { get; set; }
 
-    public int IdNotaDevolucionVenta { get; set; }
+    public int? IdNotaDevolucionVenta { get; set; }
+
+    public int IdEstado { get; set; }
 
     public int IdTimbrado { get; set; }
+
+    public string NroComprobante { get; set; } = null!;
 
     public string Motivo { get; set; } = null!;
 
@@ -21,7 +25,9 @@ public partial class NotasCreditosVenta
 
     public virtual FacturasVenta IdFacturaVentaNavigation { get; set; } = null!;
 
-    public virtual NotasDevolucionesVenta IdNotaDevolucionVentaNavigation { get; set; } = null!;
+    public virtual NotasDevolucionesVenta? IdNotaDevolucionVentaNavigation { get; set; }
+
+    public virtual Estado IdEstadoNavigation { get; set; } = null!;
 
     public virtual Timbrado IdTimbradoNavigation { get; set; } = null!;
 

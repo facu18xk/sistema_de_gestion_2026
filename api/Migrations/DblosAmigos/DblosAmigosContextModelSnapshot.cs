@@ -211,6 +211,35 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("balances_detalles", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.Banco", b =>
+                {
+                    b.Property<int>("IdBanco")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Banco");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBanco"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("IdBanco");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Bancos_Nombre");
+
+                    b.ToTable("Bancos", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.Categoria", b =>
                 {
                     b.Property<int>("IdCategoria")
@@ -246,6 +275,159 @@ namespace api.Migrations.DblosAmigos
                     b.HasIndex("CategoriaId");
 
                     b.ToTable("Categorias_Proveedores", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.ChequeEmitido", b =>
+                {
+                    b.Property<int>("IdChequeEmitido")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cheque_Emitido");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdChequeEmitido"));
+
+                    b.Property<string>("Beneficiario")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("FechaEmision")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("Fecha_Emision");
+
+                    b.Property<int>("IdCuentaBancaria")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cuenta_Bancaria");
+
+                    b.Property<int?>("IdMovimientoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Movimiento_Bancario");
+
+                    b.Property<int?>("IdOrdenMedioPagoCompra")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Orden_Medio_Pago_Compra");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("NumeroCheque")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("Numero_Cheque");
+
+                    b.HasKey("IdChequeEmitido");
+
+                    b.HasIndex("IdMovimientoBancario");
+
+                    b.HasIndex("IdOrdenMedioPagoCompra");
+
+                    b.HasIndex("IdCuentaBancaria", "NumeroCheque")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Cheques_Emitidos_Cuenta_Numero");
+
+                    b.ToTable("Cheques_Emitidos", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.ChequeMismoBanco", b =>
+                {
+                    b.Property<int>("IdChequeMismoBanco")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cheque_Mismo_Banco");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdChequeMismoBanco"));
+
+                    b.Property<DateTime>("FechaEmision")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("Fecha_Emision");
+
+                    b.Property<int>("IdDepositoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Deposito_Bancario");
+
+                    b.Property<string>("Librador")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("NumeroCheque")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("Numero_Cheque");
+
+                    b.HasKey("IdChequeMismoBanco");
+
+                    b.HasIndex("IdDepositoBancario");
+
+                    b.ToTable("Cheques_Mismo_Banco", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.ChequeTercero", b =>
+                {
+                    b.Property<int>("IdChequeTercero")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cheque_Tercero");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdChequeTercero"));
+
+                    b.Property<string>("BancoEmisor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("Banco_Emisor");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("FechaEmision")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("Fecha_Emision");
+
+                    b.Property<int>("IdDepositoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Deposito_Bancario");
+
+                    b.Property<string>("Librador")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("NumeroCheque")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("Numero_Cheque");
+
+                    b.HasKey("IdChequeTercero");
+
+                    b.HasIndex("IdDepositoBancario");
+
+                    b.ToTable("Cheques_Terceros", (string)null);
                 });
 
             modelBuilder.Entity("api.Models.Ciudad", b =>
@@ -387,6 +569,67 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("Cotizaciones_Compras_Detalles", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.CuentaBancaria", b =>
+                {
+                    b.Property<int>("IdCuentaBancaria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cuenta_Bancaria");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCuentaBancaria"));
+
+                    b.Property<bool>("Activa")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("IdBanco")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Banco");
+
+                    b.Property<int?>("IdCuentaContable")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cuenta_Contable");
+
+                    b.Property<int>("IdTipoCuentaBancaria")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Tipo_Cuenta_Bancaria");
+
+                    b.Property<string>("Moneda")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("PYG");
+
+                    b.Property<string>("NumeroCuenta")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("Numero_Cuenta");
+
+                    b.Property<decimal>("Saldo")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("SaldoDisponible")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("Saldo_Disponible");
+
+                    b.HasKey("IdCuentaBancaria");
+
+                    b.HasIndex("IdCuentaContable");
+
+                    b.HasIndex("IdTipoCuentaBancaria");
+
+                    b.HasIndex("IdBanco", "NumeroCuenta")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Cuentas_Bancarias_Banco_Numero");
+
+                    b.ToTable("Cuentas_Bancarias", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.CuentaContable", b =>
                 {
                     b.Property<int>("IdCuentaContable")
@@ -460,6 +703,84 @@ namespace api.Migrations.DblosAmigos
                     b.HasKey("IdDeposito");
 
                     b.ToTable("Depositos");
+                });
+
+            modelBuilder.Entity("api.Models.DepositoBancario", b =>
+                {
+                    b.Property<int>("IdDepositoBancario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Deposito_Bancario");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdDepositoBancario"));
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("IdCuentaBancaria")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cuenta_Bancaria");
+
+                    b.Property<int?>("IdMovimientoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Movimiento_Bancario");
+
+                    b.Property<int>("IdTipoDepositoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Tipo_Deposito_Bancario");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("IdDepositoBancario");
+
+                    b.HasIndex("IdCuentaBancaria");
+
+                    b.HasIndex("IdMovimientoBancario");
+
+                    b.HasIndex("IdTipoDepositoBancario");
+
+                    b.ToTable("Depositos_Bancarios", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.DetalleDepositoBancario", b =>
+                {
+                    b.Property<int>("IdDetalleDepositoBancario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Detalle_Deposito_Bancario");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdDetalleDepositoBancario"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<int>("IdDepositoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Deposito_Bancario");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("IdDetalleDepositoBancario");
+
+                    b.HasIndex("IdDepositoBancario");
+
+                    b.ToTable("Detalles_Depositos_Bancarios", (string)null);
                 });
 
             modelBuilder.Entity("api.Models.Direccion", b =>
@@ -683,9 +1004,13 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Medio_Pago_Compra");
 
-                    b.Property<int>("IdOrdenVenta")
+                    b.Property<int>("IdPresupuesto")
                         .HasColumnType("integer")
-                        .HasColumnName("Id_Orden_Venta");
+                        .HasColumnName("Id_Presupuesto");
+
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Estado");
 
                     b.Property<int>("IdTimbrado")
                         .HasColumnType("integer")
@@ -702,9 +1027,11 @@ namespace api.Migrations.DblosAmigos
 
                     b.HasIndex("IdCliente");
 
+                    b.HasIndex("IdEstado");
+
                     b.HasIndex("IdMedioPagoCompra");
 
-                    b.HasIndex("IdOrdenVenta");
+                    b.HasIndex("IdPresupuesto");
 
                     b.HasIndex("IdTimbrado");
 
@@ -722,6 +1049,12 @@ namespace api.Migrations.DblosAmigos
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("integer");
+
+                    b.Property<int>("CantidadDevuelta")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("Cantidad_Devuelta");
 
                     b.Property<int>("IdFacturaVenta")
                         .HasColumnType("integer")
@@ -903,6 +1236,67 @@ namespace api.Migrations.DblosAmigos
                     b.ToTable("modulos", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.MovimientoBancario", b =>
+                {
+                    b.Property<int>("IdMovimientoBancario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Movimiento_Bancario");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdMovimientoBancario"));
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int?>("IdChequeEmitido")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cheque_Emitido");
+
+                    b.Property<int>("IdCuentaBancaria")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Cuenta_Bancaria");
+
+                    b.Property<int?>("IdEstado")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Estado");
+
+                    b.Property<int?>("IdOrdenMedioPagoCompra")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Orden_Medio_Pago_Compra");
+
+                    b.Property<int>("IdTipoMovimientoBancario")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Tipo_Movimiento_Bancario");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(120)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("IdMovimientoBancario");
+
+                    b.HasIndex("IdChequeEmitido");
+
+                    b.HasIndex("IdCuentaBancaria");
+
+                    b.HasIndex("IdEstado");
+
+                    b.HasIndex("IdOrdenMedioPagoCompra");
+
+                    b.HasIndex("IdTipoMovimientoBancario");
+
+                    b.ToTable("Movimientos_Bancarios", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.NotasCreditosCompra", b =>
                 {
                     b.Property<int>("IdNotaCreditoCompra")
@@ -1000,7 +1394,11 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("integer")
                         .HasColumnName("Id_Factura_Venta");
 
-                    b.Property<int>("IdNotaDevolucionVenta")
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Estado");
+
+                    b.Property<int?>("IdNotaDevolucionVenta")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Nota_Devolucion_Venta");
 
@@ -1014,12 +1412,21 @@ namespace api.Migrations.DblosAmigos
                         .IsUnicode(false)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NroComprobante")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("Nro_Comprobante");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("IdNotaCreditoVenta");
 
                     b.HasIndex("IdFacturaVenta");
+
+                    b.HasIndex("IdEstado");
 
                     b.HasIndex("IdNotaDevolucionVenta");
 
@@ -1209,7 +1616,8 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasMaxLength(100)
                         .IsUnicode(false)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("Descripcion");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp without time zone");
@@ -2016,18 +2424,17 @@ namespace api.Migrations.DblosAmigos
             modelBuilder.Entity("api.Models.StocksDeposito", b =>
                 {
                     b.Property<int>("IdDeposito")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasColumnName("Id_Deposito");
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("integer");
 
                     b.Property<int>("IdProducto")
                         .HasColumnType("integer")
                         .HasColumnName("Id_Producto");
 
-                    b.HasKey("IdDeposito");
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IdDeposito", "IdProducto");
 
                     b.HasIndex("IdProducto");
 
@@ -2043,6 +2450,19 @@ namespace api.Migrations.DblosAmigos
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTimbrado"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Establecimiento")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("001");
+
                     b.Property<DateOnly>("FechaFinal")
                         .HasColumnType("date")
                         .HasColumnName("Fecha_Final");
@@ -2051,6 +2471,34 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("date")
                         .HasColumnName("Fecha_Inicio");
 
+                    b.Property<int>("NumeroFinal")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(9999999)
+                        .HasColumnName("Numero_Final");
+
+                    b.Property<int>("NumeroInicial")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("Numero_Inicial");
+
+                    b.Property<string>("NumeroTimbrado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("Numero_Timbrado");
+
+                    b.Property<string>("PuntoExpedicion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("001")
+                        .HasColumnName("Punto_Expedicion");
+
                     b.Property<string>("Ruc")
                         .IsRequired()
                         .HasMaxLength(12)
@@ -2058,9 +2506,137 @@ namespace api.Migrations.DblosAmigos
                         .HasColumnType("character varying(12)")
                         .HasColumnName("RUC");
 
+                    b.Property<string>("TipoComprobante")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Factura")
+                        .HasColumnName("Tipo_Comprobante");
+
+                    b.Property<int>("UltimoNumeroUsado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("Ultimo_Numero_Usado");
+
                     b.HasKey("IdTimbrado");
 
                     b.ToTable("Timbrados");
+                });
+
+            modelBuilder.Entity("api.Models.TipoCuentaBancaria", b =>
+                {
+                    b.Property<int>("IdTipoCuentaBancaria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Tipo_Cuenta_Bancaria");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTipoCuentaBancaria"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(80)");
+
+                    b.HasKey("IdTipoCuentaBancaria");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tipos_Cuentas_Bancarias_Nombre");
+
+                    b.ToTable("Tipos_Cuentas_Bancarias", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IdTipoCuentaBancaria = 1,
+                            Nombre = "Corriente"
+                        },
+                        new
+                        {
+                            IdTipoCuentaBancaria = 2,
+                            Nombre = "Ahorro"
+                        });
+                });
+
+            modelBuilder.Entity("api.Models.TipoDepositoBancario", b =>
+                {
+                    b.Property<int>("IdTipoDepositoBancario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Tipo_Deposito_Bancario");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTipoDepositoBancario"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(80)");
+
+                    b.HasKey("IdTipoDepositoBancario");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tipos_Depositos_Bancarios_Nombre");
+
+                    b.ToTable("Tipos_Depositos_Bancarios", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IdTipoDepositoBancario = 1,
+                            Nombre = "Efectivo"
+                        },
+                        new
+                        {
+                            IdTipoDepositoBancario = 2,
+                            Nombre = "Cheque mismo banco"
+                        },
+                        new
+                        {
+                            IdTipoDepositoBancario = 3,
+                            Nombre = "Cheque terceros"
+                        });
+                });
+
+            modelBuilder.Entity("api.Models.TipoMovimientoBancario", b =>
+                {
+                    b.Property<int>("IdTipoMovimientoBancario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id_Tipo_Movimiento_Bancario");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTipoMovimientoBancario"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("IdTipoMovimientoBancario");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tipos_Movimientos_Bancarios_Nombre");
+
+                    b.ToTable("Tipos_Movimientos_Bancarios", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IdTipoMovimientoBancario = 1,
+                            Nombre = "Débito"
+                        },
+                        new
+                        {
+                            IdTipoMovimientoBancario = 2,
+                            Nombre = "Crédito"
+                        });
                 });
 
             modelBuilder.Entity("api.Models.Asiento", b =>
@@ -2149,6 +2725,55 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("Proveedor");
                 });
 
+            modelBuilder.Entity("api.Models.ChequeEmitido", b =>
+                {
+                    b.HasOne("api.Models.CuentaBancaria", "IdCuentaBancariaNavigation")
+                        .WithMany("ChequesEmitidos")
+                        .HasForeignKey("IdCuentaBancaria")
+                        .IsRequired()
+                        .HasConstraintName("FK_Cheques_Emitidos_Cuentas_Bancarias");
+
+                    b.HasOne("api.Models.MovimientoBancario", "IdMovimientoBancarioNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdMovimientoBancario")
+                        .HasConstraintName("FK_Cheques_Emitidos_Movimientos_Bancarios");
+
+                    b.HasOne("api.Models.OrdenesMediosPagosCompra", "IdOrdenMedioPagoCompraNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdOrdenMedioPagoCompra")
+                        .HasConstraintName("FK_Cheques_Emitidos_Ordenes_Medios_Pagos_Compras");
+
+                    b.Navigation("IdCuentaBancariaNavigation");
+
+                    b.Navigation("IdMovimientoBancarioNavigation");
+
+                    b.Navigation("IdOrdenMedioPagoCompraNavigation");
+                });
+
+            modelBuilder.Entity("api.Models.ChequeMismoBanco", b =>
+                {
+                    b.HasOne("api.Models.DepositoBancario", "IdDepositoBancarioNavigation")
+                        .WithMany("ChequesMismoBanco")
+                        .HasForeignKey("IdDepositoBancario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Cheques_Mismo_Banco_Depositos_Bancarios");
+
+                    b.Navigation("IdDepositoBancarioNavigation");
+                });
+
+            modelBuilder.Entity("api.Models.ChequeTercero", b =>
+                {
+                    b.HasOne("api.Models.DepositoBancario", "IdDepositoBancarioNavigation")
+                        .WithMany("ChequesTerceros")
+                        .HasForeignKey("IdDepositoBancario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Cheques_Terceros_Depositos_Bancarios");
+
+                    b.Navigation("IdDepositoBancarioNavigation");
+                });
+
             modelBuilder.Entity("api.Models.Ciudad", b =>
                 {
                     b.HasOne("api.Models.Pais", "IdPaisNavigation")
@@ -2217,6 +2842,32 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("Producto");
                 });
 
+            modelBuilder.Entity("api.Models.CuentaBancaria", b =>
+                {
+                    b.HasOne("api.Models.Banco", "IdBancoNavigation")
+                        .WithMany("CuentasBancarias")
+                        .HasForeignKey("IdBanco")
+                        .IsRequired()
+                        .HasConstraintName("FK_Cuentas_Bancarias_Bancos");
+
+                    b.HasOne("api.Models.CuentaContable", "IdCuentaContableNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaContable")
+                        .HasConstraintName("FK_Cuentas_Bancarias_Cuentas_Contables");
+
+                    b.HasOne("api.Models.TipoCuentaBancaria", "IdTipoCuentaBancariaNavigation")
+                        .WithMany("CuentasBancarias")
+                        .HasForeignKey("IdTipoCuentaBancaria")
+                        .IsRequired()
+                        .HasConstraintName("FK_Cuentas_Bancarias_Tipos_Cuentas_Bancarias");
+
+                    b.Navigation("IdBancoNavigation");
+
+                    b.Navigation("IdCuentaContableNavigation");
+
+                    b.Navigation("IdTipoCuentaBancariaNavigation");
+                });
+
             modelBuilder.Entity("api.Models.CuentaContable", b =>
                 {
                     b.HasOne("api.Models.CuentaContable", "IdCuentaPadreNavigation")
@@ -2233,6 +2884,44 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdCuentaPadreNavigation");
 
                     b.Navigation("IdProcesoContableNavigation");
+                });
+
+            modelBuilder.Entity("api.Models.DepositoBancario", b =>
+                {
+                    b.HasOne("api.Models.CuentaBancaria", "IdCuentaBancariaNavigation")
+                        .WithMany("DepositosBancarios")
+                        .HasForeignKey("IdCuentaBancaria")
+                        .IsRequired()
+                        .HasConstraintName("FK_Depositos_Bancarios_Cuentas_Bancarias");
+
+                    b.HasOne("api.Models.MovimientoBancario", "IdMovimientoBancarioNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdMovimientoBancario")
+                        .HasConstraintName("FK_Depositos_Bancarios_Movimientos_Bancarios");
+
+                    b.HasOne("api.Models.TipoDepositoBancario", "IdTipoDepositoBancarioNavigation")
+                        .WithMany("DepositosBancarios")
+                        .HasForeignKey("IdTipoDepositoBancario")
+                        .IsRequired()
+                        .HasConstraintName("FK_Depositos_Bancarios_Tipos_Depositos_Bancarios");
+
+                    b.Navigation("IdCuentaBancariaNavigation");
+
+                    b.Navigation("IdMovimientoBancarioNavigation");
+
+                    b.Navigation("IdTipoDepositoBancarioNavigation");
+                });
+
+            modelBuilder.Entity("api.Models.DetalleDepositoBancario", b =>
+                {
+                    b.HasOne("api.Models.DepositoBancario", "IdDepositoBancarioNavigation")
+                        .WithMany("DetallesDepositosBancarios")
+                        .HasForeignKey("IdDepositoBancario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Detalles_Depositos_Bancarios_Depositos_Bancarios");
+
+                    b.Navigation("IdDepositoBancarioNavigation");
                 });
 
             modelBuilder.Entity("api.Models.Direccion", b =>
@@ -2309,11 +2998,17 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasConstraintName("FK_Facturas_Ventas_Medios_Pagos_Compras");
 
-                    b.HasOne("api.Models.OrdenesVenta", "IdOrdenVentaNavigation")
+                    b.HasOne("api.Models.Presupuesto", "IdPresupuestoNavigation")
                         .WithMany("FacturasVenta")
-                        .HasForeignKey("IdOrdenVenta")
+                        .HasForeignKey("IdPresupuesto")
                         .IsRequired()
-                        .HasConstraintName("FK_Facturas_Ventas_Ordenes_Ventas");
+                        .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
+
+                    b.HasOne("api.Models.Estado", "IdEstadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .IsRequired()
+                        .HasConstraintName("FK_Facturas_Ventas_Estados");
 
                     b.HasOne("api.Models.Timbrado", "IdTimbradoNavigation")
                         .WithMany("FacturasVenta")
@@ -2323,9 +3018,11 @@ namespace api.Migrations.DblosAmigos
 
                     b.Navigation("IdClienteNavigation");
 
+                    b.Navigation("IdEstadoNavigation");
+
                     b.Navigation("IdMedioPagoCompraNavigation");
 
-                    b.Navigation("IdOrdenVentaNavigation");
+                    b.Navigation("IdPresupuestoNavigation");
 
                     b.Navigation("IdTimbradoNavigation");
                 });
@@ -2379,6 +3076,46 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("IdModeloAsientoNavigation");
                 });
 
+            modelBuilder.Entity("api.Models.MovimientoBancario", b =>
+                {
+                    b.HasOne("api.Models.ChequeEmitido", "IdChequeEmitidoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdChequeEmitido")
+                        .HasConstraintName("FK_Movimientos_Bancarios_Cheques_Emitidos");
+
+                    b.HasOne("api.Models.CuentaBancaria", "IdCuentaBancariaNavigation")
+                        .WithMany("MovimientosBancarios")
+                        .HasForeignKey("IdCuentaBancaria")
+                        .IsRequired()
+                        .HasConstraintName("FK_Movimientos_Bancarios_Cuentas_Bancarias");
+
+                    b.HasOne("api.Models.Estado", "IdEstadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .HasConstraintName("FK_Movimientos_Bancarios_Estados");
+
+                    b.HasOne("api.Models.OrdenesMediosPagosCompra", "IdOrdenMedioPagoCompraNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdOrdenMedioPagoCompra")
+                        .HasConstraintName("FK_Movimientos_Bancarios_Ordenes_Medios_Pagos_Compras");
+
+                    b.HasOne("api.Models.TipoMovimientoBancario", "IdTipoMovimientoBancarioNavigation")
+                        .WithMany("MovimientosBancarios")
+                        .HasForeignKey("IdTipoMovimientoBancario")
+                        .IsRequired()
+                        .HasConstraintName("FK_Movimientos_Bancarios_Tipos_Movimientos_Bancarios");
+
+                    b.Navigation("IdChequeEmitidoNavigation");
+
+                    b.Navigation("IdCuentaBancariaNavigation");
+
+                    b.Navigation("IdEstadoNavigation");
+
+                    b.Navigation("IdOrdenMedioPagoCompraNavigation");
+
+                    b.Navigation("IdTipoMovimientoBancarioNavigation");
+                });
+
             modelBuilder.Entity("api.Models.NotasCreditosCompra", b =>
                 {
                     b.HasOne("api.Models.FacturasCompra", "IdFacturaCompraNavigation")
@@ -2425,10 +3162,17 @@ namespace api.Migrations.DblosAmigos
                         .IsRequired()
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Facturas_Ventas");
 
+                    b.HasOne("api.Models.Estado", "IdEstadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .IsRequired()
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_Notas_Creditos_Ventas_Estados");
+
                     b.HasOne("api.Models.NotasDevolucionesVenta", "IdNotaDevolucionVentaNavigation")
                         .WithMany("NotasCreditosVenta")
                         .HasForeignKey("IdNotaDevolucionVenta")
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Notas_Devoluciones_Ventas");
 
                     b.HasOne("api.Models.Timbrado", "IdTimbradoNavigation")
@@ -2438,6 +3182,8 @@ namespace api.Migrations.DblosAmigos
                         .HasConstraintName("FK_Notas_Creditos_Ventas_Timbrados");
 
                     b.Navigation("IdFacturaVentaNavigation");
+
+                    b.Navigation("IdEstadoNavigation");
 
                     b.Navigation("IdNotaDevolucionVentaNavigation");
 
@@ -2905,8 +3651,8 @@ namespace api.Migrations.DblosAmigos
             modelBuilder.Entity("api.Models.StocksDeposito", b =>
                 {
                     b.HasOne("api.Models.Deposito", "IdDepositoNavigation")
-                        .WithOne("StocksDeposito")
-                        .HasForeignKey("api.Models.StocksDeposito", "IdDeposito")
+                        .WithMany("StocksDepositos")
+                        .HasForeignKey("IdDeposito")
                         .IsRequired()
                         .HasConstraintName("FK_Stocks_Depositos_Depositos");
 
@@ -2929,6 +3675,11 @@ namespace api.Migrations.DblosAmigos
             modelBuilder.Entity("api.Models.Balance", b =>
                 {
                     b.Navigation("BalancesDetalles");
+                });
+
+            modelBuilder.Entity("api.Models.Banco", b =>
+                {
+                    b.Navigation("CuentasBancarias");
                 });
 
             modelBuilder.Entity("api.Models.Categoria", b =>
@@ -2959,6 +3710,15 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("OrdenesCompras");
                 });
 
+            modelBuilder.Entity("api.Models.CuentaBancaria", b =>
+                {
+                    b.Navigation("ChequesEmitidos");
+
+                    b.Navigation("DepositosBancarios");
+
+                    b.Navigation("MovimientosBancarios");
+                });
+
             modelBuilder.Entity("api.Models.CuentaContable", b =>
                 {
                     b.Navigation("AsientosDetalles");
@@ -2972,7 +3732,16 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.Deposito", b =>
                 {
-                    b.Navigation("StocksDeposito");
+                    b.Navigation("StocksDepositos");
+                });
+
+            modelBuilder.Entity("api.Models.DepositoBancario", b =>
+                {
+                    b.Navigation("ChequesMismoBanco");
+
+                    b.Navigation("ChequesTerceros");
+
+                    b.Navigation("DetallesDepositosBancarios");
                 });
 
             modelBuilder.Entity("api.Models.Direccion", b =>
@@ -3086,8 +3855,6 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.OrdenesVenta", b =>
                 {
-                    b.Navigation("FacturasVenta");
-
                     b.Navigation("OrdenesVentasDetalles");
                 });
 
@@ -3130,6 +3897,8 @@ namespace api.Migrations.DblosAmigos
 
             modelBuilder.Entity("api.Models.Presupuesto", b =>
                 {
+                    b.Navigation("FacturasVenta");
+
                     b.Navigation("OrdenesVenta");
 
                     b.Navigation("PresupuestosDetalles");
@@ -3195,6 +3964,21 @@ namespace api.Migrations.DblosAmigos
                     b.Navigation("FacturasVenta");
 
                     b.Navigation("NotasCreditosVenta");
+                });
+
+            modelBuilder.Entity("api.Models.TipoCuentaBancaria", b =>
+                {
+                    b.Navigation("CuentasBancarias");
+                });
+
+            modelBuilder.Entity("api.Models.TipoDepositoBancario", b =>
+                {
+                    b.Navigation("DepositosBancarios");
+                });
+
+            modelBuilder.Entity("api.Models.TipoMovimientoBancario", b =>
+                {
+                    b.Navigation("MovimientosBancarios");
                 });
 #pragma warning restore 612, 618
         }

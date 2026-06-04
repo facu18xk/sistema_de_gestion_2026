@@ -12,3 +12,12 @@ public class StockDepositoDto
 
     public string Producto { get; set; } = string.Empty;
 }
+
+public class StockDepositoUpsertDto
+{
+    public int IdDeposito { get; set; }
+
+    public int IdProducto { get; set; }
+
+    public int Cantidad { get; set; }
+}

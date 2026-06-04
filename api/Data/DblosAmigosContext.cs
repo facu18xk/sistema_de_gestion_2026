@@ -343,7 +343,8 @@ public partial class DblosAmigosContext : DbContext
                 .HasColumnName("Fecha_Pago");
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.IdMedioPagoCompra).HasColumnName("Id_Medio_Pago_Compra");
-            entity.Property(e => e.IdOrdenVenta).HasColumnName("Id_Orden_Venta");
+            entity.Property(e => e.IdPresupuesto).HasColumnName("Id_Presupuesto");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
             entity.Property(e => e.NroComprobante)
                 .HasMaxLength(100)
@@ -360,10 +361,15 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Facturas_Ventas_Medios_Pagos_Compras");
 
-            entity.HasOne(d => d.IdOrdenVentaNavigation).WithMany(p => p.FacturasVenta)
-                .HasForeignKey(d => d.IdOrdenVenta)
+            entity.HasOne(d => d.IdPresupuestoNavigation).WithMany(p => p.FacturasVenta)
+                .HasForeignKey(d => d.IdPresupuesto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Facturas_Ventas_Ordenes_Ventas");
+                .HasConstraintName("FK_Facturas_Ventas_Presupuestos");
+
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany()
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Facturas_Ventas_Estados");
 
             entity.HasOne(d => d.IdTimbradoNavigation).WithMany(p => p.FacturasVenta)
                 .HasForeignKey(d => d.IdTimbrado)
@@ -378,6 +384,9 @@ public partial class DblosAmigosContext : DbContext
             entity.ToTable("Facturas_Ventas_Detalles");
 
             entity.Property(e => e.IdFacturaVentaDetalle).HasColumnName("Id_Factura_Venta_Detalle");
+            entity.Property(e => e.CantidadDevuelta)
+                .HasDefaultValue(0)
+                .HasColumnName("Cantidad_Devuelta");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
             entity.Property(e => e.PrecioUnitario)
@@ -491,8 +500,13 @@ public partial class DblosAmigosContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("Fecha_Emision");
             entity.Property(e => e.IdFacturaVenta).HasColumnName("Id_Factura_Venta");
+            entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdNotaDevolucionVenta).HasColumnName("Id_Nota_Devolucion_Venta");
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
+            entity.Property(e => e.NroComprobante)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Nro_Comprobante");
             entity.Property(e => e.Motivo)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -503,9 +517,14 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Notas_Creditos_Ventas_Facturas_Ventas");
 
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany()
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Notas_Creditos_Ventas_Estados");
+
             entity.HasOne(d => d.IdNotaDevolucionVentaNavigation).WithMany(p => p.NotasCreditosVenta)
                 .HasForeignKey(d => d.IdNotaDevolucionVenta)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Notas_Creditos_Ventas_Notas_Devoluciones_Ventas");
 
             entity.HasOne(d => d.IdTimbradoNavigation).WithMany(p => p.NotasCreditosVenta)
@@ -638,7 +657,6 @@ public partial class DblosAmigosContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Fecha).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.IdCotizacionCompra).HasColumnName("Id_Cotizacion_Compra");
             entity.Property(e => e.IdEstado).HasColumnName("Id_Estado");
             entity.Property(e => e.IdPedidoCotizacion).HasColumnName("Id_Pedido_Cotizacion");
             entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
@@ -653,9 +671,6 @@ public partial class DblosAmigosContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ordenes_Compras_Pedidos_Cotizaciones");
 
-            entity.HasOne(d => d.IdCotizacionCompraNavigation).WithMany(p => p.OrdenesCompras)
-                .HasForeignKey(d => d.IdCotizacionCompra)
-                .HasConstraintName("FK_Ordenes_Compras_Cotizaciones_Compras");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdProveedor)
@@ -1198,17 +1213,15 @@ public partial class DblosAmigosContext : DbContext
 
         modelBuilder.Entity<StocksDeposito>(entity =>
         {
-            entity.HasKey(e => e.IdDeposito);
+            entity.HasKey(e => new { e.IdDeposito, e.IdProducto });
 
             entity.ToTable("Stocks_Depositos");
 
-            entity.Property(e => e.IdDeposito)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("Id_Deposito");
+            entity.Property(e => e.IdDeposito).HasColumnName("Id_Deposito");
             entity.Property(e => e.IdProducto).HasColumnName("Id_Producto");
 
-            entity.HasOne(d => d.IdDepositoNavigation).WithOne(p => p.StocksDeposito)
-                .HasForeignKey<StocksDeposito>(d => d.IdDeposito)
+            entity.HasOne(d => d.IdDepositoNavigation).WithMany(p => p.StocksDepositos)
+                .HasForeignKey(d => d.IdDeposito)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Stocks_Depositos_Depositos");
 
@@ -1223,12 +1236,40 @@ public partial class DblosAmigosContext : DbContext
             entity.HasKey(e => e.IdTimbrado);
 
             entity.Property(e => e.IdTimbrado).HasColumnName("Id_Timbrado");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Establecimiento)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasDefaultValue("001");
             entity.Property(e => e.FechaFinal).HasColumnName("Fecha_Final");
             entity.Property(e => e.FechaInicio).HasColumnName("Fecha_Inicio");
+            entity.Property(e => e.NumeroFinal)
+                .HasDefaultValue(9999999)
+                .HasColumnName("Numero_Final");
+            entity.Property(e => e.NumeroInicial)
+                .HasDefaultValue(1)
+                .HasColumnName("Numero_Inicial");
+            entity.Property(e => e.NumeroTimbrado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("Numero_Timbrado");
+            entity.Property(e => e.PuntoExpedicion)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasDefaultValue("001")
+                .HasColumnName("Punto_Expedicion");
             entity.Property(e => e.Ruc)
                 .HasMaxLength(12)
                 .IsUnicode(false)
                 .HasColumnName("RUC");
+            entity.Property(e => e.TipoComprobante)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("Factura")
+                .HasColumnName("Tipo_Comprobante");
+            entity.Property(e => e.UltimoNumeroUsado)
+                .HasDefaultValue(0)
+                .HasColumnName("Ultimo_Numero_Usado");
         });
 
         modelBuilder.Entity<ProcesoContable>(entity =>

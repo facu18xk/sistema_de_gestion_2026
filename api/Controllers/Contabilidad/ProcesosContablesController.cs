@@ -56,9 +56,7 @@ public class ProcesosContablesController : CrudControllerBase<ProcesoContable, P
             Descripcion = dto.Descripcion,
             CantNiveles = dto.CantNiveles,
             CantDigitosNivel = dto.CantDigitosNivel,
-            Moneda = dto.Moneda,
-            Estado = dto.Estado,
-            CreatedAt = dto.CreatedAt
+            Moneda = dto.Moneda
         };
     }
 

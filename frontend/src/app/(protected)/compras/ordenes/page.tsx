@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Pencil, Trash2, Loader2, Eye, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,26 +18,20 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { FilterBar, FilterField } from "@/components/shared/filter-bar"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
 import { proveedoresAPI } from "@/services/proveedoresAPI"
-import { ordenesCompraDetallesAPI } from "@/services/ordenesCompraDetallesAPI"
-import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { OrdenCompraDTO, Proveedor } from "@/types/types"
 import { notify } from "@/lib/notifications"
 
-function OrdenesPageContent() {
+export default function OrdenesPage() {
     const router = useRouter()
-    const searchParams = useSearchParams()
 
     const [isLoading, setIsLoading] = useState(true)
     const [isAlertOpen, setIsAlertOpen] = useState(false)
     const [allOrdenes, setAllOrdenes] = useState<OrdenCompraDTO[]>([])
     const [proveedores, setProveedores] = useState<Proveedor[]>()
     const [ordenAEliminar, setOrdenAEliminar] = useState<OrdenCompraDTO | null>(null)
-
-    // Almacena el monto real recalculado para cada orden: { [idOrdenCompra]: montoCalculado }
-    const [montosOrdenesCalculados, setMontosOrdenesCalculados] = useState<Record<number, number>>({})
 
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
@@ -46,29 +40,21 @@ function OrdenesPageContent() {
         proveedor: "",
         estado: "",
         fechaDesde: "",
-        fechaHasta: "",
-        idCotizacion: ""
+        fechaHasta: ""
     })
 
     useEffect(() => {
-        const idCotizacionParam = searchParams.get("idCotizacion")
-
-        if (idCotizacionParam) {
-            setFilters(prev => ({ ...prev, idCotizacion: idCotizacionParam }))
-            setCurrentPage(1)
-        } else {
-            const savedFilters = sessionStorage.getItem("filters_ordenes");
-            if (savedFilters) {
-                try {
-                    const parsed = JSON.parse(savedFilters);
-                    if (parsed.filters) setFilters(parsed.filters);
-                    if (parsed.pagina) setCurrentPage(parsed.pagina);
-                } catch (e) {
-                    console.error("Error recuperando filtros de órdenes", e);
-                }
+        const savedFilters = sessionStorage.getItem("filters_ordenes");
+        if (savedFilters) {
+            try {
+                const parsed = JSON.parse(savedFilters);
+                if (parsed.filters) setFilters(parsed.filters);
+                if (parsed.pagina) setCurrentPage(parsed.pagina);
+            } catch (e) {
+                console.error("Error recuperando filtros de órdenes", e);
             }
         }
-    }, [searchParams]);
+    }, []);
 
     const guardarSnapshotFiltros = () => {
         const stateToSave = { filters, pagina: currentPage };
@@ -76,7 +62,6 @@ function OrdenesPageContent() {
     }
 
     const camposFiltro: FilterField[] = [
-        { id: "idCotizacion", label: "Nro. Cotización", type: "text", placeholder: "Ej: 5" },
         {
             id: "proveedor",
             label: "Proveedor",
@@ -111,20 +96,15 @@ function OrdenesPageContent() {
         return `CP-${String(numero).padStart(4, "0")}`
     }
 
-    const formatearMoneda = (valor: number) => {
-        return new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG" }).format(valor)
-    }
-
     const handleFilterChange = (id: string, value: string) => {
         setFilters(prev => ({ ...prev, [id]: value }))
         setCurrentPage(1)
     }
 
     const handleLimpiarFiltros = () => {
-        setFilters({ proveedor: "", estado: "", fechaDesde: "", fechaHasta: "", idCotizacion: "" });
+        setFilters({ proveedor: "", estado: "", fechaDesde: "", fechaHasta: "" });
         setCurrentPage(1);
         sessionStorage.removeItem("filters_ordenes");
-        router.replace("/compras/ordenes")
     };
 
     const getEstadoStyle = (estado: string) => {
@@ -151,52 +131,11 @@ function OrdenesPageContent() {
                 return obtenerTodoRecursivo(p + 1, total);
             };
 
-            const [itemsOrdenes, resProveedores, resTodosLosDetallesOrden, resTodosDetallesCotiz] = await Promise.all([
+            const [itemsOrdenes, resProveedores] = await Promise.all([
                 obtenerTodoRecursivo(1, []),
-                proveedoresAPI.getAll(1, 300),
-                ordenesCompraDetallesAPI.getAll(1, 2000),
-                cotizacionesDetallesAPI.getAll(1, 2000)
+                proveedoresAPI.getAll(1, 300)
             ])
 
-            const listaDetallesOrden = resTodosLosDetallesOrden.items || resTodosLosDetallesOrden || [];
-            const listaDetallesCotiz = resTodosDetallesCotiz.items || resTodosDetallesCotiz || [];
-
-            // Mapeamos los precios y descuentos de la cotización indexados por [idPedidoCotizacion][idProducto]
-            const mapaPreciosCotiz: Record<number, Record<number, { precio: number, descuento: number }>> = {};
-            listaDetallesCotiz.forEach((cd: any) => {
-                const idCot = Number(cd.idPedidoCotizacion || cd.cotizacionCompraId);
-                const idProd = Number(cd.idProducto);
-                if (idCot && idProd) {
-                    if (!mapaPreciosCotiz[idCot]) mapaPreciosCotiz[idCot] = {};
-                    mapaPreciosCotiz[idCot][idProd] = {
-                        precio: Number(cd.precioProducto || cd.precioUnitario || 0),
-                        descuento: Number(cd.descuento || 0)
-                    };
-                }
-            });
-
-            // Calculamos el monto real de cada orden multiplicando (Precio Cotización - Descuento Cotización) * Cantidad Orden
-            const mapeoMontosOrdenes: Record<number, number> = {};
-            listaDetallesOrden.forEach((doDet: any) => {
-                const idOrd = Number(doDet.idOrdenCompra);
-                const idProd = Number(doDet.idProducto);
-
-                // Buscamos a qué cotización pertenece esta orden para sacar el precio unitario pactado
-                const ordenAsociada = itemsOrdenes.find(o => Number(o.idOrdenCompra) === idOrd);
-                const idCotAsociada = ordenAsociada ? Number(ordenAsociada.idPedidoCotizacion) : 0;
-
-                const infoFinanciera = mapaPreciosCotiz[idCotAsociada]?.[idProd] || {
-                    precio: Number(doDet.precioUnitario || doDet.precio || 0),
-                    descuento: Number(doDet.descuento || 0)
-                };
-
-                const cantidadOrden = Number(doDet.cantidad) || 0;
-                const subtotalItemReal = (infoFinanciera.precio - infoFinanciera.descuento) * cantidadOrden;
-
-                mapeoMontosOrdenes[idOrd] = (mapeoMontosOrdenes[idOrd] || 0) + subtotalItemReal;
-            });
-
-            setMontosOrdenesCalculados(mapeoMontosOrdenes);
             setAllOrdenes(itemsOrdenes)
             setProveedores(resProveedores.items || resProveedores || [])
         } catch (error) {
@@ -215,13 +154,12 @@ function OrdenesPageContent() {
         return allOrdenes.filter((o) => {
             const cumpleProveedor = filters.proveedor ? String(o.idProveedor) === filters.proveedor : true
             const cumpleEstado = filters.estado ? o.estado?.toLowerCase() === filters.estado.toLowerCase() : true
-            const cumpleCotizacion = filters.idCotizacion ? String(o.idPedidoCotizacion) === filters.idCotizacion : true
 
             const fechaOrden = o.fecha ? o.fecha.substring(0, 10) : ""
             const cumpleDesde = filters.fechaDesde ? fechaOrden >= filters.fechaDesde : true
             const cumpleHasta = filters.fechaHasta ? fechaOrden <= filters.fechaHasta : true
 
-            return cumpleProveedor && cumpleEstado && cumpleCotizacion && cumpleDesde && cumpleHasta
+            return cumpleProveedor && cumpleEstado && cumpleDesde && cumpleHasta
         })
     }, [allOrdenes, filters])
 
@@ -253,7 +191,6 @@ function OrdenesPageContent() {
 
     const handleVerFacturasAsociadas = (o: OrdenCompraDTO) => {
         guardarSnapshotFiltros()
-        // Implementación de filtro cruzado idéntico a las otras vistas de la plataforma
         router.push(`/compras/facturas?idOrdenCompra=${o.idOrdenCompra}`)
     }
 
@@ -330,12 +267,11 @@ function OrdenesPageContent() {
                     caption="Historial analítico de órdenes de compra emitidas."
                     headerRow={
                         <TableRow>
-                            <TableHead className="w-36">Fecha</TableHead>
                             <TableHead className="w-32">Nro Orden</TableHead>
                             <TableHead className="w-32">Cotización</TableHead>
                             <TableHead>Proveedor</TableHead>
+                            <TableHead className="w-36">Fecha</TableHead>
                             <TableHead className="w-36">Estado</TableHead>
-                            <TableHead className="text-right w-36">Monto Total</TableHead>
                             <TableHead className="text-right w-36">Acciones</TableHead>
                         </TableRow>
                     }
@@ -345,46 +281,30 @@ function OrdenesPageContent() {
                 >
                     {ordenesPaginadas.map((o) => {
                         const esModificable = o.estado === "Pendiente"
-                        // Solo se habilita la visualización de facturas si fue emitido o completado
                         const permiteFacturas = o.estado === "Emitido" || o.estado === "Completado"
-                        const montoRealCalculado = montosOrdenesCalculados[o.idOrdenCompra] || 0
 
                         return (
                             <TableRow key={o.idOrdenCompra} className="hover:bg-muted/40 transition-colors">
-                                <TableCell className="text-xs text-muted-foreground font-medium">
-                                    {o.fecha ? o.fecha.substring(0, 10) : "—"}
-                                </TableCell>
                                 <TableCell className="font-mono text-xs font-bold text-primary">
                                     {formatearNumeroOrden(o.idOrdenCompra)}
                                 </TableCell>
                                 <TableCell className="text-xs font-mono">
                                     {o.idPedidoCotizacion ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                guardarSnapshotFiltros();
-                                                router.push(`/compras/cotizaciones/${o.idPedidoCotizacion}/editar?mode=ver`);
-                                            }}
-                                            className="text-blue-600 dark:text-blue-400 font-bold hover:underline bg-blue-50/50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/30 text-left cursor-pointer"
-                                        >
+                                        <span className="text-muted-foreground font-medium bg-muted px-1.5 rounded">
                                             {formatearNumeroCotizacion(o.idPedidoCotizacion)}
-                                        </button>
-                                    ) : (
-                                        <span className="text-muted-foreground text-[11px] italic bg-muted px-1.5 py-0.5 rounded">
-                                            Sin Cotización
                                         </span>
-                                    )}
+                                    ) : "Directa / Sin Cotización"}
                                 </TableCell>
                                 <TableCell className="text-xs font-medium">
                                     {o.proveedor || "No asignado"}
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                    {o.fecha ? o.fecha.substring(0, 10) : "—"}
                                 </TableCell>
                                 <TableCell>
                                     <span className={`inline-flex items-center px-2.5 rounded-full text-xs font-bold border uppercase tracking-wide text-[10px] ${getEstadoStyle(o.estado)}`}>
                                         {o.estado || "Desconocido"}
                                     </span>
-                                </TableCell>
-                                <TableCell className="text-right font-mono text-xs font-semibold text-foreground">
-                                    {formatearMoneda(montoRealCalculado)}
                                 </TableCell>
                                 <TableCell className="text-right space-x-1">
                                     {permiteFacturas && (
@@ -427,13 +347,5 @@ function OrdenesPageContent() {
                 </DataTable>
             )}
         </>
-    )
-}
-
-export default function OrdenesPage() {
-    return (
-        <Suspense fallback={null}>
-            <OrdenesPageContent />
-        </Suspense>
     )
 }

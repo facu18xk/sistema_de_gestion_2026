@@ -4,9 +4,9 @@ public class FacturasVentaDto
 {
     public int IdFacturaVenta { get; set; }
 
-    public int IdOrdenVenta { get; set; }
+    public int IdPresupuesto { get; set; }
 
-    public string OrdenVentaDescripcion { get; set; } = string.Empty;
+    public string PresupuestoDescripcion { get; set; } = string.Empty;
 
     public int IdCliente { get; set; }
 
@@ -14,7 +14,15 @@ public class FacturasVentaDto
 
     public string NroComprobante { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public int IdTimbrado { get; set; }
+
+    public string Timbrado { get; set; } = string.Empty;
+
+    public string TimbradoRuc { get; set; } = string.Empty;
 
     public DateTime Fecha { get; set; }
 
@@ -27,15 +35,13 @@ public class FacturasVentaDto
     public DateTime FechaPago { get; set; }
 }
 
-public class FacturasVentaUpsertDto
+public class FacturasVentaCreateDto
 {
-    public int IdOrdenVenta { get; set; }
+    public int IdPresupuesto { get; set; }
 
     public int IdCliente { get; set; }
 
-    public string NroComprobante { get; set; } = string.Empty;
-
-    public int IdTimbrado { get; set; }
+    public int IdEstado { get; set; }
 
     public DateTime Fecha { get; set; }
 
@@ -44,4 +50,11 @@ public class FacturasVentaUpsertDto
     public int IdMedioPagoCompra { get; set; }
 
     public DateTime FechaPago { get; set; }
+}
+
+public class FacturasVentaUpsertDto : FacturasVentaCreateDto
+{
+    public string? NroComprobante { get; set; }
+
+    public int IdTimbrado { get; set; }
 }

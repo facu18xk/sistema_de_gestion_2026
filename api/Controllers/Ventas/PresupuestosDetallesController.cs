@@ -24,6 +24,7 @@ public class PresupuestosDetallesController : CrudControllerBase<PresupuestosDet
             Producto = entity.IdProductoNavigation?.Descripcion ?? string.Empty,
             Cantidad = entity.Cantidad,
             PrecioUnitario = entity.PrecioUnitario,
+            PrecioVenta = entity.PrecioUnitario,
             Iva = entity.Iva,
             Subtotal = entity.Subtotal
         };

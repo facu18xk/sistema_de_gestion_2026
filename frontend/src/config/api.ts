@@ -25,6 +25,8 @@ export const API_CONFIG = {
     FACTURAS_COMPRA_DETALLES: "/api/FacturasComprasDetalles",
     ORDENES_PAGO_COMPRA: "/api/OrdenesPagosCompras",
     NOTAS_CREDITO_COMPRA: "/api/NotasCreditosCompras",
+    NOTAS_DEVOLUCION_COMPRA: "/api/NotasDevolucionesCompras",
+    NOTAS_DEVOLUCION_COMPRA_DETALLES: "/api/NotasDevolucionesComprasDetalles",
     PROCESOS_CONTABLES: "/api/ProcesosContables",
     EMPLEADOS: "/api/Empleados",
     PARIENTES: "/api/Parientes",

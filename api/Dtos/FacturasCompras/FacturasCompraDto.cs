@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using api.Dtos.FacturasComprasDetalles; 
+
 namespace api.Dtos.FacturasCompras;
 
 public class FacturasCompraDto
@@ -12,6 +16,10 @@ public class FacturasCompraDto
 
     public string Proveedor { get; set; } = string.Empty;
 
+    public int IdEstado { get; set; }
+
+    public string Estado { get; set; } = string.Empty;
+
     public string NroComprobante { get; set; } = string.Empty;
 
     public string Timbrado { get; set; } = string.Empty;
@@ -19,6 +27,8 @@ public class FacturasCompraDto
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
+
+    public IReadOnlyCollection<FacturasComprasDetalleDto> Detalles { get; set; } = Array.Empty<FacturasComprasDetalleDto>();
 }
 
 public class FacturasCompraUpsertDto
@@ -27,6 +37,8 @@ public class FacturasCompraUpsertDto
 
     public int IdProveedor { get; set; }
 
+    public int IdEstado { get; set; }
+
     public string NroComprobante { get; set; } = string.Empty;
 
     public string Timbrado { get; set; } = string.Empty;
@@ -34,4 +46,6 @@ public class FacturasCompraUpsertDto
     public DateTime Fecha { get; set; }
 
     public string Descripcion { get; set; } = string.Empty;
+
+    public IReadOnlyCollection<FacturasComprasDetalleUpsertDto> Detalles { get; set; } = Array.Empty<FacturasComprasDetalleUpsertDto>();
 }

@@ -36,7 +36,9 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
     [HttpGet("completo")]
     public async Task<ActionResult<PagedResultDto<PresupuestoCompletoDto>>> GetAllCompleto([FromQuery] PaginationQueryDto pagination)
     {
-        return Ok(await _ventasCompletasService.GetPresupuestosCompletosAsync(pagination));
+        var result = await _ventasCompletasService.GetPresupuestosCompletosAsync(pagination);
+
+        return Ok(result);
     }
 
     [HttpGet("{id:int}/completo")]
@@ -49,6 +51,42 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
         }
 
         return Ok(presupuesto);
+    }
+
+    [HttpPut("{id:int}/completo")]
+    public async Task<ActionResult<PresupuestoCompletoDto>> UpdateCompleto(int id, PresupuestoCompletoCreateDto dto)
+    {
+        try
+        {
+            var presupuesto = await _ventasCompletasService.UpdatePresupuestoAsync(id, dto);
+            return Ok(presupuesto);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}/completo")]
+    public async Task<IActionResult> DeleteCompleto(int id)
+    {
+        try
+        {
+            await _ventasCompletasService.DeletePresupuestoCompletoAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     protected override PresupuestoDto ToReadDto(Presupuesto entity)
@@ -93,4 +131,5 @@ public class PresupuestosController : CrudControllerBase<Presupuesto, Presupuest
         var persona = cliente?.IdPersonaNavigation;
         return persona is null ? string.Empty : $"{persona.Nombres} {persona.Apellidos}".Trim();
     }
+
 }

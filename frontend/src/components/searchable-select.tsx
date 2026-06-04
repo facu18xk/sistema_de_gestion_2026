@@ -29,9 +29,10 @@ interface SearchableSelectProps {
     placeholder: string
     onSelect: (value: string) => void
     value: string
+    className?: string
 }
 
-export function SearchableSelect({ items, placeholder, onSelect, value }: SearchableSelectProps) {
+export function SearchableSelect({ items, placeholder, onSelect, value, className }: SearchableSelectProps) {
     const [open, setOpen] = React.useState(false)
 
     return (
@@ -41,15 +42,17 @@ export function SearchableSelect({ items, placeholder, onSelect, value }: Search
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-[200px] justify-between bg-white h-9 text-xs font-normal"
+                    className={cn("w-full justify-between bg-white h-9 text-xs font-normal overflow-hidden", className)}
                 >
-                    {value
-                        ? items.find((item) => item.value === value)?.label
-                        : placeholder}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <span className="truncate">
+                        {value
+                            ? items.find((item) => item.value === value)?.label
+                            : placeholder}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 flex-none" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                 <Command>
                     <CommandInput placeholder={`Buscar ${placeholder.toLowerCase()}...`} />
                     <CommandList>

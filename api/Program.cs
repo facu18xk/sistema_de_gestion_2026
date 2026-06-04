@@ -37,9 +37,14 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAsientoContableService, AsientoContableService>();
 builder.Services.AddScoped<IContabilidadReportesService, ContabilidadReportesService>();
 builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGeneratorService>();
+builder.Services.AddScoped<IPagoSalarioService, PagoSalarioService>();
 builder.Services.AddScoped<PreciosVentasService>();
 builder.Services.AddScoped<SalesPriceResolver>();
+builder.Services.AddScoped<TimbradoNumberingService>();
 builder.Services.AddScoped<VentasCompletasService>();
+builder.Services.AddScoped<MovimientoBancarioService>();
+builder.Services.AddScoped<ChequeEmitidoService>();
+ builder.Services.AddScoped<DepositoBancarioService>();
 builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services
@@ -103,8 +108,14 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("http://localhost:3000", "https://facu18xk.github.io",
-                "https://facu18xk.github.io/sistema_de_gestion_2026")
+        policy => policy.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "http://localhost:3002",
+                "http://localhost:3003",
+                "http://localhost:5066",
+                "https://localhost:7299",
+                "https://facu18xk.github.io")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
 });
@@ -134,8 +145,8 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
