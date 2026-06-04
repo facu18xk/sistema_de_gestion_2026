@@ -54,14 +54,14 @@ export function MovimientoBancarioForm({
   useEffect(() => {
     if (movimientoEditado) {
       setFormData({
-        idCuentaBancaria: movimientoEditado.idCuentaBancaria.toString(),
+        idCuentaBancaria: (movimientoEditado.idCuentaBancaria ?? "").toString(),
         idTipoMovimientoBancario:
-          movimientoEditado.idTipoMovimientoBancario.toString(),
-        idEstado: movimientoEditado.idEstado.toString(),
+          (movimientoEditado.idTipoMovimientoBancario ?? "").toString(),
+        idEstado: (movimientoEditado.idEstado ?? "").toString(),
         fecha: toInputDate(movimientoEditado.fecha),
-        monto: movimientoEditado.monto,
-        concepto: movimientoEditado.concepto,
-        referencia: movimientoEditado.referencia,
+        monto: movimientoEditado.monto ?? 0,
+        concepto: movimientoEditado.concepto ?? "",
+        referencia: movimientoEditado.referencia ?? "",
       });
     }
   }, [movimientoEditado]);

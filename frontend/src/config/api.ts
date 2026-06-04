@@ -36,6 +36,7 @@ export const API_CONFIG = {
     CHEQUES_TERCEROS: "/api/ChequesTerceros",
     CHEQUES_MISMO_BANCO: "/api/ChequesMismoBanco",
     DEPOSITOS_BANCARIOS: "/api/DepositosBancarios",
+    DETALLES_DEPOSITOS_BANCARIOS: "/api/DetallesDepositosBancarios",
     TIPOS_DEPOSITOS_BANCARIOS: "/api/TiposDepositosBancarios",
     TIPOS_MOVIMIENTOS_BANCARIOS: "/api/TiposMovimientosBancarios",
     ORDENES_VENTAS: "/api/OrdenesVentas",

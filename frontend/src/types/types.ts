@@ -757,7 +757,7 @@ export interface MovimientoBancario {
     cuentaBancaria: string;
     idTipoMovimientoBancario: number;
     tipoMovimientoBancario: string;
-    idEstado: number;
+    idEstado: number | null;
     estado: string;
     idOrdenMedioPagoCompra: number | null;
     idChequeEmitido: number | null;
@@ -770,7 +770,7 @@ export interface MovimientoBancario {
 export interface MovimientoBancarioSaveDTO {
     idCuentaBancaria: number;
     idTipoMovimientoBancario: number;
-    idEstado: number;
+    idEstado: number | null;
     idOrdenMedioPagoCompra?: number | null;
     idChequeEmitido?: number | null;
     fecha: string;

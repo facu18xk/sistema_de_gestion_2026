@@ -92,6 +92,7 @@ export function ParienteForm({
 
   useEffect(() => {
     if (parienteEditado) {
+      console.log(parienteEditado);
       setFormData({
         idEmpleado: parienteEditado.idEmpleado.toString(),
         tipoRelacion: parienteEditado.tipoRelacion,
