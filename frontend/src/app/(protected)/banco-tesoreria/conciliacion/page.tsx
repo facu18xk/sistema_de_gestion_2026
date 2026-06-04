@@ -20,12 +20,11 @@ import { CuentaBancariaSelector } from "@/components/banco-tesoreria/cuenta-banc
 import { ConciliarChequeForm } from "@/components/banco-tesoreria/conciliar-cheque-form";
 import { chequesEmitidosAPI } from "@/services/chequesEmitidosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
-import { movimientosBancariosAPI } from "@/services/movimientosBancariosAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
 import { notify } from "@/lib/notifications";
-import type { ChequeEmitido, CuentaBancaria, MovimientoBancario } from "@/types/types";
+import type { ChequeEmitido, CuentaBancaria } from "@/types/types";
 
 function esChequePendiente(cheque: ChequeEmitido): boolean {
     if (!cheque.fechaPago) return true;
@@ -39,7 +38,6 @@ export default function ConciliacionBancariaPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
     const [cuentaSel, setCuentaSel] = useState<CuentaBancaria | null>(null);
-    const [movimientos, setMovimientos] = useState<MovimientoBancario[]>([]);
     const [cheques, setCheques] = useState<ChequeEmitido[]>([]);
 
     const [fechaDesde, setFechaDesde] = useState(defaultRango.desde);
@@ -53,13 +51,11 @@ export default function ConciliacionBancariaPage() {
     const cargarDatos = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [resCuentas, resMov, resCheques] = await Promise.all([
+            const [resCuentas, resCheques] = await Promise.all([
                 cuentasBancariasAPI.getAll(1, 200),
-                movimientosBancariosAPI.getAll(1, 500),
                 chequesEmitidosAPI.getAll(1, 500),
             ]);
             setCuentas(resCuentas.items);
-            setMovimientos(resMov.items);
             setCheques(resCheques.items);
         } catch (error) {
             console.error("Error en conciliación:", error);
@@ -72,22 +68,6 @@ export default function ConciliacionBancariaPage() {
     useEffect(() => {
         cargarDatos();
     }, [cargarDatos]);
-
-    const movimientosFiltrados = useMemo(() => {
-        if (!cuentaSel) return [];
-        return movimientos.filter(
-            (m) =>
-                m.idCuentaBancaria === cuentaSel.idCuentaBancaria &&
-                enRangoFecha(m.fecha, fechaDesde, fechaHasta) &&
-                textoCoincide(
-                    searchTerm,
-                    m.concepto,
-                    m.referencia,
-                    m.tipoMovimientoBancario,
-                    m.estado,
-                ),
-        );
-    }, [movimientos, cuentaSel, fechaDesde, fechaHasta, searchTerm]);
 
     const chequesFiltrados = useMemo(() => {
         if (!cuentaSel) return [];
@@ -106,7 +86,6 @@ export default function ConciliacionBancariaPage() {
 
     const chequesPendientes = chequesFiltrados.filter(esChequePendiente);
 
-    const totalMovimientos = movimientosFiltrados.reduce((acc, m) => acc + m.monto, 0);
     const totalChequesPendientes = chequesPendientes.reduce((acc, c) => acc + c.monto, 0);
     const saldoLibro = cuentaSel?.saldo ?? 0;
     const saldoExtractoNum = saldoExtracto ? Number(saldoExtracto) : null;
@@ -153,7 +132,7 @@ export default function ConciliacionBancariaPage() {
             <TesoreriaFiltrosListado
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
-                searchPlaceholder="Buscar en movimientos y cheques del período..."
+                searchPlaceholder="Buscar cheques del período..."
                 showDateRange
                 fechaDesde={fechaDesde}
                 fechaHasta={fechaHasta}
@@ -163,7 +142,7 @@ export default function ConciliacionBancariaPage() {
 
             {cuentaSel && (
                 <div className="p-3 border rounded-lg bg-slate-50/40 shadow-sm mb-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div>
                             <p className="text-[12px] text-muted-foreground uppercase">Saldo en libros</p>
                             <p className="text-lg font-bold">
@@ -197,14 +176,6 @@ export default function ConciliacionBancariaPage() {
                         </div>
                         <div>
                             <p className="text-[12px] text-muted-foreground uppercase">
-                                Movimientos (período)
-                            </p>
-                            <p className="text-lg font-semibold">
-                                {formatMoney(totalMovimientos, cuentaSel.moneda)}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-[12px] text-muted-foreground uppercase">
                                 Cheques pendientes
                             </p>
                             <p className="text-lg font-semibold text-amber-700">
@@ -224,51 +195,7 @@ export default function ConciliacionBancariaPage() {
                     Seleccione una cuenta bancaria para iniciar la conciliación.
                 </p>
             ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-                        <div className="px-3 py-2 bg-slate-50 border-b">
-                            <h2 className="font-semibold text-sm">
-                                Movimientos bancarios ({movimientosFiltrados.length})
-                            </h2>
-                        </div>
-                        <div className="max-h-[380px] overflow-y-auto">
-                            <Table>
-                                <TableHeader className="sticky top-0 bg-slate-50 z-10">
-                                    <TableRow>
-                                        <TableHead>Fecha</TableHead>
-                                        <TableHead>Concepto</TableHead>
-                                        <TableHead className="text-right">Monto</TableHead>
-                                        <TableHead>Estado</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {movimientosFiltrados.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground h-20">
-                                                Sin movimientos en el período.
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        movimientosFiltrados.map((m) => (
-                                            <TableRow key={m.idMovimientoBancario}>
-                                                <TableCell className="text-sm">
-                                                    {formatDate(m.fecha)}
-                                                </TableCell>
-                                                <TableCell className="text-sm max-w-[180px] truncate">
-                                                    {m.concepto}
-                                                </TableCell>
-                                                <TableCell className="text-right font-medium text-sm">
-                                                    {formatMoney(m.monto, cuentaSel.moneda)}
-                                                </TableCell>
-                                                <TableCell className="text-sm">{m.estado}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </div>
-
+                <div className="grid grid-cols-1 gap-4">
                     <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
                         <div className="px-3 py-2 bg-slate-50 border-b flex justify-between items-center">
                             <h2 className="font-semibold text-sm">
