@@ -267,6 +267,7 @@ export interface FacturaVentaCompleto {
 export interface FacturaVentaCompletoSave {
     idPresupuesto: number;
     idCliente: number;
+    idEstado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;

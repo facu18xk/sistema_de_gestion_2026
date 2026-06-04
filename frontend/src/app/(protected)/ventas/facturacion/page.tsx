@@ -150,7 +150,7 @@ export default function FacturasPage() {
     
     const query = searchTerm.toLowerCase().trim();
     return todasLasFacturas.filter(p => 
-      formatearNumeroFactura(p.idFacturaVenta).toLowerCase().toString().includes(query) ||
+      p.nroComprobante.toLowerCase().includes(query) ||
       formatearNumeroPresupuesto(p.idPresupuesto).toLowerCase().toString().includes(query) ||
       p.cliente.toLowerCase().includes(query)
     );
@@ -228,7 +228,7 @@ export default function FacturasPage() {
           const nombreCliente = todasLasFacturas.find((c) => c.idCliente == f.idCliente)?.cliente;
           return (
             <TableRow key={f.idFacturaVenta}>
-              <TableCell className={`${columnWidths.factura}`}>{formatearNumeroFactura(f.idFacturaVenta)}</TableCell>
+              <TableCell className={`${columnWidths.factura}`}>{f.nroComprobante || formatearNumeroFactura(f.idFacturaVenta)}</TableCell>
               <TableCell className={`${columnWidths.presupuesto}`}>{formatearNumeroPresupuesto(f.idPresupuesto)}</TableCell>
               <TableCell className={`${columnWidths.cliente} font-medium`}>{nombreCliente}</TableCell>
               <TableCell className={`${columnWidths.fecha}`}>{new Date(f.fecha).toLocaleDateString()}</TableCell>

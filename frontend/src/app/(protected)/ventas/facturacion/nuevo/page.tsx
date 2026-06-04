@@ -202,6 +202,7 @@ function NuevaFacturaPageContent() {
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
+      idEstado: 7,
       fecha: fechaHoy,
       descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,
@@ -214,8 +215,11 @@ function NuevaFacturaPageContent() {
     };
 
     try {
-      await facturasAPI.create(payload);
-      notify.success("¡Factura Emitida!", "La factura ha sido registrada y procesada con éxito.");
+      const facturaCreada = await facturasAPI.create(payload);
+      notify.success(
+        "¡Factura Emitida!",
+        `Comprobante ${facturaCreada.nroComprobante || "generado"} registrado con éxito.`
+      );
       router.push("/ventas/facturacion");
     } catch (error) {
       console.error("Error al registrar la factura:", error);
