@@ -12,6 +12,14 @@ import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
 import { notify } from "@/lib/notifications"
 import { Loader2 } from "lucide-react"
 
+interface DetalleUI {
+  idProducto: number;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  producto?: { descripcion: string };
+}
+
 export default function EditarNotaDevolucionPage() {
   const router = useRouter()
   const params = useParams()
@@ -32,7 +40,7 @@ export default function EditarNotaDevolucionPage() {
   })
 
   // Estado de los Detalles (Productos a devolver)
-  const [detalles, setDetalles] = useState<Record<string, unknown>[]>([])
+  const [detalles, setDetalles] = useState<DetalleUI[]>([])
 
   useEffect(() => {
     const cargarNota = async () => {
@@ -52,11 +60,13 @@ export default function EditarNotaDevolucionPage() {
         if (data.detalles && data.detalles.length > 0) {
           try {
              const factura = await FacturasCompraAPI.getById(Number(data.idFacturaCompra));
-             const detallesMapeados = data.detalles.map((det: any) => {
+             const detallesMapeados: DetalleUI[] = data.detalles.map((det: any) => {
                 const prodFactura = factura.detalles?.find(fd => fd.idProducto === det.idProducto);
                 return {
-                    ...det,
+                    idProducto: det.idProducto,
                     cantidad: det.cantidad || (det.precioUnitario ? Math.round(det.subtotal / det.precioUnitario) : 0),
+                    precioUnitario: det.precioUnitario,
+                    subtotal: det.subtotal,
                     producto: {
                         descripcion: det.producto?.descripcion || prodFactura?.producto?.descripcion || "Producto " + det.idProducto
                     }
@@ -65,9 +75,12 @@ export default function EditarNotaDevolucionPage() {
              setDetalles(detallesMapeados);
           } catch (err) {
              console.error("Error fetching FacturaCompra details to map description", err);
-             const fallbackDetalles = data.detalles.map((det: any) => ({
-                ...det,
-                cantidad: det.cantidad || (det.precioUnitario ? Math.round(det.subtotal / det.precioUnitario) : 0)
+             const fallbackDetalles: DetalleUI[] = data.detalles.map((det: any) => ({
+                idProducto: det.idProducto,
+                cantidad: det.cantidad || (det.precioUnitario ? Math.round(det.subtotal / det.precioUnitario) : 0),
+                precioUnitario: det.precioUnitario,
+                subtotal: det.subtotal,
+                producto: det.producto || { descripcion: "Producto " + det.idProducto }
              }));
              setDetalles(fallbackDetalles);
           }
@@ -226,14 +239,14 @@ export default function EditarNotaDevolucionPage() {
                       <TableCell>
                         <Input
                           type="text"
-                          value={((det as Record<string, unknown>).producto as Record<string, unknown>)?.descripcion as string || det.idProducto as string}
+                          value={det.producto?.descripcion || det.idProducto}
                           disabled
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
-                          value={det.cantidad as number}
+                          value={det.cantidad}
                           disabled
                         />
                       </TableCell>
