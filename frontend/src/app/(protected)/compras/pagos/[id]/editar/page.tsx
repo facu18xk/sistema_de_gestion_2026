@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams, useParams } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,6 +40,18 @@ interface MedioPagoLinea {
 
 export default function CargarOrdenPagoPage() {
     const router = useRouter()
+    const params = useParams()
+    const searchParams = useSearchParams()
+
+    // 1. Extraemos el ID desde los parámetros de la ruta (/pagos/[id]/editar)
+    const idOrden = params?.id
+
+    // 2. Evaluamos los modos inspeccionando la URL real
+    const isViewMode = searchParams.get("view") === "true" // Si tiene ?view=true
+    const isEditMode = !!idOrden && !isViewMode            // Si tiene ID pero NO ?view=true
+
+    // El formulario base siempre es de solo lectura si existe un idOrden (Ver y Editar)
+    const isReadOnly = !!idOrden
 
     const [proveedores, setProveedores] = useState<any[]>([])
     const [idProveedor, setIdProveedor] = useState<string>("")
@@ -54,6 +66,7 @@ export default function CargarOrdenPagoPage() {
 
     const [fechaPago, setFechaPago] = useState<string>(new Date().toISOString().split('T')[0])
     const [descripcion, setDescripcion] = useState<string>("")
+    const [idEstado, setIdEstado] = useState<number>(1)
 
     const [mediosPago, setMediosPago] = useState<MedioPagoLinea[]>([
         { idMedioPagoCompra: 1, idCuentaBancaria: 0, referencia: "", monto: 0 }
@@ -78,6 +91,9 @@ export default function CargarOrdenPagoPage() {
                 const ordenes = resOP.items || resOP || []
                 const cuentas = resCuentas.items || resCuentas || []
 
+                setCuentasBancarias(cuentas)
+                setProveedores(provs)
+
                 const cuentaCaja = cuentas.find((c: CuentaBancaria) =>
                     c.tipoCuentaBancaria?.toLowerCase().includes("caja") ||
                     c.banco?.toLowerCase().includes("caja") ||
@@ -86,48 +102,80 @@ export default function CargarOrdenPagoPage() {
 
                 if (cuentaCaja) {
                     setIdCuentaCaja(cuentaCaja.idCuentaBancaria)
-                    setMediosPago([{ idMedioPagoCompra: 1, idCuentaBancaria: cuentaCaja.idCuentaBancaria, referencia: "", monto: 0 }])
                 }
 
-                const facturasProcesadasIds = new Set<number>()
-                ordenes.forEach((op: any) => {
-                    if (op.detalles && Array.isArray(op.detalles)) {
-                        op.detalles.forEach((det: any) => facturasProcesadasIds.add(det.idFacturaCompra))
+                if (isReadOnly) {
+                    // Modo VER o EDITAR: Traer la orden guardada usando el ID de la ruta
+                    const opExistente = await ordenesPagosAPI.getById(Number(idOrden))
+                    if (opExistente) {
+                        setIdProveedor(String(opExistente.idProveedor))
+                        setFechaPago(opExistente.fecha ? opExistente.fecha.substring(0, 10) : "")
+                        setDescripcion(opExistente.descripcion || "")
+                        setIdEstado(opExistente.idEstado || 1)
+
+                        const detalles = opExistente.detalles || []
+                        const idsFacturasInvolucradas = detalles.map((d: any) => d.idFacturaCompra)
+
+                        const facturasAsociadas = facturas.filter((f: FacturaCompra) =>
+                            idsFacturasInvolucradas.includes(f.idFacturaCompra)
+                        )
+                        setFacturasPendientes(facturasAsociadas)
+                        setFacturasSeleccionadas(idsFacturasInvolucradas)
+
+                        const mediosMapeados = detalles.map((d: any) => ({
+                            idMedioPagoCompra: d.idMedioPagoCompra || 1,
+                            idCuentaBancaria: d.idCuentaBancaria || 0,
+                            referencia: d.referencia || d.medioPago || "REGISTRO OP",
+                            monto: d.monto || 0
+                        }))
+                        setMediosPago(mediosMapeados)
                     }
-                })
+                } else {
+                    // Modo CREAR (Ruta /pagar): Filtrar deudas pendientes limpia
+                    if (cuentaCaja) {
+                        setMediosPago([{ idMedioPagoCompra: 1, idCuentaBancaria: cuentaCaja.idCuentaBancaria, referencia: "", monto: 0 }])
+                    }
 
-                const facturasLibres = facturas.filter((f: FacturaCompra) => !facturasProcesadasIds.has(f.idFacturaCompra))
+                    const facturasProcesadasIds = new Set<number>()
+                    ordenes.forEach((op: any) => {
+                        if (op.detalles && Array.isArray(op.detalles)) {
+                            op.detalles.forEach((det: any) => facturasProcesadasIds.add(det.idFacturaCompra))
+                        }
+                    })
 
-                const proveedoresConDeudaIds = new Set(facturasLibres.map((f: FacturaCompra) => String(f.idProveedor)))
+                    const facturasLibres = facturas.filter((f: FacturaCompra) => !facturasProcesadasIds.has(f.idFacturaCompra))
+                    const proveedoresConDeudaIds = new Set(facturasLibres.map((f: FacturaCompra) => String(f.idProveedor)))
+                    const proveedoresConDeuda = provs.filter((p: any) => proveedoresConDeudaIds.has(String(p.idProveedor)))
 
-                const proveedoresConDeuda = provs.filter((p: any) => proveedoresConDeudaIds.has(String(p.idProveedor)))
-
-                setFacturasGlobales(facturasLibres)
-                setProveedores(proveedoresConDeuda)
-                setCuentasBancarias(cuentas)
+                    setFacturasGlobales(facturasLibres)
+                    setProveedores(proveedoresConDeuda)
+                }
 
             } catch (err) {
                 console.error(err)
-                notify.error("Error", "No se pudieron cargar los datos iniciales.")
+                notify.error("Error", "No se pudieron procesar los datos de la Orden de Pago.")
             } finally {
                 setIsLoadingData(false)
             }
         }
         inicializarDatos()
-    }, [])
+    }, [idOrden, isReadOnly])
 
     useEffect(() => {
-        if (!idProveedor) {
-            setFacturasPendientes([])
-            setFacturasSeleccionadas([])
+        if (isReadOnly || !idProveedor) {
+            if (!idProveedor) {
+                setFacturasPendientes([])
+                setFacturasSeleccionadas([])
+            }
             return
         }
         const filtradas = facturasGlobales.filter(f => String(f.idProveedor) === String(idProveedor))
         setFacturasPendientes(filtradas)
         setFacturasSeleccionadas([])
-    }, [idProveedor, facturasGlobales])
+    }, [idProveedor, facturasGlobales, isReadOnly])
 
     const toggleFactura = (id: number) => {
+        if (isReadOnly) return
         setFacturasSeleccionadas(prev =>
             prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]
         )
@@ -171,36 +219,30 @@ export default function CargarOrdenPagoPage() {
     }
 
     const handleGuardarOrdenPago = async () => {
-        if (!idProveedor) return notify.error("Campos vacíos", "Debe seleccionar un proveedor.")
-        if (facturasSeleccionadas.length === 0) return notify.error("Sin documentos", "Debe marcar al menos una factura para procesar la orden.")
-
-        const tieneCuentasVacias = mediosPago.some(mp => mp.idCuentaBancaria === 0);
-        if (tieneCuentasVacias) return notify.error("Datos incompletos", "Por favor seleccione la Cuenta Bancaria de origen para transferencias o cheques.");
-
-        if (totalMediosPago !== totalFacturasSeleccionadas) {
-            return notify.error("Descalce de montos", `El total de medios de pago (${totalMediosPago.toLocaleString("es-PY")} Gs.) debe coincidir con el total de las facturas seleccionadas (${totalFacturasSeleccionadas.toLocaleString("es-PY")} Gs.).`)
-        }
-
-        for (const mp of mediosPago) {
-            const cuenta = cuentasBancarias.find(c => c.idCuentaBancaria === mp.idCuentaBancaria);
-            if (cuenta) {
-                const saldoDisponible = cuenta.saldo ?? 0;
-                if (mp.monto > saldoDisponible) {
-                    const nombreMostrar = mp.idMedioPagoCompra === 1
-                        ? "Caja Interna"
-                        : `${cuenta.banco} (${cuenta.numeroCuenta})`;
-
-                    return notify.error(
-                        "Saldo Insuficiente",
-                        `La ${nombreMostrar} no cuenta con fondos suficientes. Saldo actual: ${saldoDisponible.toLocaleString("es-PY")} Gs. Requerido: ${mp.monto.toLocaleString("es-PY")} Gs.`
-                    );
-                }
-            }
-        }
-
         setIsProcesando(true)
         try {
+            // Validaciones estructurales base (Solo aplican rigurosamente en Creación)
+            if (!isEditMode) {
+                if (!idProveedor) return notify.error("Campos vacíos", "Debe seleccionar un proveedor.")
+                if (facturasSeleccionadas.length === 0) return notify.error("Sin documentos", "Debe marcar al menos una factura.")
 
+                const tieneCuentasVacias = mediosPago.some(mp => mp.idCuentaBancaria === 0);
+                if (tieneCuentasVacias) return notify.error("Datos incompletos", "Seleccione la Cuenta Bancaria de origen.");
+
+                if (totalMediosPago !== totalFacturasSeleccionadas) {
+                    return notify.error("Descalce de montos", "El total de medios de pago debe coincidir con el total de facturas.")
+                }
+
+                for (const mp of mediosPago) {
+                    const cuenta = cuentasBancarias.find(c => c.idCuentaBancaria === mp.idCuentaBancaria);
+                    if (cuenta && mp.monto > (cuenta.saldo ?? 0)) {
+                        const nombre = mp.idMedioPagoCompra === 1 ? "Caja Interna" : `${cuenta.banco} (${cuenta.numeroCuenta})`;
+                        return notify.error("Saldo Insuficiente", `La ${nombre} no cuenta con fondos suficientes.`);
+                    }
+                }
+            }
+
+            // Algoritmo de reconstrucción/distribución de líneas (Aplica para ambos modos)
             const facturasAFacturar = facturasPendientes
                 .filter(f => facturasSeleccionadas.includes(f.idFacturaCompra))
                 .map(f => ({ id: f.idFacturaCompra, saldoPendiente: calcularTotalFactura(f) }));
@@ -212,8 +254,7 @@ export default function CargarOrdenPagoPage() {
             }));
 
             const detallesPayload: OrdenPagoCompraDetalleSaveDTO[] = [];
-            let fIdx = 0;
-            let pIdx = 0;
+            let fIdx = 0, pIdx = 0;
 
             while (fIdx < facturasAFacturar.length && pIdx < pagosADistribuir.length) {
                 const factura = facturasAFacturar[fIdx];
@@ -222,7 +263,6 @@ export default function CargarOrdenPagoPage() {
                 if (factura.saldoPendiente === 0) { fIdx++; continue; }
                 if (pago.saldoDisponible === 0) { pIdx++; continue; }
 
-                // Tomamos lo mínimo disponible entre lo que debe la factura y lo que aporta el pago
                 const montoAAplicar = Math.min(factura.saldoPendiente, pago.saldoDisponible);
 
                 detallesPayload.push({
@@ -236,21 +276,29 @@ export default function CargarOrdenPagoPage() {
                 pago.saldoDisponible -= montoAAplicar;
             }
 
+            // Construcción del DTO Completo
             const payloadPrincipal: OrdenPagoCompraSaveDTO = {
                 idProveedor: Number(idProveedor),
-                idEstado: 1,
+                idEstado: idEstado, // Mantiene el estado seleccionado de la UI (Útil para creación (=1) o edición)
                 fecha: new Date(fechaPago).toISOString().split('T')[0],
                 descripcion: descripcion.trim() || `Pago liquidación facturas del proveedor.`,
                 detalles: detallesPayload
             }
 
-            await ordenesPagosAPI.create(payloadPrincipal)
+            if (isEditMode) {
+                // 🚀 ENVIAR EL DTO COMPLETO EN EL PUT
+                await ordenesPagosAPI.update(Number(idOrden), payloadPrincipal)
+                notify.success("Éxito", "Estado de la Orden de Pago actualizado correctamente.")
+            } else {
+                // CREAR ORDEN NUEVA
+                await ordenesPagosAPI.create(payloadPrincipal)
+                notify.success("Éxito", "Orden de Pago emitida correctamente.")
+            }
 
-            notify.success("Éxito", "Orden de Pago emitida correctamente.")
             router.push("/compras/pagos")
         } catch (err: any) {
             console.error(err)
-            notify.error("Error de Procesamiento", err?.response?.data?.message || "Error al procesar la liquidación. Verifique la conexión con el servidor.")
+            notify.error("Error de Procesamiento", err?.response?.data?.message || "Error al procesar la operación.")
         } finally {
             setIsProcesando(false)
         }
@@ -262,20 +310,25 @@ export default function CargarOrdenPagoPage() {
                 steps={[
                     { label: "Compras" },
                     { label: "Órdenes de Pago", href: "/compras/pagos" },
-                    { label: "Emitir Pago" },
+                    { label: isEditMode ? "Editar Estado" : isViewMode ? "Ver Detalle" : "Emitir Pago" },
                 ]}
             />
 
             <main className="container">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-bold tracking-tight">Cargar Orden de Pago</h2>
+                    <h2 className="font-bold tracking-tight">
+                        {isEditMode ? "Modificar Estado de Orden" : isViewMode ? "Detalle de Orden de Pago" : "Cargar Orden de Pago"}
+                    </h2>
                     <Button variant="outline" size="sm" onClick={() => router.push("/compras/pagos")} className="gap-1">
                         <ArrowLeft className="h-4 w-4" /> Volver
                     </Button>
                 </div>
 
-                {/* Cabecera y Selección del Proveedor */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border p-4 rounded-lg bg-card relative">
+                {/* Cabecera de Datos */}
+                <div className={cn(
+                    "grid grid-cols-1 gap-4 mb-6 border p-4 rounded-lg bg-card relative",
+                    isReadOnly ? "md:grid-cols-4" : "md:grid-cols-3"
+                )}>
                     {isLoadingData && (
                         <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center rounded-lg">
                             <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -290,7 +343,7 @@ export default function CargarOrdenPagoPage() {
                                     role="combobox"
                                     aria-expanded={openProveedorModal}
                                     className="w-full justify-between font-normal"
-                                    disabled={isProcesando}
+                                    disabled={isProcesando || isReadOnly}
                                 >
                                     {idProveedor
                                         ? (() => {
@@ -305,7 +358,7 @@ export default function CargarOrdenPagoPage() {
                                 <Command>
                                     <CommandInput placeholder="Buscar por nombre o RUC..." />
                                     <CommandList>
-                                        <CommandEmpty>No se encontraron proveedores con deudas.</CommandEmpty>
+                                        <CommandEmpty>No se encontraron proveedores.</CommandEmpty>
                                         <CommandGroup>
                                             {proveedores.map((p) => (
                                                 <CommandItem
@@ -316,12 +369,7 @@ export default function CargarOrdenPagoPage() {
                                                         setOpenProveedorModal(false)
                                                     }}
                                                 >
-                                                    <Check
-                                                        className={cn(
-                                                            "mr-2 h-4 w-4",
-                                                            idProveedor === String(p.idProveedor) ? "opacity-100" : "opacity-0"
-                                                        )}
-                                                    />
+                                                    <Check className={cn("mr-2 h-4 w-4", idProveedor === String(p.idProveedor) ? "opacity-100" : "opacity-0")} />
                                                     <span className="truncate">{p.razonSocial || p.nombre} — {p.ruc}</span>
                                                 </CommandItem>
                                             ))}
@@ -338,7 +386,7 @@ export default function CargarOrdenPagoPage() {
                             className="h-9 text-xs"
                             value={fechaPago}
                             onChange={(e) => setFechaPago(e.target.value)}
-                            disabled={isProcesando}
+                            disabled={isProcesando || isReadOnly}
                         />
                     </FieldWrapper>
 
@@ -348,25 +396,43 @@ export default function CargarOrdenPagoPage() {
                             placeholder="Ej. Pago correspondiente al mes..."
                             value={descripcion}
                             onChange={(e) => setDescripcion(e.target.value)}
-                            disabled={isProcesando}
+                            disabled={isProcesando || isReadOnly}
                         />
                     </FieldWrapper>
+
+                    {/* El selector de estado se habilita exclusivamente en Modo Edición */}
+                    {isReadOnly && (
+                        <FieldWrapper label="Estado de la Orden" id="selectEstado">
+                            <select
+                                className="h-9 w-full rounded-md border border-input bg-background px-3 text-xs shadow-sm focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 font-bold"
+                                value={idEstado}
+                                onChange={(e) => setIdEstado(Number(e.target.value))}
+                                disabled={isViewMode || isProcesando}
+                            >
+                                <option value={1}>Pendiente / Emitido</option>
+                                <option value={2}>Aprobado / Pagado</option>
+                                <option value={3}>Anulado</option>
+                            </select>
+                        </FieldWrapper>
+                    )}
                 </div>
 
                 {idProveedor && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
-                        {/* IZQUIERDA: Cuentas por Pagar (Facturas) */}
+                        {/* IZQUIERDA: Facturas Involucradas */}
                         <div className="border rounded-lg bg-card overflow-hidden">
                             <div className="bg-muted/50 p-3 border-b flex justify-between items-center">
-                                <span className="text-xs font-bold uppercase tracking-wide">1. Facturas Pendientes</span>
-                                <span className="text-xs font-black text-primary">Deuda Seleccionada: {totalFacturasSeleccionadas.toLocaleString("es-PY")} Gs.</span>
+                                <span className="text-xs font-bold uppercase tracking-wide">
+                                    {isReadOnly ? "Documentos Liquidados" : "1. Facturas Pendientes"}
+                                </span>
+                                <span className="text-xs font-black text-primary">Total Cubierto: {totalFacturasSeleccionadas.toLocaleString("es-PY")} Gs.</span>
                             </div>
 
                             <Table>
                                 <TableHeader>
                                     <TableRow className="text-xs">
-                                        <TableHead className="w-12 text-center">Pagar</TableHead>
+                                        <TableHead className="w-12 text-center">{isReadOnly ? "Estado" : "Pagar"}</TableHead>
                                         <TableHead>Nro. Comprobante</TableHead>
                                         <TableHead>Fecha</TableHead>
                                         <TableHead className="text-right">Monto Neto</TableHead>
@@ -376,7 +442,7 @@ export default function CargarOrdenPagoPage() {
                                     {facturasPendientes.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={4} className="text-center py-6 text-xs text-muted-foreground">
-                                                No existen facturas pendientes para este proveedor.
+                                                No existen documentos vinculados.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -385,10 +451,10 @@ export default function CargarOrdenPagoPage() {
                                                 <TableCell className="text-center">
                                                     <input
                                                         type="checkbox"
-                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+                                                        className="rounded border-gray-300 text-primary h-3.5 w-3.5"
                                                         checked={facturasSeleccionadas.includes(f.idFacturaCompra)}
                                                         onChange={() => toggleFactura(f.idFacturaCompra)}
-                                                        disabled={isProcesando}
+                                                        disabled={isProcesando || isReadOnly}
                                                     />
                                                 </TableCell>
                                                 <TableCell className="font-mono font-bold">{f.nroComprobante}</TableCell>
@@ -401,22 +467,23 @@ export default function CargarOrdenPagoPage() {
                             </Table>
                         </div>
 
-                        {/* DERECHA: Gestión Multimedio de Pagos */}
+                        {/* DERECHA: Medios de Pago Desglosados */}
                         <div className="border rounded-lg bg-card overflow-hidden">
                             <div className="bg-muted/50 p-3 border-b flex justify-between items-center">
-                                <span className="text-xs font-bold uppercase tracking-wide">2. Desglose de Medios de Pago</span>
-                                <span className="text-xs font-black text-emerald-600">Total Cargado: {totalMediosPago.toLocaleString("es-PY")} Gs.</span>
+                                <span className="text-xs font-bold uppercase tracking-wide">
+                                    {isReadOnly ? "Medios de Pago Utilizados" : "2. Desglose de Medios de Pago"}
+                                </span>
+                                <span className="text-xs font-black text-emerald-600">Total Desembolsado: {totalMediosPago.toLocaleString("es-PY")} Gs.</span>
                             </div>
                             <div className="p-3 space-y-3">
                                 {mediosPago.map((mp, index) => (
                                     <div key={index} className="flex gap-2 items-center border-b pb-3 last:border-none last:pb-0">
 
-                                        {/* Selector de Medio de Pago con IDs */}
                                         <select
-                                            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-primary w-1/4"
+                                            className="h-8 rounded-md border border-input bg-background px-2 text-xs w-1/4 disabled:opacity-75"
                                             value={mp.idMedioPagoCompra}
                                             onChange={(e) => handleMedioChange(index, "idMedioPagoCompra", Number(e.target.value))}
-                                            disabled={isProcesando}
+                                            disabled={isProcesando || isReadOnly}
                                         >
                                             <option value={1}>Efectivo</option>
                                             <option value={2}>Transferencia</option>
@@ -424,21 +491,20 @@ export default function CargarOrdenPagoPage() {
                                             <option value={4}>Nota Crédito</option>
                                         </select>
 
-                                        {/* Selector dinámico de Banco (Se oculta si es Efectivo) */}
                                         {mp.idMedioPagoCompra === 1 ? (
                                             <div className="h-8 flex items-center px-3 bg-muted text-muted-foreground rounded-md text-[11px] w-1/3 border font-medium">
                                                 Caja
                                             </div>
                                         ) : (
                                             <select
-                                                className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-primary w-1/3"
+                                                className="h-8 rounded-md border border-input bg-background px-2 text-xs w-1/3 disabled:opacity-75"
                                                 value={mp.idCuentaBancaria}
                                                 onChange={(e) => handleMedioChange(index, "idCuentaBancaria", Number(e.target.value))}
-                                                disabled={isProcesando}
+                                                disabled={isProcesando || isReadOnly}
                                             >
                                                 <option value={0}>Seleccionar Cuenta...</option>
                                                 {cuentasBancarias
-                                                    .filter(c => c.idCuentaBancaria !== idCuentaCaja)
+                                                    .filter(c => c.idCuentaBancaria !== idCuentaCaja || isReadOnly)
                                                     .map(c => (
                                                         <option key={c.idCuentaBancaria} value={c.idCuentaBancaria}>
                                                             {c.banco} — {c.numeroCuenta}
@@ -449,23 +515,23 @@ export default function CargarOrdenPagoPage() {
                                         )}
 
                                         <Input
-                                            className="h-8 text-xs w-1/4"
+                                            className="h-8 text-xs w-1/4 font-mono"
                                             placeholder="Ref / Nro Doc"
                                             value={mp.referencia}
                                             onChange={(e) => handleMedioChange(index, "referencia", e.target.value)}
-                                            disabled={isProcesando || mp.idMedioPagoCompra === 1}
+                                            disabled={isProcesando || isReadOnly || mp.idMedioPagoCompra === 1}
                                         />
 
                                         <Input
                                             type="number"
-                                            className="h-8 text-xs w-1/4 text-right"
+                                            className="h-8 text-xs w-1/4 text-right font-bold"
                                             placeholder="Monto"
                                             value={mp.monto || ""}
                                             onChange={(e) => handleMedioChange(index, "monto", Number(e.target.value))}
-                                            disabled={isProcesando}
+                                            disabled={isProcesando || isReadOnly}
                                         />
 
-                                        {mediosPago.length > 1 && (
+                                        {mediosPago.length > 1 && !isReadOnly && (
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -479,27 +545,31 @@ export default function CargarOrdenPagoPage() {
                                     </div>
                                 ))}
 
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full text-xs h-8 gap-1 border-dashed mt-2"
-                                    onClick={agregarMedioPago}
-                                    disabled={isProcesando}
-                                >
-                                    <Plus className="h-3.5 w-3.5" /> Añadir otro medio de pago
-                                </Button>
+                                {!isReadOnly && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full text-xs h-8 gap-1 border-dashed mt-2"
+                                        onClick={agregarMedioPago}
+                                        disabled={isProcesando}
+                                    >
+                                        <Plus className="h-3.5 w-3.5" /> Añadir otro medio de pago
+                                    </Button>
+                                )}
                             </div>
                         </div>
 
                     </div>
                 )}
 
-                {/* Botón de Guardado e Impacto Final */}
-                {idProveedor && (
+                {/* Footer de Acciones Dinámico */}
+                {idProveedor && (!isViewMode || isEditMode) && (
                     <div className="flex justify-between items-center mt-6 pt-4 border-t">
                         <div className="text-xs text-muted-foreground">
-                            {totalFacturasSeleccionadas === totalMediosPago ? (
+                            {isEditMode ? (
+                                <span className="text-amber-600 font-medium">⚠️ Modo edición: Se actualizará el estado de la Orden.</span>
+                            ) : totalFacturasSeleccionadas === totalMediosPago ? (
                                 <span className="text-emerald-600 font-medium"> Balance correcto. Listo para asentar.</span>
                             ) : (
                                 <span className="text-destructive font-medium"> Diferencia: {(totalFacturasSeleccionadas - totalMediosPago).toLocaleString("es-PY")} Gs.</span>
@@ -508,11 +578,13 @@ export default function CargarOrdenPagoPage() {
                         <Button
                             size="sm"
                             onClick={handleGuardarOrdenPago}
-                            disabled={isProcesando || isLoadingData || totalFacturasSeleccionadas !== totalMediosPago || totalFacturasSeleccionadas === 0}
-                            className="gap-1.5"
+                            disabled={isProcesando || isLoadingData || (!isEditMode && (totalFacturasSeleccionadas !== totalMediosPago || totalFacturasSeleccionadas === 0))}
+                            className={cn("gap-1.5", isEditMode && "bg-amber-600 hover:bg-amber-700 text-white")}
                         >
                             {isProcesando ? (
                                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Procesando...</>
+                            ) : isEditMode ? (
+                                <><Save className="h-3.5 w-3.5" /> Actualizar Estado</>
                             ) : (
                                 <><Save className="h-3.5 w-3.5" /> Confirmar Orden de Pago</>
                             )}

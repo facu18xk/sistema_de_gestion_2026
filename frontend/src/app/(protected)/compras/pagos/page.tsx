@@ -25,6 +25,14 @@ export const formatPagoNro = (id: number | string) => {
     return `PP-${String(id).padStart(4, "0")}`;
 };
 
+export default function OrdenesPagosPage() {
+    return (
+        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando pagos...</div>}>
+            <OrdenesPagosPageContent />
+        </Suspense>
+    );
+}
+
 function OrdenesPagosPageContent() {
     const searchParams = useSearchParams();
 
@@ -216,7 +224,7 @@ function OrdenesPagosPageContent() {
     const tieneFiltrosActivos = Object.values(filters).some((val) => val !== "");
 
     // Estilos de insignias alineados con el diseño general
-    const getEstadoBadgeStyle = (estado: string, idEstado?: number) => {
+    const getEstadoBadgeStyle = (estado?: string, idEstado?: number) => {
         const est = estado?.toLowerCase() || "";
         const idStr = String(idEstado || "");
 
@@ -333,7 +341,7 @@ function OrdenesPagosPageContent() {
                                                 <TableCell className="text-center">
                                                     <div className="flex justify-center gap-1">
                                                         {/* Inspeccionar Orden */}
-                                                        <Link href={`/compras/pagos/${op.idOrdenPagoCompra}?view=true`}>
+                                                        <Link href={`/compras/pagos/${op.idOrdenPagoCompra}/editar?view=true`}>
                                                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Inspeccionar">
                                                                 <Eye className="h-3.5 w-3.5" />
                                                             </Button>
@@ -397,13 +405,5 @@ function OrdenesPagosPageContent() {
                 )}
             </main>
         </div>
-    );
-}
-
-export default function OrdenesPagosPage() {
-    return (
-        <Suspense fallback={<div className="flex justify-center p-6"><Loader2 className="animate-spin text-primary" /></div>}>
-            <OrdenesPagosPageContent />
-        </Suspense>
     );
 }

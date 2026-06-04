@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 
-export default function NuevaNotaCreditoCompraPage() {
-    notFound()
+export default function NuevaNotaCompraLegacyPage() {
+    redirect("/compras/notas-de-devolucion/generar")
 }

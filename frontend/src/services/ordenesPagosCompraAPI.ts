@@ -1,16 +1,26 @@
 import api from "@/services/api";
 import { API_CONFIG } from "@/config/api";
-import { OrdenPagoCompraSaveDTO, OrdenPagoCompraDetalleSaveDTO } from "@/types/types";
+import {
+    OrdenPagoCompra,
+    OrdenPagoCompraSaveDTO,
+    OrdenPagoCompraDetalleSaveDTO,
+    PaginatedResponse,
+} from "@/types/types";
 
 export const ordenesPagosAPI = {
-    getAll: async (page: number, pageSize: number) => {
+    getAll: async (page: number, pageSize: number): Promise<PaginatedResponse<OrdenPagoCompra>> => {
         const response = await api.get(API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA, {
             params: { Page: page, PageSize: pageSize },
         });
         return response.data;
     },
 
-    create: async (payload: OrdenPagoCompraSaveDTO) => {
+    getById: async (id: number): Promise<OrdenPagoCompra> => {
+        const response = await api.get(`${API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA}/${id}`);
+        return response.data;
+    },
+
+    create: async (payload: OrdenPagoCompraSaveDTO): Promise<OrdenPagoCompra> => {
         const response = await api.post(API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA, payload);
         return response.data;
     },

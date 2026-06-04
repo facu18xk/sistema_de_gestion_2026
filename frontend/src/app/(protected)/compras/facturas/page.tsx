@@ -25,6 +25,14 @@ export const formatOrdenNro = (id: number | string) => {
     return `OC-${String(id).padStart(4, "0")}`
 }
 
+export default function FacturasPage() {
+    return (
+        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando facturas...</div>}>
+            <FacturasPageContent />
+        </Suspense>
+    )
+}
+
 function FacturasPageContent() {
     const searchParams = useSearchParams()
 
@@ -485,13 +493,5 @@ function FacturasPageContent() {
                 )}
             </main>
         </div>
-    )
-}
-
-export default function FacturasPage() {
-    return (
-        <Suspense fallback={<div className="flex justify-center p-6"><Loader2 className="animate-spin text-primary" /></div>}>
-            <FacturasPageContent />
-        </Suspense>
     )
 }

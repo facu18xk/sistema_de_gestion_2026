@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,14 @@ import {
 import { esVigenteParaNotaCredito } from "@/utils/date-utils";
 
 export default function NuevaDevolucionPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando devolución...</div>}>
+      <NuevaDevolucionContent />
+    </Suspense>
+  );
+}
+
+function NuevaDevolucionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idFacturaQuery = searchParams.get("facturaId");
@@ -135,8 +143,13 @@ export default function NuevaDevolucionPage() {
       idProducto: item.idProducto,
       descripcion: item.producto,
       precioUnitario: item.precioUnitario,
+      esServicio: false,
       porcentajeIva: 10, // Puedes estimarlo o mapearlo según tu lógica (ej: item.totalIva > 0 ? 10 : 0)
-      cantidadTotal: item.cantidad // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
+      cantidadTotal: item.cantidad, // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
+      idMarca: 0,
+      marca: "",
+      idCategoria: 0,
+      categoria: "",
     }));
   };
 
@@ -144,7 +157,7 @@ export default function NuevaDevolucionPage() {
     // Buscamos cuánto se compró originalmente en la factura
     const itemOriginal = facturaSeleccionada?.items.find(i => i.idProducto === prodMapeado.idProducto);
     const maxCantFacturada = itemOriginal ? itemOriginal.cantidad : 0;
-    const yaDevueltoPrevio = itemOriginal ? itemOriginal.cantidadDevuelta : 0;
+    const yaDevueltoPrevio = itemOriginal?.cantidadDevuelta ?? 0;
     const saldoDisponible = maxCantFacturada - yaDevueltoPrevio;
 
     if (saldoDisponible <= 0) {

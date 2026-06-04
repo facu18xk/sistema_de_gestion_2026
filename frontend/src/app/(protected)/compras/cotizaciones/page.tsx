@@ -31,13 +31,13 @@ export const formatPedidoNro = (id: number | string) => {
 
 export default function CotizacionesPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center p-6"><Loader2 className="animate-spin text-primary" /></div>}>
-      <CotizacionesContent />
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando cotizaciones...</div>}>
+      <CotizacionesPageContent />
     </Suspense>
   );
 }
 
-function CotizacionesContent() {
+function CotizacionesPageContent() {
   const searchParams = useSearchParams();
 
   const [cotizaciones, setCotizaciones] = useState<CotizacionDTO[]>([]);
@@ -271,6 +271,15 @@ function CotizacionesContent() {
     return "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300";
   };
 
+  const getEstadoStyle = (estado?: string) => {
+    switch (estado?.toLowerCase()) {
+      case 'pendiente': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'aprobado':
+      case 'completado': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'cancelado': return 'bg-rose-50 text-rose-700 border-rose-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
   const getEstadoLiteral = (estado?: string, idEstado?: number) => {
     if (estado) return estado;
     if (idEstado === 1) return "Pendiente";
@@ -386,7 +395,7 @@ function CotizacionesContent() {
                           {c.fecha ? c.fecha.substring(0, 10) : "—"}
                         </TableCell>
                         <TableCell className="text-xs flex flex-col gap-1 items-start">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(c.estado, c.idEstado)}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoStyle(c.estado)}`}>
                             {getEstadoLiteral(c.estado, c.idEstado)}
                           </span>
                           {tieneOrden && (

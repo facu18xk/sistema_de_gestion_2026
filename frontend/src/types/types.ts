@@ -233,6 +233,7 @@ export interface FacturaVentaItem {
     idProducto: number;
     producto: string;
     cantidad: number;
+    cantidadDevuelta?: number;
     precioUnitario: number;
     totalBruto: number;
     totalIva: number;
@@ -267,7 +268,9 @@ export interface FacturaVentaCompleto {
 export interface FacturaVentaCompletoSave {
     idPresupuesto: number;
     idCliente: number;
+    nroComprobante: string;
     idEstado: number;
+    idTimbrado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -294,6 +297,8 @@ export interface FacturaVentaCabecera {
     idCliente: number;
     cliente: string;
     nroComprobante: string;
+    idEstado: number;
+    estado: string;
     idTimbrado: number;
     timbrado: string;
     timbradoRuc: string;
@@ -355,7 +360,7 @@ export interface NotaCreditoVenta {
 export interface NotaCreditoVentaSave {
     idFacturaVenta: number;
     idEstado?: number;
-    idTimbrado: number;
+    idTimbrado?: number;
     motivo: string;
     fechaEmision: string;
     items: NotaCreditoVentaItemSave[];
@@ -1035,12 +1040,17 @@ export interface OrdenPagoCompraDetalle {
     monto: number;
     montoPagado?: number;
     subtotal?: number;
+    idMedioPagoCompra?: number;
+    idCuentaBancaria?: number;
+    referencia?: string;
+    medioPago?: string;
 }
 
 export interface FacturaCompraDetalleBulkDTO extends FacturaCompraDetalleSaveDTO {}
 
 export interface OrdenPagoCompra {
     idOrdenPagoCompra: number;
+    id?: number;
     idProveedor: number;
     proveedor?: string;
     idEstado?: number;
@@ -1056,12 +1066,15 @@ export interface OrdenPagoCompraSaveDTO {
     idEstado: number;
     fecha: string;
     descripcion: string;
+    detalles?: OrdenPagoCompraDetalleSaveDTO[];
 }
 
 export interface OrdenPagoCompraDetalleSaveDTO {
-    idOrdenPagoCompra: number;
+    idOrdenPagoCompra?: number;
     idFacturaCompra: number;
     monto: number;
+    idMedioPagoCompra?: number;
+    idCuentaBancaria?: number;
 }
 
 export interface NotaCreditoItemForm {

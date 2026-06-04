@@ -26,6 +26,14 @@ import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { OrdenCompraDTO, Proveedor } from "@/types/types"
 import { notify } from "@/lib/notifications"
 
+export default function OrdenesPage() {
+    return (
+        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando órdenes...</div>}>
+            <OrdenesPageContent />
+        </Suspense>
+    )
+}
+
 function OrdenesPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -425,13 +433,5 @@ function OrdenesPageContent() {
                 </DataTable>
             )}
         </>
-    )
-}
-
-export default function OrdenesPage() {
-    return (
-        <Suspense fallback={<div className="flex justify-center p-6"><Loader2 className="animate-spin text-primary" /></div>}>
-            <OrdenesPageContent />
-        </Suspense>
     )
 }
