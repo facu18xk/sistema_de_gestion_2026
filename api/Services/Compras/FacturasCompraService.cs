@@ -89,6 +89,119 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
         }
     }
 
+    public override async Task<FacturasCompra> UpdateAsync(int id, FacturasCompra incomingEntity)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var existingEntity = await BuildQuery().FirstOrDefaultAsync(BuildKeyPredicate(id));
+
+            if (existingEntity == null)
+                throw new KeyNotFoundException($"FacturaCompra con ID {id} no encontrada.");
+
+            UpdateEntity(existingEntity, incomingEntity);
+
+            var existingDetalles = existingEntity.FacturasComprasDetalles.ToList();
+            var incomingDetalles = incomingEntity.FacturasComprasDetalles?.ToList() ?? new List<FacturasComprasDetalle>();
+
+            foreach (var existingDetalle in existingDetalles)
+            {
+                if (!incomingDetalles.Any(d => d.IdFacturaCompraDetalle == existingDetalle.IdFacturaCompraDetalle && d.IdFacturaCompraDetalle != 0))
+                {
+                    var stock = await _context.StocksDepositos
+                        .FirstOrDefaultAsync(s => s.IdProducto == existingDetalle.IdProducto && s.IdDeposito == 1);
+                    if (stock != null)
+                    {
+                        stock.Cantidad -= existingDetalle.Cantidad;
+                        _context.StocksDepositos.Update(stock);
+                    }
+
+                    _context.FacturasComprasDetalles.Remove(existingDetalle);
+                }
+            }
+
+
+            foreach (var incomingDetalle in incomingDetalles)
+            {
+                if (incomingDetalle.IdFacturaCompraDetalle > 0)
+                {
+    
+                    var existingDetalle = existingDetalles.FirstOrDefault(d => d.IdFacturaCompraDetalle == incomingDetalle.IdFacturaCompraDetalle);
+                    if (existingDetalle != null)
+                    {
+                        if (existingDetalle.IdProducto == incomingDetalle.IdProducto)
+                        {
+            
+                            var difCantidad = incomingDetalle.Cantidad - existingDetalle.Cantidad;
+                            if (difCantidad != 0)
+                            {
+                                var stock = await _context.StocksDepositos
+                                    .FirstOrDefaultAsync(s => s.IdProducto == existingDetalle.IdProducto && s.IdDeposito == 1);
+                                if (stock != null)
+                                {
+                                    stock.Cantidad += difCantidad;
+                                    _context.StocksDepositos.Update(stock);
+                                }
+                            }
+                        }
+                        else
+                        {
+                    
+                            var stockViejo = await _context.StocksDepositos.FirstOrDefaultAsync(s => s.IdProducto == existingDetalle.IdProducto && s.IdDeposito == 1);
+                            if (stockViejo != null) { stockViejo.Cantidad -= existingDetalle.Cantidad; }
+
+                            var stockNuevo = await _context.StocksDepositos.FirstOrDefaultAsync(s => s.IdProducto == incomingDetalle.IdProducto && s.IdDeposito == 1);
+                            if (stockNuevo != null) { stockNuevo.Cantidad += incomingDetalle.Cantidad; }
+                            else { await _context.StocksDepositos.AddAsync(new StocksDeposito { IdDeposito = 1, IdProducto = incomingDetalle.IdProducto, Cantidad = incomingDetalle.Cantidad }); }
+                        }
+
+            
+                        existingDetalle.IdProducto = incomingDetalle.IdProducto;
+                        existingDetalle.Cantidad = incomingDetalle.Cantidad;
+                        existingDetalle.PrecioUnitario = incomingDetalle.PrecioUnitario;
+                        existingDetalle.TotalBruto = incomingDetalle.TotalBruto;
+                        existingDetalle.TotalIva = incomingDetalle.TotalIva;
+                        existingDetalle.TotalNeto = incomingDetalle.TotalNeto;
+                    }
+                }
+                else
+                {
+        
+                    incomingDetalle.IdFacturaCompra = existingEntity.IdFacturaCompra;
+                    existingEntity.FacturasComprasDetalles.Add(incomingDetalle);
+
+    
+                    var stock = await _context.StocksDepositos
+                        .FirstOrDefaultAsync(s => s.IdProducto == incomingDetalle.IdProducto && s.IdDeposito == 1);
+                    if (stock != null)
+                    {
+                        stock.Cantidad += incomingDetalle.Cantidad;
+                        _context.StocksDepositos.Update(stock);
+                    }
+                    else
+                    {
+                        await _context.StocksDepositos.AddAsync(new StocksDeposito
+                        {
+                            IdDeposito = 1,
+                            IdProducto = incomingDetalle.IdProducto,
+                            Cantidad = incomingDetalle.Cantidad
+                        });
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return existingEntity;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
     private IQueryable<FacturasCompra> BuildQuery()
     {
         return _context.FacturasCompras
