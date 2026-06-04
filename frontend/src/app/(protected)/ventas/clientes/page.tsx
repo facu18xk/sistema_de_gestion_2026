@@ -162,8 +162,14 @@ export default function ProveedoresPage() {
     try {
       const resPaginada = await clientesAPI.getAll(currentPage, 100);
       //setClientes(resPaginada.items);
-      setTodosLosClientes(resPaginada.items);
-      console.log("aqui")
+      const ordenados = [...resPaginada.items].sort((a, b) => {
+        const nombreComp = a.nombres.localeCompare(b.nombres, 'es-PY');
+        if (nombreComp === 0) {
+          return a.apellidos.localeCompare(b.apellidos, 'es-PY');
+        }
+        return nombreComp;
+      });
+      setTodosLosClientes(ordenados);
       //console.log(resPaginada);
       //setTotalPages(resPaginada.totalPages);
     } catch (error) {
@@ -278,7 +284,6 @@ export default function ProveedoresPage() {
         await clientesAPI.create(cleanData);
         notify.success("Registrado", "Nuevo cliente guardado.");
       }
-
       setIsSheetOpen(false);
       cargarPagina();
     } catch (error) {

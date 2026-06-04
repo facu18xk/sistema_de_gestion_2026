@@ -5,6 +5,14 @@ import { formatNumberDots } from "@/utils/money-format";
 import { ProductoDTO, PreciosVentas } from "@/types/types";
 import { formatearNumeroProducto } from "@/utils/producto-format";
 
+const columnWidths = {
+  codigo: "w-[100px]",
+  producto: "w-[120px]",
+  precio: "w-[120px]",
+  stock: "w-[80px]",
+  acciones: "w-[100px]",
+};
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -53,11 +61,11 @@ export const ProductoSelector = ({ isOpen, onClose, onSelect, productos, precios
           <table className="w-full text-sm">
             <thead className="bg-muted sticky top-0">
               <tr>
-                <th className="p-2 text-left">Código</th>
-                <th className="p-2 text-left">Producto</th>
-                <th className="p-2 text-right">Precio</th>
-                <th className="p-2 text-center">Stock</th>
-                <th className="p-2"></th>
+                <th className={`p-2 text-left ${columnWidths.codigo}`}>Código</th>
+                <th className={`p-2 text-left ${columnWidths.producto}`}>Producto</th>
+                <th className={`p-2 text-right ${columnWidths.precio}`}>Precio</th>
+                <th className={`p-2 text-center ${columnWidths.stock}`}>Stock</th>
+                <th className={`p-2 ${columnWidths.acciones}`}></th>
               </tr>
             </thead>
             <tbody>
@@ -71,7 +79,7 @@ export const ProductoSelector = ({ isOpen, onClose, onSelect, productos, precios
                   <td className="p-2 font-medium">{p.descripcion}</td>
                   <td className="p-2 text-right">Gs. {formatNumberDots(p.precioVentaVigente)}</td>
                   <td className={`p-2 text-center ${p.cantidadTotal <= 0 ? 'text-red-500 font-bold' : ''}`}> {/*Cambiar a otro número */}
-                    {p.cantidadTotal}
+                    {p.esServicio ? "-" : p.cantidadTotal}
                   </td>
                   <td className="p-2 text-right">
                     <button className="text-primary hover:underline">Seleccionar</button>

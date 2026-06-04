@@ -49,7 +49,7 @@ const modulos = [
       "Reportes",
     ],
   },
-  { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
+  { title: "Stock", items: ["Productos", "Servicios", "Depósitos", "Movimientos"] },
   { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
   {
     title: "Contabilidad",
@@ -72,6 +72,7 @@ const routeByItem: Record<string, string> = {
   Pedidos: "/compras/pedidos",
   Cotizaciones: "/compras/cotizaciones",
   Productos: "/stock/productos",
+  Servicios: "/stock/servicios",
   Empleados: "/personas/empleados",
   Parientes: "/personas/parientes",
   "Proceso Contable": "/contabilidad/proceso-contable",

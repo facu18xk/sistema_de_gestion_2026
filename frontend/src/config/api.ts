@@ -34,7 +34,7 @@ export const API_CONFIG = {
     ASIENTOS_COMPLETO: "/api/Asientos/completo",
     REPORTES_CONTABLES: "/api/contabilidad/reportes",
     INVOICES: "/api/FacturasVentas",
-    TIMBRADO: "/api/OrdenesVentas",
+    TIMBRADO: "/api/Timbrados",
     BANCOS: "/api/Bancos",
     CUENTAS_BANCARIAS: "/api/CuentasBancarias",
     TIPOS_CUENTAS_BANCARIAS: "/api/TiposCuentasBancarias",
@@ -50,5 +50,7 @@ export const API_CONFIG = {
     MEDIOS_PAGO: "/api/MediosPagosCompras",
     STOCK: "/api/StocksDepositos",
     NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
+    ORDENES_PAGO_COMPRA_DETALLES: "/api/OrdenesPagosComprasDetalles",
+    NOTAS_CREDITO_COMPRA_DETALLES: "/api/NotasCreditosComprasDetalles",
   },
 } as const;

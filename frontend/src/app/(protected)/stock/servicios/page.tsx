@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo } from "react"
 import { Pencil, Trash2, Loader2, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ProductoForm } from "@/components/stock/producto-form"
-import { Input } from "@/components/ui/input"
+import { ServicioForm } from "@/components/stock/servicio-form"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Input } from "@/components/ui/input"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,56 +28,40 @@ import { categoriasAPI } from "@/services/categoriasAPI"
 import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types"
 import { formatGuaranies } from "@/utils/money-format"
 import { notify } from "@/lib/notifications"
-import { formatearNumeroProducto } from "@/utils/producto-format"
 
 const columnWidths = {
-  codigo: "w-[80px]",
-  descripcion: "w-[25%]",
-  marca: "w-[100px]",
+  descripcion: "w-[200px]",
   categoria: "w-[100px]",
-  precio: "w-[100px]",
-  stock: "w-[80px]",
-  acciones: "w-[80px]",
+  precio: "w-[120px]",
+  iva: "w-[120px]",
+  acciones: "w-[100px]",
 };
 
-export default function ProductosPage() {
+export default function ServiciosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  //const [productos, setProductos] = useState<ProductoDTO[]>([])
-  const [todosLosProductos, setTodosLosProductos] = useState<ProductoDTO[]>([]);
-  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null);
-  const [productoAEliminar, setProductoAEliminar] = useState<ProductoDTO | null>(null);
+  const [todosLosServicios, setTodosLosServicios] = useState<ProductoDTO[]>([]);
+  const [servicioAEditar, setServicioAEditar] = useState<ProductoDTO | null>(null);
+  const [servicioAEliminar, setServicioAEliminar] = useState<ProductoDTO | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  //const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(8); //10 por defecto
   const [searchTerm, setSearchTerm] = useState("");
 
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
     setIsLoading(true);
     try {
-      const [resPaginada, resMarcas, resCategorias] = await Promise.all([
-        productosAPI.getAll(currentPage, 100),
-        marcasAPI.getAll(),
-        categoriasAPI.getAll()
-      ])
-      //setProductos(resPaginada.items);
-      const soloProductos = resPaginada.items.filter((s) => s.esServicio === false);
-      const ordenados = [...soloProductos].sort((a, b) => {
+      const resPaginada = await productosAPI.getAll(currentPage, 100);
+      const soloServicios = resPaginada.items.filter((s) => s.esServicio === true);
+      const ordenados = [...soloServicios].sort((a, b) => {
         const porDescripcion = a.descripcion.localeCompare(b.descripcion, 'es-PY');
-        if (porDescripcion === 0) {
-          return a.marca.localeCompare(b.marca, 'es-PY');
-        }
         return porDescripcion;
       });
-      setTodosLosProductos(ordenados);
-      //console.log(resPaginada.items)
-      //setTotalPages(resPaginada.totalPages);
-      setMarcas(resMarcas.items);
-      setCategorias(resCategorias);
+      setTodosLosServicios(ordenados);
+      console.log("Servicios:",soloServicios)
     } catch (error) {
       console.error("Error al cargar datos de la página:", error);
       notify.error ("Error", "Error al cargar la página");
@@ -86,83 +70,40 @@ export default function ProductosPage() {
     }
   }
 
-  const cargarMarcas = async () => {
-    try {
-      const response = await marcasAPI.getAll();
-      setMarcas(response.items);
-    } catch (error) {
-      console.error("Error al cargar datos de marcas:", error);
-      notify.error ("Error", "Error al cargar las marcas");
-    }
-  }
-
-  const cargarCategorias = async () => {
-    try {
-      const response = await categoriasAPI.getAll();
-      setCategorias(response);
-    } catch (error) {
-      console.error("Error al cargar datos de categorías:", error);
-      notify.error ("Error", "Error al cargar las categorías");
-    }
-  }
-
   //useEffect(() => { cargarPagina() }, [currentPage]);
   useEffect(() => { cargarPagina() }, []);
 
-  //FILTRO DE BÚSQUEDA
-  const productosFiltrados = useMemo(() => {
-    if (!searchTerm.trim()) return todosLosProductos;
-    
-    const query = searchTerm.toLowerCase().trim();
-    return todosLosProductos.filter(p => 
-      p.descripcion.toLowerCase().includes(query) || 
-      formatearNumeroProducto(p.idProducto).toLowerCase().toString().includes(query) ||
-      (p.marca && p.marca.toLowerCase().includes(query)) ||
-      (p.categoria && p.categoria.toLowerCase().includes(query))
-    );
-  }, [searchTerm, todosLosProductos]);
-
-  const totalPages = Math.ceil(productosFiltrados.length / itemsPerPage) || 1;
-
-  const productosVisiblesEnPagina = useMemo(() => {
-    const primerItemIndex = (currentPage - 1) * itemsPerPage;
-    const ultimoItemIndex = primerItemIndex + itemsPerPage;
-    return productosFiltrados.slice(primerItemIndex, ultimoItemIndex);
-  }, [currentPage, productosFiltrados]);
-
-  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
-
-  //ACCIONES (CREAR / EDITAR / ELIMINAR)
-  const handleCrearNuevo = () => { setProductoAEditar(null); setIsSheetOpen(true); }
+  // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
+  const handleCrearNuevo = () => { setServicioAEditar(null); setIsSheetOpen(true); }
   
-  const handleEditar = (p: ProductoDTO) => { setProductoAEditar(p); setIsSheetOpen(true); }
+  const handleEditar = (p: ProductoDTO) => { setServicioAEditar(p); setIsSheetOpen(true); }
 
   const confirmarEliminacion = async () => {
-    if (productoAEliminar) {
+    if (servicioAEliminar) {
       try {
-        await productosAPI.delete(productoAEliminar.idProducto);
-        notify.success("Eliminado", "Producto quitado del stock");
+        await productosAPI.delete(servicioAEliminar.idProducto);
+        notify.success("Eliminado", "Servicio quitado del stock");
         await cargarPagina(); // Recarga la página actual
       } catch (error) {
-        console.error("Error al eliminar el producto:", error);
-        notify.error("Error", "No se pudo eliminar. El producto tiene objetos asociados.");
+        console.error("Error al eliminar el servicio:", error);
+        notify.error("Error", "No se pudo eliminar. El servicio tiene objetos asociados.");
       } finally {
         setIsAlertOpen(false);
-        setProductoAEliminar(null);
+        setServicioAEliminar(null);
       }
     }
   };
 
   const handleFormSubmit = async (data: ProductoSaveDTO) => {
     try {
-      if (productoAEditar) {
-        //console.log(data);
-        await productosAPI.update(productoAEditar.idProducto, data)
-        notify.success("Actualizado", "Producto actualizado correctamente.");
+      if (servicioAEditar) {
+        //console.log("Update", data);
+        await productosAPI.update(servicioAEditar.idProducto, data)
+        notify.success("Actualizado", "Servicio actualizado correctamente.");
       } else {
-        //console.log(data);
+        //console.log("Nuevo:", data);
         await productosAPI.create(data)
-        notify.success("Registrado", "Nuevo producto guardado.");
+        notify.success("Registrado", "Nuevo servicio guardado.");
       }
       setIsSheetOpen(false)
       cargarPagina() // Refrescar la tabla
@@ -172,20 +113,40 @@ export default function ProductosPage() {
     }
   }
 
-  //console.log(productoAEliminar)
+  //FILTRO DE BÚSQUEDA
+  const serviciosFiltrados = useMemo(() => {
+      if (!searchTerm.trim()) return todosLosServicios;
+      
+      const query = searchTerm.toLowerCase().trim();
+      return todosLosServicios.filter(p => 
+        p.descripcion.toLowerCase().includes(query)
+      );
+    }, [searchTerm, todosLosServicios]);
+
+    const totalPages = Math.ceil(serviciosFiltrados.length / itemsPerPage) || 1;
+
+    const serviciosVisiblesEnPagina = useMemo(() => {
+      const primerItemIndex = (currentPage - 1) * itemsPerPage;
+      const ultimoItemIndex = primerItemIndex + itemsPerPage;
+      return serviciosFiltrados.slice(primerItemIndex, ultimoItemIndex);
+    }, [currentPage, serviciosFiltrados]);
+
+    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+
+  //console.log(servicioAEliminar)
 
   return (
     <> {/*src/app/(protected)/layout.tsx ya contiene Navbar y div Container*/}
       {/*BREADCRUMB*/}
-      <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]} />
+      <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Servicios" }]} />
       {/*BOTÓN ADD*/}
-      <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
+      <PageHeader title="Listado de Servicios" buttonLabel="Nuevo Servicio" onButtonClick={handleCrearNuevo} />
       {/* INPUT DEL BUSCADOR LOCAL */}
-      <div className="my-4 flex items-center max-w-md relative">
+      <div className="my-2 flex items-center max-w-md relative">
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por código, descripción, marca o categoría..."
+            placeholder="Buscar por descripción..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -208,9 +169,9 @@ export default function ProductosPage() {
         <AlertDialogHeader>
           <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción no se puede deshacer. Eliminarás permanentemente el producto{" "}
+            Esta acción no se puede deshacer. Eliminarás permanentemente el servicio{" "}
             <span className="font-bold text-foreground">
-              "{productoAEliminar?.descripcion}"
+              "{servicioAEliminar?.descripcion}"
             </span>{" "}
             y se quitará del servidor.
           </AlertDialogDescription>
@@ -221,7 +182,7 @@ export default function ProductosPage() {
             onClick={confirmarEliminacion}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Eliminar Producto
+            Eliminar Servicio
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -231,15 +192,14 @@ export default function ProductosPage() {
         <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>
       ) : (
         <DataTable
-          caption="Lista actualizada de productos en inventario."
+          caption="Lista actualizada de servicios en inventario."
           headerRow={
             <TableRow>
-              <TableHead className={`${columnWidths.codigo}`}>Código</TableHead>
+              {/*<TableHead className="w-[80px]">ID</TableHead>*/}
               <TableHead className={`${columnWidths.descripcion}`}>Descripción</TableHead>
-              <TableHead className={`${columnWidths.marca}`}>Marca</TableHead>
               <TableHead className={`${columnWidths.categoria}`}>Categoría</TableHead>
               <TableHead className={`${columnWidths.precio} text-right`}>Precio Unit.</TableHead>
-              <TableHead className={`${columnWidths.stock} text-right`}>Stock Total</TableHead>
+              <TableHead className={`${columnWidths.iva} text-right`}>IVA</TableHead>
               <TableHead className={`${columnWidths.acciones} text-right`}>Acciones</TableHead>
             </TableRow>
           }
@@ -247,28 +207,34 @@ export default function ProductosPage() {
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         >
-          {productosVisiblesEnPagina.map((p) => (
+          {serviciosVisiblesEnPagina.map((p) => (
             <TableRow key={p.idProducto}>
-              <TableCell className={`${columnWidths.codigo}`}>{formatearNumeroProducto(p.idProducto)}</TableCell>
+              {/*<TableCell className="font-medium">{p.idProducto}</TableCell>*/}
               <TableCell className={`${columnWidths.descripcion}`}>{p.descripcion}</TableCell>
-              <TableCell className={`${columnWidths.marca}`}>{p.marca}</TableCell>
               <TableCell className={`${columnWidths.categoria}`}>{p.categoria}</TableCell>
               <TableCell className={`${columnWidths.precio} text-right`}>{formatGuaranies(p.precioUnitario)}</TableCell>
-              <TableCell className={`${columnWidths.stock} text-right font-semibold ${p.cantidadTotal <= 4 ? "text-red-500" : ""}`}>{p.cantidadTotal}</TableCell>
+              <TableCell className={`${columnWidths.precio} text-right`}>{`${p.porcentajeIva}%`}</TableCell>
               <TableCell className={`${columnWidths.acciones} text-right space-x-1`}>
                 <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
                   <Pencil className="size-3.5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => {setProductoAEliminar(p); setIsAlertOpen(true);}} className="cursor-pointer">
+                <Button variant="ghost" size="icon" onClick={() => {setServicioAEliminar(p); setIsAlertOpen(true);}} className="cursor-pointer">
                   <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </TableCell>
             </TableRow>
           ))}
-          {productosVisiblesEnPagina.length === 0 && (
+          {todosLosServicios.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="py-10 text-center text-muted-foreground text-sm">
-                No hay productos que coincidan con la búsqueda.
+              <TableCell colSpan={5} className="py-10 text-center text-muted-foreground text-sm">
+                No hay servicios para mostrar.
+              </TableCell>
+            </TableRow>
+          )}
+          {todosLosServicios.length !== 0 && serviciosVisiblesEnPagina.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="py-10 text-center text-muted-foreground text-sm">
+                No hay servicios que coincidan con la búsqueda.
               </TableCell>
             </TableRow>
           )}
@@ -278,20 +244,14 @@ export default function ProductosPage() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
           <SheetHeader className="border-b pt-4">
-            <SheetTitle>{productoAEditar ? "Editar Producto" : "Nuevo Producto"}</SheetTitle>
-            <SheetDescription>Completa la información del inventario.</SheetDescription>
+            <SheetTitle>{servicioAEditar ? "Editar Servicio" : "Nuevo Servicio"}</SheetTitle>
+            <SheetDescription>Completa la información del formulario.</SheetDescription>
           </SheetHeader>
-          <ProductoForm
-            key={productoAEditar?.idProducto ?? "nuevo"}
-            productoEditado={productoAEditar}
-            categorias={categorias} 
-            marcas={marcas}
+          <ServicioForm
+            key={servicioAEditar?.idProducto ?? "nuevo"}
+            servicioEditado={servicioAEditar}
             onSubmit={handleFormSubmit}
             onCancel={() => setIsSheetOpen(false)}
-            onRefreshData={async () => {
-              await cargarMarcas();
-              await cargarCategorias();
-           }}
           />
         </SheetContent>
       </Sheet>

@@ -251,6 +251,8 @@ export interface FacturaVentaCompleto {
     idCliente: number;
     cliente: string;
     nroComprobante: string;
+    idEstado: number;
+    estado: string;
     idTimbrado: number;
     timbrado: string;
     timbradoRuc: string;
@@ -270,6 +272,18 @@ export interface FacturaVentaCompletoSave {
     idMedioPagoCompra: number;
     fechaPago: string;
     items: FacturaVentaItemSave[];
+}
+
+export interface FacturaVentaCabeceraSave {
+    idPresupuesto: number;
+    idCliente: number;
+    nroComprobante: string;
+    idEstado: number;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    fechaPago: string;
 }
 
 export interface FacturaVentaCabecera {
@@ -324,10 +338,13 @@ export interface NotaCreditoVenta {
     idNotaCreditoVenta: number;
     idFacturaVenta: number;
     facturaVenta: string;
+    idEstado: number;
+    estado: string;
     idNotaDevolucionVenta: number;
     notaDevolucionVenta: string;
     idTimbrado: number;
     timbrado: string;
+    nroComprobante: string;
     motivo: string;
     fechaEmision: string;
     total: number;
@@ -336,6 +353,7 @@ export interface NotaCreditoVenta {
 
 export interface NotaCreditoVentaSave {
     idFacturaVenta: number;
+    idEstado?: number;
     idTimbrado: number;
     motivo: string;
     fechaEmision: string;
@@ -350,6 +368,25 @@ export interface NotaCreditoVentaDetalle {
     cantidad: number;
     precioUnitario: number;
     subtotal: number;
+}
+
+export interface NotaConCliente {
+    idNotaCreditoVenta: number;
+    idFacturaVenta: number;
+    facturaVenta: string;
+    idEstado: number;
+    estado: string;
+    idCliente: number;
+    cliente: string;
+    idNotaDevolucionVenta: number;
+    notaDevolucionVenta: string;
+    idTimbrado: number;
+    timbrado: string;
+    nroComprobante: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoVentaItem[];
 }
 
 export interface OrdenVenta {
