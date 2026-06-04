@@ -24,15 +24,11 @@ export const API_CONFIG = {
     FACTURAS_COMPRA: "/api/FacturasCompras",
     FACTURAS_COMPRA_DETALLES: "/api/FacturasComprasDetalles",
     ORDENES_PAGO_COMPRA: "/api/OrdenesPagosCompras",
-<<<<<<< HEAD
     ORDENES_PAGO_COMPRA_DETALLES: "/api/OrdenesPagosComprasDetalles",
     NOTAS_CREDITO_COMPRA: "/api/NotasCreditosCompras",
     NOTAS_CREDITO_COMPRA_DETALLES: "/api/NotasCreditosComprasDetalles",
-=======
-    NOTAS_CREDITO_COMPRA: "/api/NotasCreditosCompras",
     NOTAS_DEVOLUCION_COMPRA: "/api/NotasDevolucionesCompras",
     NOTAS_DEVOLUCION_COMPRA_DETALLES: "/api/NotasDevolucionesComprasDetalles",
->>>>>>> front
     PROCESOS_CONTABLES: "/api/ProcesosContables",
     EMPLEADOS: "/api/Empleados",
     PARIENTES: "/api/Parientes",
@@ -58,7 +54,5 @@ export const API_CONFIG = {
     MEDIOS_PAGO: "/api/MediosPagosCompras",
     STOCK: "/api/StocksDepositos",
     NOTAS_CREDITOS_VENTAS: "/api/NotasCreditosVentas",
-    ORDENES_PAGO_COMPRA_DETALLES: "/api/OrdenesPagosComprasDetalles",
-    NOTAS_CREDITO_COMPRA_DETALLES: "/api/NotasCreditosComprasDetalles",
   },
 } as const;

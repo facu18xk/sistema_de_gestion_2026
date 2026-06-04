@@ -31,22 +31,16 @@ import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { tiposDepositosBancariosAPI } from "@/services/tiposDepositosBancariosAPI";
 import { detallesDepositosBancariosAPI } from "@/services/detallesDepositosBancariosAPI";
 import { bancosAPI } from "@/services/bancosAPI";
-<<<<<<< HEAD
-import { clientesAPI } from "@/services/clientesAPI";
 import { chequesTercerosAPI } from "@/services/chequesTercerosAPI";
 import { chequesMismoBancoAPI } from "@/services/chequesMismoBancoAPI";
-=======
-//import { clientesAPI } from "@/services/clientesAPI";
->>>>>>> front
 import { formatMoney } from "@/lib/format-currency";
-import { modoTipoDeposito, nombreCliente } from "@/lib/deposito-tipo";
+import { modoTipoDeposito } from "@/lib/deposito-tipo";
 import { notify } from "@/lib/notifications";
 import { formatNumberDots } from "@/utils/money-format";
 import type {
   Banco,
   ChequeMismoBancoLineSave,
   ChequeTerceroLineSave,
-  Cliente,
   CuentaBancaria,
   TipoDepositoBancario,
 } from "@/types/types";
@@ -222,16 +216,14 @@ export default function NuevoDepositoPage() {
       });
       const idDeposito = deposito.idDepositoBancario;
 
-<<<<<<< HEAD
-=======
-      await detallesDepositosBancariosAPI.create({
-        idDepositoBancario: idDeposito,
-        monto: efectivoMonto,
-        descripcion: "Depósito en efectivo",
-      });
+      if (modo === "efectivo") {
+        await detallesDepositosBancariosAPI.create({
+          idDepositoBancario: idDeposito,
+          monto: efectivoMonto,
+          descripcion: "Depósito en efectivo",
+        });
+      }
 
-      // 3. CHEQUES DE TERCEROS
->>>>>>> front
       if (modo === "tercero") {
         const chequesValidos = chequesTercero.filter(
           (c) => c.monto > 0 && c.numeroCheque.trim(),

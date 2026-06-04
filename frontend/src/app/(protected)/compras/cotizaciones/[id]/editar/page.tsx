@@ -5,6 +5,8 @@ import Navbar from "@/components/navbar";
 import { useRouter, useParams, useSearchParams } from "next/navigation"; // Importamos useSearchParams
 import { CotizacionForm } from "@/components/compras/cotizacion-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
+import { Button } from "@/components/ui/button"; // Importamos Button para la navegación cruzada
+import { FileText } from "lucide-react"; // Importamos el icono para el botón
 import { cotizacionesAPI } from "@/services/cotizacionesAPI";
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI";
 import { pedidosAPI } from "@/services/pedidosAPI";
@@ -23,7 +25,7 @@ export default function EditarCotizacionPage() {
   const [detallesPedidosOriginales, setDetallesPedidosOriginales] = useState<any[]>([]);
 
   // Detectamos si viene explícitamente en modo ver o si el estado cargado no es Pendiente (ej. si idEstado !== 1)
-  const esModoVerUrl = searchParams.get("mode") === "ver";
+  const esModoVerUrl = searchParams.get("view") === "true";
   const isViewMode = esModoVerUrl || (cotizacion ? cotizacion.idEstado !== 1 : false);
 
   useEffect(() => {
@@ -80,6 +82,13 @@ export default function EditarCotizacionPage() {
 
     if (params.id) cargarDatos();
   }, [params.id]);
+
+  const handleVerOrdenesAsociadas = () => {
+    if (params.id) {
+      // Redirecciona al listado de órdenes aplicando el filtro por el ID de esta cotización
+      router.push(`/compras/ordenes?idCotizacion=${params.id}`);
+    }
+  };
 
   const handleSubmit = async (data: CotizacionFormState) => {
     if (isViewMode) return; // Seguridad: Evita llamadas al API si está en modo lectura
@@ -171,9 +180,25 @@ export default function EditarCotizacionPage() {
         ]}
       />
       <main className="container p-2">
-        <h2 className="text-2xl font-bold tracking-tight mb-2">
-          {isViewMode ? "Ver Cotización" : "Editar Cotización"} #{params.id} {/* Título dinámico */}
-        </h2>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-2xl font-bold tracking-tight">
+            {isViewMode ? "Ver Cotización" : "Editar Cotización"} #{params.id} {/* Título dinámico */}
+          </h2>
+
+          {/* Botón dinámico insertado en la cabecera si la cotización está Aprobada (idEstado === 2) */}
+          {cotizacion && Number(cotizacion.idEstado) === 2 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleVerOrdenesAsociadas}
+              className="flex items-center gap-2 border-emerald-200 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50/50 dark:border-emerald-900/30 dark:text-emerald-400 font-medium"
+            >
+              <FileText className="h-4 w-4" />
+              Ver Órdenes Emitidas
+            </Button>
+          )}
+        </div>
 
         <CotizacionForm
           cotizacionEditada={cotizacion}

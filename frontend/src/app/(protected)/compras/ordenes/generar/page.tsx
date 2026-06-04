@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, CheckCircle2, ArrowRight, Trash2, ShoppingCart } from "lucide-react"
 import { pedidosAPI } from "@/services/pedidosAPI"
 import { cotizacionesAPI } from "@/services/cotizacionesAPI"
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
@@ -15,7 +14,12 @@ import { notify } from "@/lib/notifications"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FieldWrapper } from "@/components/FieldWrapper"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OrdenCompraSaveDTO, OrdenCompraDetalleSaveDTO } from "@/types/types"
+import { Check, ChevronsUpDown, Loader2, CheckCircle2, Trash2, ShoppingCart, Search, SlidersHorizontal, Sparkles } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 interface ItemPropuesto {
     idProducto: number
@@ -33,21 +37,31 @@ interface SugerenciaOrden {
     descripcionOrden: string
     items: ItemPropuesto[]
     totalOrden: number
-    cotizacionOriginal?: any // Guardamos el objeto completo para poder hacer el update de estado correctamente
+    cotizacionOriginal?: any
 }
 
 export default function GenerarOrdenesPage() {
     const router = useRouter()
+
+    // Estados de datos base
     const [pedidos, setPedidos] = useState<any[]>([])
+    const [filtroBusquedaPedido, setFiltroBusquedaPedido] = useState<string>("")
     const [idPedidoSeleccionado, setIdPedidoSeleccionado] = useState<string>("")
+
+    // Configuración de estrategia de generación
+    const [modoGeneracion, setModoGeneracion] = useState<"automatico" | "manual">("automatico")
+    const [cotizacionesDisponibles, setCotizacionesDisponibles] = useState<any[]>([])
+    const [idCotizacionManual, setIdCotizacionManual] = useState<string>("")
 
     const [isLoadingData, setIsLoadingData] = useState(false)
     const [isProcesando, setIsProcesando] = useState(false)
     const [procesandoId, setProcesandoId] = useState<number | null>(null)
-
-    // Estado maestro con las órdenes calculadas que el usuario puede editar
+    // Estado maestro de órdenes en preparación (mutables por el usuario)
     const [ordenesSugeridas, setOrdenesSugeridas] = useState<SugerenciaOrden[]>([])
+    const [isComboboxCotizOpen, setIsComboboxCotizOpen] = useState(false)
+    const [isComboboxPedidoOpen, setIsComboboxPedidoOpen] = useState(false)
 
+    // Cargar pedidos iniciales válidos
     useEffect(() => {
         const cargarPedidosIniciales = async () => {
             try {
@@ -61,108 +75,187 @@ export default function GenerarOrdenesPage() {
         cargarPedidosIniciales()
     }, [])
 
-    const handleEvaluarPedido = async (idPedido: string) => {
+    // Filtrado en tiempo real de los pedidos disponibles en el sistema
+    const pedidosFiltrados = pedidos.filter((p) => {
+        return String(p.idPedidoCompra).includes(filtroBusquedaPedido)
+    })
+
+    // Handler principal cuando cambia el pedido seleccionado
+    const handleCambioPedido = async (idPedido: string) => {
         setIdPedidoSeleccionado(idPedido)
-        if (!idPedido) {
+        setIdCotizacionManual("")
+        setOrdenesSugeridas([])
+        setCotizacionesDisponibles([])
+
+        if (!idPedido) return
+
+        setIsLoadingData(true)
+        try {
+            // Traer todas las cotizaciones asociadas a este pedido específico
+            const resCotizaciones = await cotizacionesAPI.getAll(1, 1000)
+            const listaCotizaciones = resCotizaciones.items || resCotizaciones || []
+            const filtradas = listaCotizaciones.filter((c: any) => String(c.idPedidoCompra) === String(idPedido))
+
+            setCotizacionesDisponibles(filtradas)
+
+            if (filtradas.length === 0) {
+                notify.error("Sin ofertas", "No existen cotizaciones registradas para el Pedido seleccionado.")
+                setIsLoadingData(false)
+                return
+            }
+
+            // Si está en modo automático, ejecuta directamente el algoritmo de optimización de costos
+            if (modoGeneracion === "automatico") {
+                await ejecutarAlgoritmoOptimizado(idPedido, filtradas)
+            }
+        } catch (error) {
+            console.error(error)
+            notify.error("Error", "Error al mapear las cotizaciones del pedido.")
+        } finally {
+            setIsLoadingData(false)
+        }
+    }
+
+    // Cambiar de modo de estrategia (Costo mínimo vs Selección manual de Proveedor)
+    const handleCambiarModo = async (nuevoModo: "automatico" | "manual") => {
+        setModoGeneracion(nuevoModo)
+        setOrdenesSugeridas([])
+        setIdCotizacionManual("")
+
+        if (idPedidoSeleccionado && cotizacionesDisponibles.length > 0) {
+            if (nuevoModo === "automatico") {
+                setIsLoadingData(true)
+                await ejecutarAlgoritmoOptimizado(idPedidoSeleccionado, cotizacionesDisponibles)
+                setIsLoadingData(false)
+            }
+        }
+    }
+
+    // Algoritmo de optimización distributiva por costo neto mínimo (Tu lógica original intacta)
+    const ejecutarAlgoritmoOptimizado = async (idPedido: string, cotizacionesValidas: any[]) => {
+        const idsCotiz = cotizacionesValidas.map((c: any) => Number(c.idPedidoCotizacion || c.id))
+        const resDetalles = await cotizacionesDetallesAPI.getAll(1, 2000)
+        const todosLosDetalles = resDetalles.items || resDetalles || []
+        const detallesFiltrados = todosLosDetalles.filter((d: any) =>
+            idsCotiz.includes(Number(d.idPedidoCotizacion || d.cotizacionCompraId))
+        )
+
+        const mejoresOpcionesPorProducto: Record<number, { detalle: any; cotizacion: any }> = {}
+
+        detallesFiltrados.forEach((det: any) => {
+            const idProd = det.idProducto || det.productoId
+            const precioNetoActual = Number(det.precioProducto || det.precioUnitario) - Number(det.descuento || 0)
+            const cotizacionAsociada = cotizacionesValidas.find(
+                (c: any) => Number(c.idPedidoCotizacion || c.id) === Number(det.idPedidoCotizacion)
+            )
+
+            if (!mejoresOpcionesPorProducto[idProd]) {
+                mejoresOpcionesPorProducto[idProd] = { detalle: det, cotizacion: cotizacionAsociada }
+            } else {
+                const mejorDetallePrevio = mejoresOpcionesPorProducto[idProd].detalle
+                const precioNetoMejor = Number(mejorDetallePrevio.precioProducto || mejorDetallePrevio.precioUnitario) - Number(mejorDetallePrevio.descuento || 0)
+
+                if (precioNetoActual < precioNetoMejor) {
+                    mejoresOpcionesPorProducto[idProd] = { detalle: det, cotizacion: cotizacionAsociada }
+                }
+            }
+        })
+
+        const agrupacionSugerida: Record<number, SugerenciaOrden> = {}
+
+        Object.keys(mejoresOpcionesPorProducto).forEach((prodIdKey) => {
+            const prodId = Number(prodIdKey)
+            const { detalle, cotizacion } = mejoresOpcionesPorProducto[prodId]
+            const idCotizacion = Number(cotizacion.idPedidoCotizacion || cotizacion.id)
+
+            const precioUnitario = Number(detalle.precioProducto || detalle.precioUnitario)
+            const dsc = Number(detalle.descuento || 0)
+            const cant = Number(detalle.cantidad)
+            const totalItem = (precioUnitario - dsc) * cant
+
+            if (!agrupacionSugerida[idCotizacion]) {
+                agrupacionSugerida[idCotizacion] = {
+                    idPedidoCotizacion: Number(cotizacion.idPedidoCotizacion || 0),
+                    idProveedor: Number(cotizacion.idProveedor),
+                    razonSocial: typeof cotizacion.proveedor === 'object' && cotizacion.proveedor !== null
+                        ? cotizacion.proveedor.razonSocial
+                        : (cotizacion.proveedor || `Proveedor Cotiz. #${idCotizacion}`),
+                    descripcionOrden: `Orden automatizada (Menor Costo) desde Pedido #${idPedido}`,
+                    items: [],
+                    totalOrden: 0,
+                    cotizacionOriginal: cotizacion,
+                }
+            }
+
+            agrupacionSugerida[idCotizacion].items.push({
+                idProducto: prodId,
+                descripcion: detalle.descripcion || `Producto #${prodId}`,
+                cantidad: cant,
+                precioUnitario: precioUnitario,
+                descuento: dsc,
+                total: totalItem,
+            })
+        })
+
+        const resultadoFinal = Object.values(agrupacionSugerida).map(orden => ({
+            ...orden,
+            totalOrden: orden.items.reduce((acc, item) => acc + item.total, 0)
+        }))
+
+        setOrdenesSugeridas(resultadoFinal)
+        notify.success("Análisis Distributivo", "Se estructuraron las órdenes optimizando cada ítem al precio más bajo.")
+    }
+
+    // Construir la orden basándose puramente en la cotización seleccionada por el usuario (A gusto)
+    const handleSeleccionarCotizacionManual = async (idCotizacion: string) => {
+        setIdCotizacionManual(idCotizacion)
+        if (!idCotizacion) {
             setOrdenesSugeridas([])
             return
         }
 
         setIsLoadingData(true)
         try {
-            // 1. Conseguir cotizaciones del sistema
-            const resCotizaciones = await cotizacionesAPI.getAll(1, 1000)
-            const listaCotizaciones = resCotizaciones.items || resCotizaciones || []
-
-            const cotizacionesDelPedido = listaCotizaciones.filter(
-                (c: any) => String(c.idPedidoCompra) === String(idPedido)
-            )
-
-            if (cotizacionesDelPedido.length === 0) {
-                notify.error("Sin ofertas", "No hay cotizaciones cargadas para este pedido.")
-                setOrdenesSugeridas([])
-                setIsLoadingData(false)
-                return
-            }
-
-            const idsCotiz = cotizacionesDelPedido.map((c: any) => Number(c.idPedidoCotizacion || c.id))
-
-            // 2. Traer los detalles de esas cotizaciones para buscar costos mínimos
+            const cotizacion = cotizacionesDisponibles.find(c => String(c.idPedidoCotizacion || c.id) === String(idCotizacion))
             const resDetalles = await cotizacionesDetallesAPI.getAll(1, 2000)
             const todosLosDetalles = resDetalles.items || resDetalles || []
-            const detallesFiltrados = todosLosDetalles.filter((d: any) =>
-                idsCotiz.includes(Number(d.idPedidoCotizacion || d.cotizacionCompraId))
+
+            // Traer únicamente los ítems ofertados por este proveedor específico
+            const detallesDeEstaCotizacion = todosLosDetalles.filter((d: any) =>
+                String(d.idPedidoCotizacion || d.cotizacionCompraId) === String(idCotizacion)
             )
 
-            // Algoritmo de optimización por costo neto mínimo
-            const mejoresOpcionesPorProducto: Record<number, { detalle: any; cotizacion: any }> = {}
-
-            detallesFiltrados.forEach((det: any) => {
-                const idProd = det.idProducto || det.productoId
-                const precioNetoActual = Number(det.precioProducto || det.precioUnitario) - Number(det.descuento || 0)
-                const cotizacionAsociada = cotizacionesDelPedido.find(
-                    (c: any) => Number(c.idPedidoCotizacion || c.id) === Number(det.idPedidoCotizacion || det.idPedidoCotizacion)
-                )
-
-                if (!mejoresOpcionesPorProducto[idProd]) {
-                    mejoresOpcionesPorProducto[idProd] = { detalle: det, cotizacion: cotizacionAsociada }
-                } else {
-                    const mejorDetallePrevio = mejoresOpcionesPorProducto[idProd].detalle
-                    const precioNetoMejor = Number(mejorDetallePrevio.precioProducto || mejorDetallePrevio.precioUnitario) - Number(mejorDetallePrevio.descuento || 0)
-
-                    if (precioNetoActual < precioNetoMejor) {
-                        mejoresOpcionesPorProducto[idProd] = { detalle: det, cotizacion: cotizacionAsociada }
-                    }
-                }
-            })
-
-            // 3. Agrupar por Cotización
-            const agrupacionSugerida: Record<number, SugerenciaOrden> = {}
-
-            Object.keys(mejoresOpcionesPorProducto).forEach((prodIdKey) => {
-                const prodId = Number(prodIdKey)
-                const { detalle, cotizacion } = mejoresOpcionesPorProducto[prodId]
-                const idCotizacion = Number(cotizacion.idPedidoCotizacion || cotizacion.id)
-
-                const precioUnitario = Number(detalle.precioProducto || detalle.precioUnitario)
-                const dsc = Number(detalle.descuento || 0)
-                const cant = Number(detalle.cantidad)
-                const totalItem = (precioUnitario - dsc) * cant
-
-                if (!agrupacionSugerida[idCotizacion]) {
-                    agrupacionSugerida[idCotizacion] = {
-                        idPedidoCotizacion: Number(cotizacion.idPedidoCotizacion || 0),
-                        idProveedor: Number(cotizacion.idProveedor),
-                        razonSocial: typeof cotizacion.proveedor === 'object' && cotizacion.proveedor !== null
-                            ? cotizacion.proveedor.razonSocial
-                            : (cotizacion.proveedor || `Proveedor de Cotiz. #${idCotizacion}`),
-                        descripcionOrden: `Orden generada automáticamente desde Pedido #${idPedido}`,
-                        items: [],
-                        totalOrden: 0,
-                        cotizacionOriginal: cotizacion,
-                    }
-                }
-
-                agrupacionSugerida[idCotizacion].items.push({
-                    idProducto: prodId,
-                    descripcion: detalle.descripcion || `Producto #${prodId}`,
+            const itemsMapeados: ItemPropuesto[] = detallesDeEstaCotizacion.map((det: any) => {
+                const precio = Number(det.precioProducto || det.precioUnitario) || 0
+                const dsc = Number(det.descuento || 0)
+                const cant = Number(det.cantidad) || 0
+                return {
+                    idProducto: det.idProducto || det.productoId,
+                    descripcion: det.descripcion || `Producto #${det.idProducto}`,
                     cantidad: cant,
-                    precioUnitario: precioUnitario,
+                    precioUnitario: precio,
                     descuento: dsc,
-                    total: totalItem,
-                })
+                    total: (precio - dsc) * cant
+                }
             })
 
-            const resultadoFinal = Object.values(agrupacionSugerida).map(orden => ({
-                ...orden,
-                totalOrden: orden.items.reduce((acc, item) => acc + item.total, 0)
-            }))
+            const ordenPersonalizada: SugerenciaOrden = {
+                idPedidoCotizacion: Number(idCotizacion),
+                idProveedor: Number(cotizacion.idProveedor),
+                razonSocial: typeof cotizacion.proveedor === 'object' && cotizacion.proveedor !== null
+                    ? cotizacion.proveedor.razonSocial
+                    : (cotizacion.proveedor || `Proveedor Seleccionado`),
+                descripcionOrden: `Orden de Compra directa desde Cotización #${idCotizacion}`,
+                items: itemsMapeados,
+                totalOrden: itemsMapeados.reduce((acc, i) => acc + i.total, 0),
+                cotizacionOriginal: cotizacion
+            }
 
-            setOrdenesSugeridas(resultadoFinal)
-            notify.success("Análisis completo", "Sugerencias de compra listas basándose en precios más convenientes.")
-        } catch (err) {
-            console.error(err)
-            notify.error("Error", "No se pudo procesar la matriz de cotizaciones.")
+            setOrdenesSugeridas([ordenPersonalizada])
+            notify.success("Estrategia Manual", "Cargando ítems completos provistos por el proveedor seleccionado.")
+        } catch (error) {
+            console.error(error)
+            notify.error("Error", "No se pudieron recopilar las líneas de la cotización seleccionada.")
         } finally {
             setIsLoadingData(false)
         }
@@ -179,7 +272,6 @@ export default function GenerarOrdenesPage() {
                     if (item.idProducto !== idProducto) return item
                     return {
                         ...item,
-                        amount: nuevaCantidad,
                         cantidad: nuevaCantidad,
                         total: (item.precioUnitario - item.descuento) * nuevaCantidad
                     }
@@ -208,7 +300,6 @@ export default function GenerarOrdenesPage() {
         )
     }
 
-    // Procesa y guarda una orden individual, además actualiza el estado de la cotización original
     const procesarUnaOrden = async (sugerencia: SugerenciaOrden) => {
         const cabeceraPayload: OrdenCompraSaveDTO = {
             idPedidoCotizacion: sugerencia.idPedidoCotizacion,
@@ -217,16 +308,14 @@ export default function GenerarOrdenesPage() {
             fecha: new Date().toISOString().split("T")[0],
             descripcion: sugerencia.descripcionOrden,
         }
-        console.log(cabeceraPayload);
-        // 1. Guardar cabecera de la orden
+
         const nuevaOrdenRes = await ordenesCompraAPI.create(cabeceraPayload)
         const idOrdenGenerada = nuevaOrdenRes?.idOrdenCompra
 
         if (!idOrdenGenerada) {
-            throw new Error(`El servidor no retornó un idOrdenCompra válido para la cotización #${sugerencia.idPedidoCotizacion}`)
+            throw new Error(`Error en el alta de cabecera para la cotización #${sugerencia.idPedidoCotizacion}`)
         }
 
-        // 2. Guardar detalles
         const itemsAProcesar = sugerencia.items.filter(item => item.cantidad > 0)
         const promesasDetalles = itemsAProcesar.map((item) => {
             const detallePayload: OrdenCompraDetalleSaveDTO = {
@@ -240,15 +329,13 @@ export default function GenerarOrdenesPage() {
 
         await Promise.all(promesasDetalles)
 
-        // 3. Update de estado de la cotización a Aprobada
         if (sugerencia.cotizacionOriginal) {
             const cotizacionUpdatePayload = {
                 ...sugerencia.cotizacionOriginal,
-                estado: "Aprobada", // Modificamos el campo string o el ID correspondiente según tu backend
-                idEstado: 2 // Por si maneja identificadores de estado numéricos
+                estado: "Aprobada",
+                idEstado: 2
             }
-            const idCotiz = sugerencia.idPedidoCotizacion || sugerencia.cotizacionOriginal.id
-            await cotizacionesAPI.update(idCotiz, cotizacionUpdatePayload)
+            await cotizacionesAPI.update(sugerencia.idPedidoCotizacion, cotizacionUpdatePayload)
         }
     }
 
@@ -257,13 +344,11 @@ export default function GenerarOrdenesPage() {
         setProcesandoId(sugerencia.idPedidoCotizacion)
         try {
             await procesarUnaOrden(sugerencia)
-            notify.success("Éxito", `Orden de compra creada correctamente para la Cotización #${sugerencia.idPedidoCotizacion} y cotización marcada como Aprobada.`)
-
+            notify.success("Éxito", `Orden emitida correctamente para la Cotización #${sugerencia.idPedidoCotizacion}.`)
             setOrdenesSugeridas(prev => prev.filter(o => o.idPedidoCotizacion !== sugerencia.idPedidoCotizacion))
         } catch (error: any) {
-            console.error("Error al generar orden individual:", error)
-            const detalleError = error?.response?.data?.message || "Fallo interno al procesar la orden."
-            notify.error("Error", detalleError)
+            console.error(error)
+            notify.error("Error", error?.response?.data?.message || "Fallo transaccional al guardar la orden.")
         } finally {
             setIsProcesando(false)
             setProcesandoId(null)
@@ -272,27 +357,23 @@ export default function GenerarOrdenesPage() {
 
     const handleConfirmarGeneracion = async () => {
         if (ordenesSugeridas.length === 0) return
-
         setIsProcesando(true)
         try {
-            // Iteramos de manera secuencial sobre cada orden sugerida restante
             for (const sugerencia of ordenesSugeridas) {
                 await procesarUnaOrden(sugerencia)
             }
-
-            notify.success("Éxito", `Se procesaron y crearon ${ordenesSugeridas.length} órdenes de compra correctamente. Cotizaciones actualizadas a Aprobadas.`)
+            notify.success("Procesamiento Exitoso", `Se emitieron ${ordenesSugeridas.length} órdenes de compra globales.`)
             router.push("/compras/ordenes")
         } catch (error: any) {
-            console.error("Error en el flujo de confirmación masiva:", error)
-            const detalleError = error?.response?.data?.message || "Inconsistencia de datos o fallo interno del servidor (500)."
-            notify.error("Error crítico", detalleError)
+            console.error(error)
+            notify.error("Error Crítico", error?.response?.data?.message || "Error de red o consistencia.")
         } finally {
             setIsProcesando(false)
         }
     }
 
     return (
-        <div className="bg-background">
+        <div className="bg-background pb-12">
             <PageBreadcrumb
                 steps={[
                     { label: "Compras" },
@@ -301,39 +382,234 @@ export default function GenerarOrdenesPage() {
                 ]}
             />
 
-            <main className="container mx-auto p-4 max-w-5xl">
-                <h2 className="text-2xl font-bold tracking-tight mb-2">Generar Órdenes de Compra</h2>
+            <main className="container mx-auto">
+                {/* Título y botón alineados horizontalmente, pegados al nivel del breadcrumb */}
+                <div className="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Generar Órdenes</h2>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push("/compras/ordenes")}
+                        disabled={isProcesando}
+                        className="h-8 text-xs px-3"
+                    >
+                        Volver
+                    </Button>
+                </div>
 
-                <Card className="mb-2">
-                    <CardHeader>
-                        <CardTitle className="text-base font-semibold">Pedido de Origen</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <FieldWrapper label="Seleccionar Pedido" id="pedidoSelect">
-                            <select
-                                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
-                                value={idPedidoSeleccionado}
-                                onChange={(e) => handleEvaluarPedido(e.target.value)}
-                                disabled={isProcesando}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card className="md:col-span-2">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                <Search className="h-4 w-4 text-muted-foreground" />
+                                Origen del Pedido
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="w-full space-y-1.5">
+                                <label className="text-[11px] font-medium text-muted-foreground">
+                                    Seleccionar Pedido de Compra
+                                </label>
+
+                                <Popover open={isComboboxPedidoOpen} onOpenChange={setIsComboboxPedidoOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={isComboboxPedidoOpen}
+                                            disabled={isProcesando}
+                                            className="w-full h-9 text-xs justify-between font-normal bg-background shadow-sm hover:bg-accent/50"
+                                        >
+                                            {idPedidoSeleccionado ? (
+                                                `Pedido de Compra Nro. ${idPedidoSeleccionado}`
+                                            ) : (
+                                                <span className="text-muted-foreground">Buscar número de pedido...</span>
+                                            )}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+
+                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                        <Command className="text-xs">
+                                            <CommandInput
+                                                placeholder="Escriba el número de pedido..."
+                                                className="h-9 text-xs"
+                                            />
+                                            <CommandList className="max-h-[200px]">
+                                                <CommandEmpty className="py-3 text-center text-xs text-muted-foreground">
+                                                    No se encontró el pedido solicitado.
+                                                </CommandEmpty>
+                                                <CommandGroup heading="Pedidos Internos Abiertos">
+                                                    {pedidos.map((p) => {
+                                                        const idPedidoStr = String(p.idPedidoCompra);
+
+                                                        // Si tu objeto pedido tiene fecha o sector, podés concatenarlo acá para enriquecer la búsqueda
+                                                        const detalleExtra = p.fecha ? ` - ${p.fecha}` : "";
+                                                        const busquedaConcatenada = `pedido nro ${idPedidoStr} ${detalleExtra}`.toLowerCase();
+
+                                                        return (
+                                                            <CommandItem
+                                                                key={p.idPedidoCompra}
+                                                                value={busquedaConcatenada}
+                                                                onSelect={() => {
+                                                                    handleCambioPedido(idPedidoStr)
+                                                                    setIsComboboxPedidoOpen(false)
+                                                                }}
+                                                                className="text-xs flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-accent"
+                                                            >
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <span className="font-semibold text-foreground">
+                                                                        Pedido Nro. {p.idPedidoCompra}
+                                                                    </span>
+                                                                    {p.fecha && (
+                                                                        <span className="text-[10px] text-muted-foreground">
+                                                                            Fecha Emisión: {p.fecha}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <Check
+                                                                    className={cn(
+                                                                        "h-4 w-4 text-primary transition-opacity",
+                                                                        String(idPedidoSeleccionado) === idPedidoStr
+                                                                            ? "opacity-100"
+                                                                            : "opacity-0"
+                                                                    )}
+                                                                />
+                                                            </CommandItem>
+                                                        )
+                                                    })}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Tarjeta 2: Criterio de Selección */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                                Criterio
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Tabs
+                                value={modoGeneracion}
+                                onValueChange={(val) => handleCambiarModo(val as "automatico" | "manual")}
+                                className="w-full"
                             >
-                                <option value="">Seleccione un pedido...</option>
-                                {pedidos.map((p) => (
-                                    <option key={p.idPedidoCompra} value={String(p.idPedidoCompra)}>
-                                        Pedido #{p.idPedidoCompra} — {p.descripcion || "Sin descripción"}
-                                    </option>
-                                ))}
-                            </select>
-                        </FieldWrapper>
-                    </CardContent>
-                </Card>
+                                <TabsList className="grid grid-cols-2 w-full h-9">
+                                    <TabsTrigger value="automatico" className="text-xs gap-1">
+                                        <Sparkles className="size-3" /> Auto
+                                    </TabsTrigger>
+                                    <TabsTrigger value="manual" className="text-xs">
+                                        Manual
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+
+                            {modoGeneracion === "manual" && (
+                                <FieldWrapper label="Cotización / Proveedor Adjudicado" id="cotizacionManualSelect">
+                                    <Popover open={isComboboxCotizOpen} onOpenChange={setIsComboboxCotizOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={isComboboxCotizOpen}
+                                                disabled={!idPedidoSeleccionado || isProcesando}
+                                                className="w-full h-9 text-xs justify-between font-normal bg-background shadow-sm hover:bg-accent/50"
+                                            >
+                                                {idCotizacionManual ? (
+                                                    (() => {
+                                                        const c = cotizacionesDisponibles.find(cot => String(cot.idPedidoCotizacion || cot.id) === String(idCotizacionManual));
+                                                        const provNombre = typeof c?.proveedor === 'object' ? c?.proveedor?.razonSocial : c?.proveedor;
+                                                        return `Cotiz. #${idCotizacionManual} — ${provNombre || `Prov. #${c?.idProveedor}`}`;
+                                                    })()
+                                                ) : (
+                                                    <span className="text-muted-foreground">Buscar cotización o proveedor...</span>
+                                                )}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+
+                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                            <Command className="text-xs">
+                                                <CommandInput
+                                                    placeholder="Escriba Nro. Cotización, RUC o Proveedor..."
+                                                    className="h-9 text-xs"
+                                                />
+                                                <CommandList className="max-h-[200px]">
+                                                    <CommandEmpty className="py-3 text-center text-xs text-muted-foreground">
+                                                        No se encontraron cotizaciones.
+                                                    </CommandEmpty>
+                                                    <CommandGroup heading="Cotizaciones del Pedido">
+                                                        {cotizacionesDisponibles.map((c) => {
+                                                            const idCotiz = String(c.idPedidoCotizacion || c.id);
+                                                            const ruc = c.proveedor?.ruc || "";
+                                                            const razonSocial = typeof c.proveedor === 'object' ? c.proveedor?.razonSocial : (c.proveedor || "");
+
+                                                            // Creamos el string de búsqueda interactiva para Command
+                                                            const busquedaConcatenada = `cotiz nro ${idCotiz} ${razonSocial} ${ruc}`.toLowerCase();
+
+                                                            return (
+                                                                <CommandItem
+                                                                    key={idCotiz}
+                                                                    value={busquedaConcatenada}
+                                                                    onSelect={() => {
+                                                                        handleSeleccionarCotizacionManual(idCotiz)
+                                                                        setIsComboboxCotizOpen(false)
+                                                                    }}
+                                                                    className="text-xs flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-accent"
+                                                                >
+                                                                    <div className="flex flex-col gap-0.5">
+                                                                        <span className="font-semibold text-foreground">
+                                                                            Cotización Nro. {idCotiz}
+                                                                        </span>
+                                                                        <span className="text-[11px] text-muted-foreground">
+                                                                            {razonSocial} {ruc ? `(RUC: ${ruc})` : ""}
+                                                                        </span>
+                                                                    </div>
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "h-4 w-4 text-primary transition-opacity",
+                                                                            String(idCotizacionManual) === idCotiz
+                                                                                ? "opacity-100"
+                                                                                : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                </CommandItem>
+                                                            )
+                                                        })}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </FieldWrapper>
+                            )}
+
+                            {modoGeneracion === "automatico" && idPedidoSeleccionado && (
+                                <p className="text-[11px] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-2 rounded">
+                                    Menor Costo: Distribución automática por precio neto mínimo por ítem.
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {isLoadingData && (
-                    <div className="flex flex-col items-center justify-center py-12 space-y-2">
+                    <div className="flex flex-col items-center justify-center py-16 space-y-2">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-xs text-muted-foreground">Analizando cotizaciones de menor costo...</p>
+                        <p className="text-xs text-muted-foreground">Procesando matriz de costos...</p>
                     </div>
                 )}
 
+                {/* Renderizado de Órdenes Sugeridas en preparación */}
                 {!isLoadingData && ordenesSugeridas.length > 0 && (
                     <div className="space-y-6">
                         {ordenesSugeridas.map((orden) => (
@@ -341,7 +617,7 @@ export default function GenerarOrdenesPage() {
                                 <CardHeader className="bg-muted/30 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
                                     <div>
                                         <CardTitle className="text-sm font-bold text-primary">
-                                            Propuesta de Orden (Cotización #{orden.idPedidoCotizacion})
+                                            Borrador de Orden (Cotización #{orden.idPedidoCotizacion})
                                         </CardTitle>
                                         <p className="text-xs text-muted-foreground font-medium mt-1">
                                             Proveedor: <span className="text-foreground font-semibold">{orden.razonSocial}</span>
@@ -349,15 +625,15 @@ export default function GenerarOrdenesPage() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="md:text-right">
-                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total Estimado</p>
+                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Monto Total</p>
                                             <p className="text-base font-black text-primary">
                                                 {orden.totalOrden.toLocaleString("es-PY")} Gs.
                                             </p>
                                         </div>
                                         <Button
-                                            size="xs"
+                                            size="sm"
                                             variant="secondary"
-                                            className="h-8 flex gap-1 text-xs"
+                                            className="h-8 flex gap-1 text-xs font-semibold cursor-pointer"
                                             disabled={isProcesando}
                                             onClick={() => handleGenerarOrdenIndividual(orden)}
                                         >
@@ -366,13 +642,13 @@ export default function GenerarOrdenesPage() {
                                             ) : (
                                                 <ShoppingCart className="h-3 w-3" />
                                             )}
-                                            Generar Solo Esta
+                                            Crear Orden
                                         </Button>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <div className="p-3 bg-card border-b">
-                                        <FieldWrapper label="Descripción / Nota de la Orden" id={`desc-${orden.idPedidoCotizacion}`}>
+                                        <FieldWrapper label="Nota / Descripción de la Orden" id={`desc-${orden.idPedidoCotizacion}`}>
                                             <Input
                                                 className="h-8 text-xs"
                                                 value={orden.descripcionOrden}
@@ -390,7 +666,7 @@ export default function GenerarOrdenesPage() {
                                                 <TableHead>Producto</TableHead>
                                                 <TableHead className="w-32 text-center">Cantidad</TableHead>
                                                 <TableHead className="text-right">Precio Unit.</TableHead>
-                                                <TableHead className="text-right">Desc.</TableHead>
+                                                <TableHead className="text-right">Descuento</TableHead>
                                                 <TableHead className="text-right">Subtotal</TableHead>
                                                 <TableHead className="w-12"></TableHead>
                                             </TableRow>
@@ -410,13 +686,13 @@ export default function GenerarOrdenesPage() {
                                                         />
                                                     </TableCell>
                                                     <TableCell className="text-right">{item.precioUnitario.toLocaleString("es-PY")} Gs.</TableCell>
-                                                    <TableCell className="text-right">{item.descuento.toLocaleString("es-PY")} Gs.</TableCell>
-                                                    <TableCell className="text-right">{item.total.toLocaleString("es-PY")} Gs.</TableCell>
+                                                    <TableCell className="text-right text-destructive">-{item.descuento.toLocaleString("es-PY")} Gs.</TableCell>
+                                                    <TableCell className="text-right font-semibold">{item.total.toLocaleString("es-PY")} Gs.</TableCell>
                                                     <TableCell className="text-center">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                                            className="h-7 w-7 text-destructive hover:bg-destructive/10 cursor-pointer"
                                                             onClick={() => handleEliminarItem(orden.idPedidoCotizacion, item.idProducto)}
                                                             disabled={isProcesando}
                                                         >
@@ -431,18 +707,18 @@ export default function GenerarOrdenesPage() {
                             </Card>
                         ))}
 
-                        <div className="flex justify-end gap-3 mt-6">
+                        <div className="flex justify-end gap-3 mt-4">
                             <Button variant="outline" size="sm" onClick={() => router.push("/compras/ordenes")} disabled={isProcesando}>
-                                Volver
+                                Cancelar
                             </Button>
-                            <Button size="sm" onClick={handleConfirmarGeneracion} disabled={isProcesando} className="flex gap-2">
+                            <Button size="sm" onClick={handleConfirmarGeneracion} disabled={isProcesando} className="flex gap-2 cursor-pointer">
                                 {isProcesando && procesandoId === null ? (
                                     <>
-                                        <Loader2 className="h-4 w-4 animate-spin" /> Creando Ordenes
+                                        <Loader2 className="h-4 w-4 animate-spin" /> Procesando Lote...
                                     </>
                                 ) : (
                                     <>
-                                        <CheckCircle2 className="h-4 w-4" /> Confirmar Todas las Ordenes
+                                        <CheckCircle2 className="h-4 w-4" /> Generar Órdenes
                                     </>
                                 )}
                             </Button>
