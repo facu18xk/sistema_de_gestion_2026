@@ -21,6 +21,9 @@ public class NotasCreditosCompraDto
 
     public decimal Total { get; set; }
 
+    public int? IdProveedor { get; set; }
+    public string? Proveedor { get; set; }
+
     public IReadOnlyCollection<NotasCreditosComprasDetalleDto> Detalles { get; set; } = Array.Empty<NotasCreditosComprasDetalleDto>();
 }
 

@@ -33,6 +33,8 @@ public class NotasCreditosComprasController : CrudControllerBase<NotasCreditosCo
             Motivo = entity.Motivo,
             FechaEmision = entity.FechaEmision,
             Total = entity.Total,
+            IdProveedor = entity.IdFacturaCompraNavigation?.IdProveedor,
+            Proveedor = entity.IdFacturaCompraNavigation?.IdProveedorNavigation?.RazonSocial,
             Detalles = entity.NotasCreditosComprasDetalles?
                 .Select(d => new ReadDetalleDto 
                 {
