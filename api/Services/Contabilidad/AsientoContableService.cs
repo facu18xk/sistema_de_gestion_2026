@@ -44,40 +44,55 @@ public class AsientoContableService : IAsientoContableService
                 periodo.IdProcesoContable);
         }
 
-        await using var transaction = await _context.Database.BeginTransactionAsync();
+        var hasExternalTransaction = _context.Database.CurrentTransaction != null;
+        var transaction = hasExternalTransaction ? null : await _context.Database.BeginTransactionAsync();
 
-        if (existing.IdPeriodoContable != periodo.IdPeriodoContable)
+        try
         {
-            existing.NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable);
-        }
-
-        existing.IdPeriodoContable = periodo.IdPeriodoContable;
-        existing.IdModulo = dto.IdModulo;
-        existing.Fecha = dto.Fecha;
-        existing.Descripcion = dto.Descripcion;
-        existing.Automatico = dto.Automatico;
-        existing.Estado = string.IsNullOrWhiteSpace(dto.Estado) ? existing.Estado : dto.Estado;
-        existing.ReferenciaOrigen = dto.ReferenciaOrigen;
-        existing.IdOrigen = dto.IdOrigen;
-        existing.FechaMayorizacion = dto.FechaMayorizacion;
-
-        _context.AsientosDetalles.RemoveRange(existing.AsientosDetalles);
-        await _context.SaveChangesAsync();
-
-        _context.AsientosDetalles.AddRange(dto.Detalles
-            .OrderBy(item => item.Item)
-            .Select(item => new AsientosDetalle
+            if (existing.IdPeriodoContable != periodo.IdPeriodoContable)
             {
-                IdAsiento = existing.IdAsiento,
-                IdCuentaContable = item.IdCuentaContable,
-                Item = item.Item,
-                TipoMovimiento = NormalizeMovimiento(item.TipoMovimiento),
-                Monto = item.Monto,
-                DescripcionItem = item.DescripcionItem
-            }));
+                existing.NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable);
+            }
 
-        await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
+            existing.IdPeriodoContable = periodo.IdPeriodoContable;
+            existing.IdModulo = dto.IdModulo;
+            existing.Fecha = dto.Fecha;
+            existing.Descripcion = dto.Descripcion;
+            existing.Automatico = dto.Automatico;
+            existing.Estado = string.IsNullOrWhiteSpace(dto.Estado) ? existing.Estado : dto.Estado;
+            existing.ReferenciaOrigen = dto.ReferenciaOrigen;
+            existing.IdOrigen = dto.IdOrigen;
+            existing.FechaMayorizacion = dto.FechaMayorizacion;
+
+            _context.AsientosDetalles.RemoveRange(existing.AsientosDetalles);
+            await _context.SaveChangesAsync();
+
+            _context.AsientosDetalles.AddRange(dto.Detalles
+                .OrderBy(item => item.Item)
+                .Select(item => new AsientosDetalle
+                {
+                    IdAsiento = existing.IdAsiento,
+                    IdCuentaContable = item.IdCuentaContable,
+                    Item = item.Item,
+                    TipoMovimiento = NormalizeMovimiento(item.TipoMovimiento),
+                    Monto = item.Monto,
+                    DescripcionItem = item.DescripcionItem
+                }));
+
+            await _context.SaveChangesAsync();
+            
+            if (transaction != null)
+            {
+                await transaction.CommitAsync();
+            }
+        }
+        finally
+        {
+            if (transaction != null)
+            {
+                await transaction.DisposeAsync();
+            }
+        }
 
         var updated = await _context.Asientos
             .Include(item => item.IdPeriodoContableNavigation)
@@ -147,51 +162,65 @@ public class AsientoContableService : IAsientoContableService
                 periodo.IdProcesoContable);
         }
 
-        await using var transaction = await _context.Database.BeginTransactionAsync();
+        var hasExternalTransaction = _context.Database.CurrentTransaction != null;
+        var transaction = hasExternalTransaction ? null : await _context.Database.BeginTransactionAsync();
 
-        var asiento = new Asiento
+        try
         {
-            NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable),
-            IdPeriodoContable = periodo.IdPeriodoContable,
-            IdModulo = dto.IdModulo,
-            Fecha = dto.Fecha,
-            Descripcion = dto.Descripcion,
-            Automatico = dto.Automatico,
-            Estado = string.IsNullOrWhiteSpace(dto.Estado) ? ContabilidadEstados.Registrado : dto.Estado,
-            ReferenciaOrigen = dto.ReferenciaOrigen,
-            IdOrigen = dto.IdOrigen,
-            CreatedAt = dto.CreatedAt ?? DateTime.Now,
-            FechaMayorizacion = dto.FechaMayorizacion
-        };
-
-        _context.Asientos.Add(asiento);
-        await _context.SaveChangesAsync();
-
-        var detalles = dto.Detalles
-            .OrderBy(item => item.Item)
-            .Select(item => new AsientosDetalle
+            var asiento = new Asiento
             {
-                IdAsiento = asiento.IdAsiento,
-                IdCuentaContable = item.IdCuentaContable,
-                Item = item.Item,
-                TipoMovimiento = NormalizeMovimiento(item.TipoMovimiento),
-                Monto = item.Monto,
-                DescripcionItem = item.DescripcionItem
-            })
-            .ToList();
+                NumeroAsiento = await GetNextNumeroAsientoAsync(periodo.IdPeriodoContable),
+                IdPeriodoContable = periodo.IdPeriodoContable,
+                IdModulo = dto.IdModulo,
+                Fecha = dto.Fecha,
+                Descripcion = dto.Descripcion,
+                Automatico = dto.Automatico,
+                Estado = string.IsNullOrWhiteSpace(dto.Estado) ? ContabilidadEstados.Registrado : dto.Estado,
+                ReferenciaOrigen = dto.ReferenciaOrigen,
+                IdOrigen = dto.IdOrigen,
+                CreatedAt = dto.CreatedAt ?? DateTime.Now,
+                FechaMayorizacion = dto.FechaMayorizacion
+            };
 
-        _context.AsientosDetalles.AddRange(detalles);
-        await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
+            _context.Asientos.Add(asiento);
+            await _context.SaveChangesAsync();
 
-        var created = await _context.Asientos
-            .Include(item => item.IdPeriodoContableNavigation)
-            .Include(item => item.IdModuloNavigation)
-            .Include(item => item.AsientosDetalles)
-            .ThenInclude(item => item.IdCuentaContableNavigation)
-            .FirstAsync(item => item.IdAsiento == asiento.IdAsiento);
+            var detalles = dto.Detalles
+                .OrderBy(item => item.Item)
+                .Select(item => new AsientosDetalle
+                {
+                    IdAsiento = asiento.IdAsiento,
+                    IdCuentaContable = item.IdCuentaContable,
+                    Item = item.Item,
+                    TipoMovimiento = NormalizeMovimiento(item.TipoMovimiento),
+                    Monto = item.Monto,
+                    DescripcionItem = item.DescripcionItem
+                })
+                .ToList();
 
-        return ToDto(created);
+            _context.AsientosDetalles.AddRange(detalles);
+            await _context.SaveChangesAsync();
+            
+            if (transaction != null)
+            {
+                await transaction.CommitAsync();
+            }
+            var created = await _context.Asientos
+                .Include(item => item.IdPeriodoContableNavigation)
+                .Include(item => item.IdModuloNavigation)
+                .Include(item => item.AsientosDetalles)
+                .ThenInclude(item => item.IdCuentaContableNavigation)
+                .FirstAsync(item => item.IdAsiento == asiento.IdAsiento);
+
+            return ToDto(created);
+        }
+        finally
+        {
+            if (transaction != null)
+            {
+                await transaction.DisposeAsync();
+            }
+        }
     }
 
     private async Task<int> GetNextNumeroAsientoAsync(int idPeriodoContable)
@@ -248,3 +277,4 @@ public class AsientoContableService : IAsientoContableService
         };
     }
 }
+
