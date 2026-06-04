@@ -23,6 +23,7 @@ const badgeVariants = cva(
         aprobado: "bg-green-300",
         rechazado: "bg-red-300",
         activo: "bg-green-100 text-green-700 border border-green-300",
+        habilitado: "bg-green-100 text-green-700 border border-green-300",
       },
     },
     defaultVariants: {
