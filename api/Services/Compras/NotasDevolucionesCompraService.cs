@@ -106,13 +106,34 @@ public class NotasDevolucionesCompraService : CrudServiceBase<NotasDevolucionesC
                 int idCuentaBancaria = ordenPagoDetalle?.IdCuentaBancaria ?? 1; // Fallback a 1 si no hay orden de pago
 
                 var cuenta = await _context.CuentasBancarias.FirstOrDefaultAsync(c => c.IdCuentaBancaria == idCuentaBancaria);
+                decimal montoTotal = nota.NotasDevolucionesComprasDetalles?.Sum(d => d.Subtotal) ?? 0;
+
                 if (cuenta != null)
                 {
-                    decimal montoTotal = nota.NotasDevolucionesComprasDetalles?.Sum(d => d.Subtotal) ?? 0;
                     cuenta.Saldo += montoTotal;
                     cuenta.SaldoDisponible += montoTotal;
                     _context.CuentasBancarias.Update(cuenta);
                 }
+
+                // 3. Crear Nota de Crédito
+                var notaCredito = new NotasCreditosCompra
+                {
+                    IdFacturaCompra = nota.IdFacturaCompra,
+                    IdNotaDevolucionCompra = nota.IdNotaDevolucionCompra,
+                    Timbrado = nota.IdFacturaCompraNavigation?.Timbrado ?? "00000000",
+                    Motivo = nota.Motivo,
+                    FechaEmision = DateTime.UtcNow,
+                    Total = montoTotal,
+                    NotasCreditosComprasDetalles = nota.NotasDevolucionesComprasDetalles?.Select(d => new NotasCreditosComprasDetalle
+                    {
+                        IdProducto = d.IdProducto,
+                        Cantidad = d.Cantidad,
+                        PrecioUnitario = d.PrecioUnitario,
+                        Subtotal = d.Subtotal
+                    }).ToList() ?? new List<NotasCreditosComprasDetalle>()
+                };
+                
+                _context.NotasCreditosCompras.Add(notaCredito);
             }
 
             nota.IdEstado = nuevoEstado.IdEstado;

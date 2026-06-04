@@ -128,6 +128,7 @@ public class NotasCreditosCompraService : CrudServiceBase<NotasCreditosCompra, i
     {
         return _context.NotasCreditosCompras
             .Include(n => n.IdFacturaCompraNavigation)
+                .ThenInclude(f => f.IdProveedorNavigation)
             .Include(n => n.IdNotaDevolucionCompraNavigation)
             .Include(n => n.NotasCreditosComprasDetalles)
                 .ThenInclude(d => d.IdProductoNavigation);
