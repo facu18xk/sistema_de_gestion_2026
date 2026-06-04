@@ -319,7 +319,7 @@ export default function OrdenesPagosPage() {
 
                                                 {/* 4. Estado */}
                                                 <TableCell className="text-xs">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(op.estado, op.idEstado)}`}>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(op.idEstado.toLocaleString(), op.idEstado)}`}>
                                                         {op.estado || (idEstadoNum === 1 ? "Pendiente" : "Procesado")}
                                                     </span>
                                                 </TableCell>
@@ -333,7 +333,7 @@ export default function OrdenesPagosPage() {
                                                 <TableCell className="text-center">
                                                     <div className="flex justify-center gap-1">
                                                         {/* Inspeccionar Orden */}
-                                                        <Link href={`/compras/pagos/${op.idOrdenPagoCompra}?view=true`}>
+                                                        <Link href={`/compras/pagos/${op.idOrdenPagoCompra}/editar?view=true`}>
                                                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Inspeccionar">
                                                                 <Eye className="h-3.5 w-3.5" />
                                                             </Button>
