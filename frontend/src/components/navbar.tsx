@@ -58,6 +58,7 @@ const modulos = [
       "Periodo Contable",
       "Asientos",
       "Plan de Cuentas",
+      "Reportes Contables",
     ],
   },
 ];
@@ -77,6 +78,7 @@ const routeByItem: Record<string, string> = {
   "Periodo Contable": "/contabilidad/periodo-contable",
   Asientos: "/contabilidad/asientos",
   "Plan de Cuentas": "/contabilidad/plan-cuentas",
+  "Reportes Contables": "/contabilidad/reportes",
   Bancos: "/banco-tesoreria/bancos",
   "Cuentas bancarias": "/banco-tesoreria/cuentas",
   "Movimientos bancarios": "/banco-tesoreria/movimientos",

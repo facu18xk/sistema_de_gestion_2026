@@ -171,13 +171,13 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
             <DashboardModuleCard
               title="Balance general"
               description="Posición financiera"
-              href="/contabilidad/proceso-contable"
+              href="/contabilidad/reportes/balance-general"
               icon={FileBarChart}
             />
             <DashboardModuleCard
               title="Estado de resultados"
               description="Ingresos y utilidad"
-              href="/contabilidad/periodo-contable"
+              href="/contabilidad/reportes/balance-resultados"
               icon={PieChart}
             />
           </div>

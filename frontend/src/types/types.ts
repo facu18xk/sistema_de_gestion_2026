@@ -576,6 +576,191 @@ export interface AsientoCompletoDTO {
     detalles: AsientoDetalleDTO[]
 }
 
+export interface ReportePeriodoContableDTO {
+    idPeriodoContable?: number
+    idProcesoContable?: number
+    procesoContable?: string | null
+    anho?: number
+    mes?: number
+    fechaInicio?: string | null
+    fechaFin?: string | null
+    estado?: string | null
+}
+
+export interface ReporteCuentaContableDTO {
+    idCuentaContable?: number
+    codigo?: string | null
+    numeroCuenta?: string | null
+    nombre?: string | null
+    tipoCuenta?: TipoCuentaContable | string | null
+}
+
+export interface ReporteContableBaseDTO {
+    periodo?: ReportePeriodoContableDTO | null
+    idPeriodoContable?: number
+    moneda?: string | null
+    generadoEn?: string | null
+}
+
+export interface LibroDiarioLineaDTO {
+    idAsiento?: number
+    numeroAsiento?: number
+    fecha?: string | null
+    descripcion?: string | null
+    item?: number
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuenta?: string | null
+    cuentaContable?: string | null
+    descripcionItem?: string | null
+    tipoMovimiento?: TipoMovimientoAsiento | string | null
+    debe?: number
+    haber?: number
+    monto?: number
+}
+
+export interface LibroDiarioAsientoDTO {
+    idAsiento?: number
+    numeroAsiento?: number
+    fecha?: string | null
+    descripcion?: string | null
+    referenciaOrigen?: string | null
+    balanceado?: boolean
+    totalDebe?: number
+    totalHaber?: number
+    diferencia?: number
+    lineas?: LibroDiarioLineaDTO[]
+    detalles?: LibroDiarioLineaDTO[]
+}
+
+export interface LibroDiarioReporteDTO extends ReporteContableBaseDTO {
+    asientos?: LibroDiarioAsientoDTO[]
+    items?: LibroDiarioAsientoDTO[]
+    totalDebe?: number
+    totalHaber?: number
+    diferencia?: number
+}
+
+export interface LibroMayorMovimientoDTO {
+    fecha?: string | null
+    idAsiento?: number
+    numeroAsiento?: number
+    descripcion?: string | null
+    referenciaOrigen?: string | null
+    debe?: number
+    haber?: number
+    saldo?: number
+}
+
+export interface LibroMayorCuentaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    saldoAnterior?: number
+    totalDebe?: number
+    totalHaber?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+    saldoFinal?: number
+    movimientos?: LibroMayorMovimientoDTO[]
+}
+
+export interface LibroMayorReporteDTO extends ReporteContableBaseDTO {
+    cuentas?: LibroMayorCuentaDTO[]
+    items?: LibroMayorCuentaDTO[]
+}
+
+export interface BalanceSumasYSaldosLineaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    saldoAnterior?: number
+    debe?: number
+    haber?: number
+    totalDebe?: number
+    totalHaber?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+    saldo?: number
+}
+
+export interface BalanceSumasYSaldosReporteDTO extends ReporteContableBaseDTO {
+    lineas?: BalanceSumasYSaldosLineaDTO[]
+    items?: BalanceSumasYSaldosLineaDTO[]
+    totalDebe?: number
+    totalHaber?: number
+    totalSaldoDeudor?: number
+    totalSaldoAcreedor?: number
+    diferencia?: number
+    cuadrado?: boolean
+}
+
+export interface BalanceGeneralLineaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    tipoCuenta?: TipoCuentaContable | string | null
+    grupo?: string | null
+    importe?: number
+    saldo?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+}
+
+export interface BalanceGeneralReporteDTO extends ReporteContableBaseDTO {
+    lineas?: BalanceGeneralLineaDTO[]
+    items?: BalanceGeneralLineaDTO[]
+    activo?: BalanceGeneralLineaDTO[]
+    pasivo?: BalanceGeneralLineaDTO[]
+    patrimonio?: BalanceGeneralLineaDTO[]
+    totalActivo?: number
+    totalPasivo?: number
+    totalPatrimonio?: number
+    diferencia?: number
+    cuadrado?: boolean
+}
+
+export interface BalanceResultadosLineaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    tipoCuenta?: TipoCuentaContable | string | null
+    grupo?: string | null
+    importe?: number
+    saldo?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+}
+
+export interface BalanceResultadosReporteDTO extends ReporteContableBaseDTO {
+    lineas?: BalanceResultadosLineaDTO[]
+    items?: BalanceResultadosLineaDTO[]
+    ingresos?: BalanceResultadosLineaDTO[]
+    costosGastos?: BalanceResultadosLineaDTO[]
+    gastos?: BalanceResultadosLineaDTO[]
+    totalIngresos?: number
+    totalCostosGastos?: number
+    totalGastos?: number
+    resultadoNeto?: number
+}
+
 export interface Empleado {
     idEmpleado: number
     ci: string

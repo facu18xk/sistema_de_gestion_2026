@@ -4,7 +4,12 @@ import {
   AsientoCompletoDTO,
   AsientoCompletoPayloadDTO,
   AsientoDTO,
+  BalanceGeneralReporteDTO,
+  BalanceResultadosReporteDTO,
+  BalanceSumasYSaldosReporteDTO,
   CuentaContableDTO,
+  LibroDiarioReporteDTO,
+  LibroMayorReporteDTO,
   PaginatedResponse,
   PeriodoContableDTO,
   ProcesoContableDTO,
@@ -161,6 +166,53 @@ export const asientosAPI = {
     const response = await api.post(
       API_CONFIG.ENDPOINTS.ASIENTOS_COMPLETO,
       data,
+    );
+    return response.data;
+  },
+};
+
+export const reportesContablesAPI = {
+  getLibroDiario: async (
+    idPeriodoContable: number,
+  ): Promise<LibroDiarioReporteDTO> => {
+    const response = await api.get<LibroDiarioReporteDTO>(
+      `${API_CONFIG.ENDPOINTS.REPORTES_CONTABLES}/libro-diario/${idPeriodoContable}`,
+    );
+    return response.data;
+  },
+
+  getLibroMayor: async (
+    idPeriodoContable: number,
+  ): Promise<LibroMayorReporteDTO> => {
+    const response = await api.get<LibroMayorReporteDTO>(
+      `${API_CONFIG.ENDPOINTS.REPORTES_CONTABLES}/libro-mayor/${idPeriodoContable}`,
+    );
+    return response.data;
+  },
+
+  getBalanceSumasYSaldos: async (
+    idPeriodoContable: number,
+  ): Promise<BalanceSumasYSaldosReporteDTO> => {
+    const response = await api.get<BalanceSumasYSaldosReporteDTO>(
+      `${API_CONFIG.ENDPOINTS.REPORTES_CONTABLES}/balance-sumas-saldos/${idPeriodoContable}`,
+    );
+    return response.data;
+  },
+
+  getBalanceGeneral: async (
+    idPeriodoContable: number,
+  ): Promise<BalanceGeneralReporteDTO> => {
+    const response = await api.get<BalanceGeneralReporteDTO>(
+      `${API_CONFIG.ENDPOINTS.REPORTES_CONTABLES}/balance-general/${idPeriodoContable}`,
+    );
+    return response.data;
+  },
+
+  getBalanceResultados: async (
+    idPeriodoContable: number,
+  ): Promise<BalanceResultadosReporteDTO> => {
+    const response = await api.get<BalanceResultadosReporteDTO>(
+      `${API_CONFIG.ENDPOINTS.REPORTES_CONTABLES}/balance-resultados/${idPeriodoContable}`,
     );
     return response.data;
   },
