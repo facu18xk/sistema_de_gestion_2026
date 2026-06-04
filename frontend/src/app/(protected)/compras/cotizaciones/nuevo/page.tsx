@@ -128,7 +128,7 @@ export default function NuevaCotizacionPage() {
         ]}
       />
       <main className="container p-2">
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Nueva Cotización</h2>
+        <h5 className=" font-bold tracking-tight mb-1">Nueva Cotización</h5>
 
         <CotizacionForm
           cotizacionEditada={null}

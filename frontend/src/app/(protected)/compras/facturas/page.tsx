@@ -277,9 +277,9 @@ export default function FacturasPage() {
         <div className="bg-background w-full">
             <PageBreadcrumb steps={[{ label: "Compras" }, { label: "Facturas de Proveedores" }]} />
 
-            <main className="container p-3 w-full">
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-bold tracking-tight">Facturas de Proveedores</h2>
+            <main className="container w-full">
+                <div className="flex justify-between items-center mb-2 mt-1">
+                    <h5 className="font-bold tracking-tight">Facturas de Proveedores</h5>
                     <Link href="/compras/facturas/cargar">
                         <Button size="sm" className="flex items-center gap-2">
                             <Plus className="h-4 w-4" />

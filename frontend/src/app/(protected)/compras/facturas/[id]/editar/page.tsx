@@ -53,6 +53,7 @@ function FacturaDetalleContent() {
     const params = useParams()
     const searchParams = useSearchParams()
     const id = params?.id ? String(params.id) : ""
+    const [isViewMode, setIsViewMode] = useState(false);
 
     const [factura, setFactura] = useState<FacturaCompra | null>(null)
     const [idEstado, setIdEstado] = useState<number>(1)
@@ -71,8 +72,6 @@ function FacturaDetalleContent() {
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isSaving, setIsSaving] = useState<boolean>(false)
 
-    const esModoVerUrl = searchParams.get("view") === "true" || searchParams.has("view")
-    const isViewMode = esModoVerUrl || (factura?.estado?.toUpperCase() !== "PENDIENTE")
 
     // Recuperador iterativo de facturas para calcular remanentes reales
     const recuperarTodasLasFacturas = async (): Promise<any[]> => {
@@ -212,6 +211,21 @@ function FacturaDetalleContent() {
 
         fetchDetallesYCruzar()
     }, [id, router])
+
+
+
+    useEffect(() => {
+        const viewParam = searchParams.get("view") === "true" || searchParams.has("view");
+        const esPendiente = factura?.estado?.toUpperCase() !== "PENDIENTE";
+
+        // Si factura está cargada (o ya llegó de la API), evaluamos el estado
+        if (factura) {
+            setIsViewMode(viewParam || esPendiente);
+        } else {
+            // Si aún no carga la factura, solo dependemos del parámetro URL
+            setIsViewMode(viewParam);
+        }
+    }, [searchParams, factura]);
 
     // Prevenir desbordes de páginas locales al borrar ítems de la grilla
     const totalPages = Math.ceil(itemsFactura.length / ITEMS_PER_PAGE)

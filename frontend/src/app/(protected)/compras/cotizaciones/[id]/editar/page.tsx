@@ -25,7 +25,7 @@ export default function EditarCotizacionPage() {
   const [detallesPedidosOriginales, setDetallesPedidosOriginales] = useState<any[]>([]);
 
   // Detectamos si viene explícitamente en modo ver o si el estado cargado no es Pendiente (ej. si idEstado !== 1)
-  const esModoVerUrl = searchParams.get("mode") === "ver";
+  const esModoVerUrl = searchParams.get("view") === "true";
   const isViewMode = esModoVerUrl || (cotizacion ? cotizacion.idEstado !== 1 : false);
 
   useEffect(() => {

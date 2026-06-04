@@ -37,6 +37,8 @@ export default function CotizacionesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [cotizacionAEliminar, setCotizacionAEliminar] = useState<CotizacionDTO | null>(null);
+  const [filtroSeleccionado, setFiltroSeleccionado] = useState<string>("");
+  const [open, setOpen] = useState(false);
 
   const [pagina, setPagina] = useState(() => {
     if (typeof window !== "undefined") {
@@ -273,9 +275,9 @@ export default function CotizacionesPage() {
     <div className="bg-background">
       <PageBreadcrumb steps={[{ label: "Compras" }, { label: "Cotizaciones" }]} />
 
-      <main className="container p-3">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold tracking-tight">Listado de Cotizaciones</h2>
+      <main className="container">
+        <div className="flex justify-between items-center mb-2 mt-1">
+          <h5 className="font-bold tracking-tight">Listado de Cotizaciones</h5>
           <Link href="/compras/cotizaciones/nuevo">
             <Button size="sm" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
