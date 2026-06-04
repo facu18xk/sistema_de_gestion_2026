@@ -16,36 +16,36 @@ public class ContabilidadReportesController : ControllerBase
     }
 
     [HttpGet("libro-diario/{idPeriodoContable:int}")]
-    public async Task<ActionResult<List<LibroDiarioLineaDto>>> GetLibroDiario(int idPeriodoContable)
+    public async Task<ActionResult<LibroDiarioReporteDto>> GetLibroDiario(int idPeriodoContable)
     {
         return await ExecuteAsync(() => _reportesService.GetLibroDiarioAsync(idPeriodoContable));
     }
 
     [HttpGet("libro-mayor/{idPeriodoContable:int}")]
-    public async Task<ActionResult<List<LibroMayorCuentaDto>>> GetLibroMayor(int idPeriodoContable)
+    public async Task<ActionResult<LibroMayorReporteDto>> GetLibroMayor(int idPeriodoContable)
     {
         return await ExecuteAsync(() => _reportesService.GetLibroMayorAsync(idPeriodoContable));
     }
 
     [HttpGet("balance-sumas-saldos/{idPeriodoContable:int}")]
-    public async Task<ActionResult<List<BalanceLineaDto>>> GetBalanceSumasYSaldos(int idPeriodoContable)
+    public async Task<ActionResult<BalanceSumasYSaldosReporteDto>> GetBalanceSumasYSaldos(int idPeriodoContable)
     {
         return await ExecuteAsync(() => _reportesService.GetBalanceSumasYSaldosAsync(idPeriodoContable));
     }
 
     [HttpGet("balance-general/{idPeriodoContable:int}")]
-    public async Task<ActionResult<List<BalanceLineaDto>>> GetBalanceGeneral(int idPeriodoContable)
+    public async Task<ActionResult<BalanceGeneralReporteDto>> GetBalanceGeneral(int idPeriodoContable)
     {
         return await ExecuteAsync(() => _reportesService.GetBalanceGeneralAsync(idPeriodoContable));
     }
 
     [HttpGet("balance-resultados/{idPeriodoContable:int}")]
-    public async Task<ActionResult<List<BalanceLineaDto>>> GetBalanceResultados(int idPeriodoContable)
+    public async Task<ActionResult<BalanceResultadosReporteDto>> GetBalanceResultados(int idPeriodoContable)
     {
         return await ExecuteAsync(() => _reportesService.GetBalanceResultadosAsync(idPeriodoContable));
     }
 
-    private async Task<ActionResult<List<T>>> ExecuteAsync<T>(Func<Task<List<T>>> action)
+    private async Task<ActionResult<T>> ExecuteAsync<T>(Func<Task<T>> action)
     {
         try
         {

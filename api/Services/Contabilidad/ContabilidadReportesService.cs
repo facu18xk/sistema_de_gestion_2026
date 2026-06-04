@@ -13,166 +13,110 @@ public class ContabilidadReportesService : IContabilidadReportesService
         _context = context;
     }
 
-    public async Task<List<LibroDiarioLineaDto>> GetLibroDiarioAsync(int idPeriodoContable)
+    public async Task<LibroDiarioReporteDto> GetLibroDiarioAsync(int idPeriodoContable)
     {
-        await EnsurePeriodoExistsAsync(idPeriodoContable);
-
-        return await BaseMovimientos(idPeriodoContable)
-            .OrderBy(item => item.IdAsientoNavigation.Fecha)
-            .ThenBy(item => item.IdAsientoNavigation.NumeroAsiento)
-            .ThenBy(item => item.Item)
-            .Select(item => new LibroDiarioLineaDto
-            {
-                IdAsiento = item.IdAsiento,
-                NumeroAsiento = item.IdAsientoNavigation.NumeroAsiento,
-                Fecha = item.IdAsientoNavigation.Fecha,
-                Descripcion = item.DescripcionItem ?? item.IdAsientoNavigation.Descripcion,
-                Item = item.Item,
-                IdCuentaContable = item.IdCuentaContable,
-                NumeroCuenta = item.IdCuentaContableNavigation.NumeroCuenta,
-                CuentaContable = item.IdCuentaContableNavigation.Nombre,
-                Debe = item.TipoMovimiento.ToLower() == "debe" ? item.Monto : 0,
-                Haber = item.TipoMovimiento.ToLower() == "haber" ? item.Monto : 0
-            })
-            .ToListAsync();
+        return ContabilidadReportesCalculator.BuildLibroDiario(await BuildReporteBaseAsync(idPeriodoContable));
     }
 
-    public async Task<List<LibroMayorCuentaDto>> GetLibroMayorAsync(int idPeriodoContable)
+    public async Task<LibroMayorReporteDto> GetLibroMayorAsync(int idPeriodoContable)
     {
-        var diario = await GetLibroDiarioAsync(idPeriodoContable);
-
-        return diario
-            .GroupBy(item => new { item.IdCuentaContable, item.NumeroCuenta, item.CuentaContable })
-            .OrderBy(group => group.Key.NumeroCuenta)
-            .Select(group =>
-            {
-                var totalDebe = group.Sum(item => item.Debe);
-                var totalHaber = group.Sum(item => item.Haber);
-                var saldo = totalDebe - totalHaber;
-
-                return new LibroMayorCuentaDto
-                {
-                    IdCuentaContable = group.Key.IdCuentaContable,
-                    NumeroCuenta = group.Key.NumeroCuenta,
-                    CuentaContable = group.Key.CuentaContable,
-                    TotalDebe = totalDebe,
-                    TotalHaber = totalHaber,
-                    SaldoDeudor = saldo > 0 ? saldo : 0,
-                    SaldoAcreedor = saldo < 0 ? Math.Abs(saldo) : 0,
-                    Movimientos = group
-                        .OrderBy(item => item.Fecha)
-                        .ThenBy(item => item.NumeroAsiento)
-                        .Select(item => new LibroMayorMovimientoDto
-                        {
-                            IdAsiento = item.IdAsiento,
-                            NumeroAsiento = item.NumeroAsiento,
-                            Fecha = item.Fecha,
-                            Descripcion = item.Descripcion,
-                            Debe = item.Debe,
-                            Haber = item.Haber
-                        })
-                        .ToList()
-                };
-            })
-            .ToList();
+        return ContabilidadReportesCalculator.BuildLibroMayor(await BuildReporteBaseAsync(idPeriodoContable));
     }
 
-    public async Task<List<BalanceLineaDto>> GetBalanceSumasYSaldosAsync(int idPeriodoContable)
+    public async Task<BalanceSumasYSaldosReporteDto> GetBalanceSumasYSaldosAsync(int idPeriodoContable)
     {
-        await EnsurePeriodoExistsAsync(idPeriodoContable);
-
-        var lineas = await BaseMovimientos(idPeriodoContable)
-            .GroupBy(item => new
-            {
-                item.IdCuentaContable,
-                item.IdCuentaContableNavigation.NumeroCuenta,
-                item.IdCuentaContableNavigation.Nombre,
-                item.IdCuentaContableNavigation.TipoCuenta
-            })
-            .Select(group => new
-            {
-                group.Key.IdCuentaContable,
-                group.Key.NumeroCuenta,
-                CuentaContable = group.Key.Nombre,
-                group.Key.TipoCuenta,
-                TotalDebe = group.Where(item => item.TipoMovimiento.ToLower() == "debe").Sum(item => item.Monto),
-                TotalHaber = group.Where(item => item.TipoMovimiento.ToLower() == "haber").Sum(item => item.Monto)
-            })
-            .OrderBy(item => item.NumeroCuenta)
-            .ToListAsync();
-
-        return lineas.Select(item => ToBalanceLinea(
-                item.IdCuentaContable,
-                item.NumeroCuenta,
-                item.CuentaContable,
-                item.TipoCuenta,
-                item.TotalDebe,
-                item.TotalHaber))
-            .ToList();
+        return ContabilidadReportesCalculator.BuildBalanceSumasYSaldos(await BuildReporteBaseAsync(idPeriodoContable));
     }
 
-    public async Task<List<BalanceLineaDto>> GetBalanceGeneralAsync(int idPeriodoContable)
+    public async Task<BalanceGeneralReporteDto> GetBalanceGeneralAsync(int idPeriodoContable)
     {
-        var balance = await GetBalanceSumasYSaldosAsync(idPeriodoContable);
-        return balance
-            .Where(item => IsAnyTipo(item.TipoCuenta, "activo", "pasivo", "patrimonio", "capital"))
-            .ToList();
+        return ContabilidadReportesCalculator.BuildBalanceGeneral(await BuildReporteBaseAsync(idPeriodoContable));
     }
 
-    public async Task<List<BalanceLineaDto>> GetBalanceResultadosAsync(int idPeriodoContable)
+    public async Task<BalanceResultadosReporteDto> GetBalanceResultadosAsync(int idPeriodoContable)
     {
-        var balance = await GetBalanceSumasYSaldosAsync(idPeriodoContable);
-        return balance
-            .Where(item => IsAnyTipo(item.TipoCuenta, "ingreso", "venta", "gasto", "egreso", "costo", "resultado"))
-            .ToList();
+        return ContabilidadReportesCalculator.BuildBalanceResultados(await BuildReporteBaseAsync(idPeriodoContable));
     }
 
-    private IQueryable<AsientosDetalle> BaseMovimientos(int idPeriodoContable)
+    private async Task<ContabilidadReporteBaseData> BuildReporteBaseAsync(int idPeriodoContable)
     {
-        return _context.AsientosDetalles
+        var periodo = await _context.PeriodosContables
             .AsNoTracking()
-            .Include(item => item.IdAsientoNavigation)
-            .Include(item => item.IdCuentaContableNavigation)
-            .Where(item => item.IdAsientoNavigation.IdPeriodoContable == idPeriodoContable);
-    }
+            .Include(item => item.IdProcesoContableNavigation)
+            .FirstOrDefaultAsync(item => item.IdPeriodoContable == idPeriodoContable);
 
-    private async Task EnsurePeriodoExistsAsync(int idPeriodoContable)
-    {
-        var exists = await _context.PeriodosContables
-            .AnyAsync(item => item.IdPeriodoContable == idPeriodoContable);
-
-        if (!exists)
+        if (periodo is null)
         {
             throw new InvalidOperationException("No existe el periodo contable indicado.");
         }
-    }
 
-    private static BalanceLineaDto ToBalanceLinea(
-        int idCuentaContable,
-        string numeroCuenta,
-        string cuentaContable,
-        string tipoCuenta,
-        decimal totalDebe,
-        decimal totalHaber)
-    {
-        var saldo = totalDebe - totalHaber;
-
-        return new BalanceLineaDto
+        var cabecera = new ReporteContableCabeceraDto
         {
-            IdCuentaContable = idCuentaContable,
-            NumeroCuenta = numeroCuenta,
-            CuentaContable = cuentaContable,
-            TipoCuenta = tipoCuenta,
-            TotalDebe = totalDebe,
-            TotalHaber = totalHaber,
-            SaldoDeudor = saldo > 0 ? saldo : 0,
-            SaldoAcreedor = saldo < 0 ? Math.Abs(saldo) : 0,
-            Saldo = saldo
+            IdPeriodoContable = periodo.IdPeriodoContable,
+            IdProcesoContable = periodo.IdProcesoContable,
+            Anho = periodo.Anho,
+            Mes = periodo.Mes,
+            FechaInicio = periodo.FechaInicio,
+            FechaFin = periodo.FechaFin,
+            FechaEmision = DateTime.UtcNow,
+            Moneda = periodo.IdProcesoContableNavigation.Moneda
         };
+
+        var cuentas = await _context.CuentasContables
+            .AsNoTracking()
+            .Where(item => item.IdProcesoContable == periodo.IdProcesoContable
+                && item.Activa
+                && item.EsAsentable)
+            .OrderBy(item => item.NumeroCuenta)
+            .ToListAsync();
+
+        var movimientos = await _context.AsientosDetalles
+            .AsNoTracking()
+            .Include(item => item.IdAsientoNavigation)
+            .Include(item => item.IdCuentaContableNavigation)
+            .Where(item => item.IdCuentaContableNavigation.IdProcesoContable == periodo.IdProcesoContable
+                && item.IdCuentaContableNavigation.Activa
+                && item.IdCuentaContableNavigation.EsAsentable
+                && item.IdAsientoNavigation.Fecha <= periodo.FechaFin)
+            .ToListAsync();
+
+        var movimientosDto = movimientos
+            .Where(item => ContabilidadRules.IsEnabled(item.IdAsientoNavigation.Estado))
+            .Select(ToMovimientoContable)
+            .OrderBy(item => item.Fecha)
+            .ThenBy(item => item.NumeroAsiento)
+            .ThenBy(item => item.Item)
+            .ToList();
+
+        return new ContabilidadReporteBaseData(
+            cabecera,
+            cuentas,
+            movimientosDto.Where(item => item.Fecha < periodo.FechaInicio).ToList(),
+            movimientosDto.Where(item => item.Fecha >= periodo.FechaInicio && item.Fecha <= periodo.FechaFin).ToList(),
+            movimientosDto);
     }
 
-    private static bool IsAnyTipo(string tipoCuenta, params string[] values)
+    private static MovimientoContableReporteData ToMovimientoContable(AsientosDetalle item)
     {
-        return values.Any(value => tipoCuenta.Contains(value, StringComparison.OrdinalIgnoreCase));
+        var debe = ContabilidadRules.IsDebe(item.TipoMovimiento) ? item.Monto : 0;
+        var haber = ContabilidadRules.IsHaber(item.TipoMovimiento) ? item.Monto : 0;
+
+        return new MovimientoContableReporteData(
+            item.IdAsientoDetalle,
+            item.IdAsiento,
+            item.IdAsientoNavigation.NumeroAsiento,
+            item.IdAsientoNavigation.Fecha,
+            item.IdAsientoNavigation.Descripcion,
+            item.IdAsientoNavigation.ReferenciaOrigen,
+            item.IdAsientoNavigation.IdOrigen,
+            item.IdCuentaContable,
+            item.IdCuentaContableNavigation.NumeroCuenta,
+            item.IdCuentaContableNavigation.Nombre,
+            item.IdCuentaContableNavigation.TipoCuenta,
+            item.Item,
+            item.TipoMovimiento,
+            item.DescripcionItem,
+            debe,
+            haber);
     }
 }

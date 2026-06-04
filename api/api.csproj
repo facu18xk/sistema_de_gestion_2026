@@ -10,6 +10,7 @@
     <Compile Remove="Controllers/*.cs" />
     <Compile Remove="Models/*.cs" />
     <Compile Remove="Services/*.cs" />
+    <Compile Remove="tests/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
