@@ -432,6 +432,8 @@ export interface NotaCreditoCompraDTO {
     motivo: string;
     fechaEmision: string;
     total: number;
+    idProveedor?: number;
+    proveedor?: string;
     detalles: NotaCreditoCompraDetalleDTO[];
 }
 

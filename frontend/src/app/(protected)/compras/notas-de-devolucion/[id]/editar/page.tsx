@@ -26,6 +26,7 @@ export default function EditarNotaDevolucionPage() {
   const searchParams = useSearchParams()
 
   const isReadOnlyParams = searchParams?.get("readOnly") === "true"
+  const isFromCredito = searchParams?.get("source") === "credito"
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -113,7 +114,7 @@ export default function EditarNotaDevolucionPage() {
 
   const handleSubmit = async () => {
     if (isReadOnly) {
-      router.push("/compras/notas-de-devolucion")
+      router.push(isFromCredito ? "/compras/notas-de-credito" : "/compras/notas-de-devolucion")
       return
     }
 
@@ -165,7 +166,7 @@ export default function EditarNotaDevolucionPage() {
 
       <FormContainer
         onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
-        onCancel={() => router.push("/compras/notas-de-devolucion")}
+        onCancel={() => router.push(isFromCredito ? "/compras/notas-de-credito" : "/compras/notas-de-devolucion")}
         isEditing={!isReadOnly}
         submitText={{ save: "Aceptar", update: isSubmitting ? "Guardando..." : "Guardar Cambios" }}
         submitDisabled={isSubmitting}
@@ -210,17 +211,19 @@ export default function EditarNotaDevolucionPage() {
 
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Productos a Devolver</h3>
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md">
-              Para cambiar productos, debe anular/eliminar y crear una nueva nota.
-            </span>
+            <h3 className="text-lg font-medium">{isFromCredito ? "Productos Devueltos" : "Productos a Devolver"}</h3>
+            {!isFromCredito && (
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md">
+                Para cambiar productos, debe anular/eliminar y crear una nueva nota.
+              </span>
+            )}
           </div>
 
           <div className="border rounded-md overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead>ID Producto</TableHead>
+                  <TableHead>Producto</TableHead>
                   <TableHead className="w-32">Cantidad</TableHead>
                   <TableHead className="w-48">Precio Unitario</TableHead>
                   <TableHead className="w-32 text-right">Subtotal</TableHead>

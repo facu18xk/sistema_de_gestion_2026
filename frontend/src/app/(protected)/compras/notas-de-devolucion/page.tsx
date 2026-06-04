@@ -62,16 +62,22 @@ export default function NotasDevolucionPage() {
         sessionStorage.setItem("filters_notas_dev", JSON.stringify(stateToSave));
     }
 
+    const proveedoresConNotas = useMemo(() => {
+        if (!proveedores || !allNotas) return [];
+        const idsConNotas = new Set(allNotas.map(n => n.idProveedor));
+        return proveedores.filter(p => idsConNotas.has(p.idProveedor));
+    }, [proveedores, allNotas]);
+
     const camposFiltro: FilterField[] = [
         {
             id: "proveedor",
             label: "Proveedor",
             type: "select",
             placeholder: "Todos los proveedores",
-            options: proveedores?.map((p) => ({
+            options: proveedoresConNotas.map((p) => ({
                 label: `${p.razonSocial} (${p.ruc})`,
                 value: String(p.idProveedor),
-            })) || [],
+            })),
         },
         {
             id: "estado",
@@ -249,9 +255,11 @@ export default function NotasDevolucionPage() {
             <PageBreadcrumb steps={[{ label: "Compras", href: "#" }, { label: "Notas de Devolución" }]} />
 
             <PageHeader
-                title="Listado de Notas de Devolución"
-                buttonLabel="Nueva Nota"
+                title="Devoluciones"
+                buttonLabel="Nueva Devolución"
                 onButtonClick={handleCrearNuevo}
+                secondaryButtonLabel="Notas de Crédito"
+                onSecondaryButtonClick={() => router.push("/compras/notas-de-credito")}
             />
 
             <div className="relative w-full mb-2">

@@ -39,6 +39,26 @@ public class NotasDevolucionesCompraService : CrudServiceBase<NotasDevolucionesC
         existingEntity.Fecha = incomingEntity.Fecha;
     }
 
+    public override async Task DeleteAsync(int id)
+    {
+        var entity = await _context.NotasDevolucionesCompras
+            .Include(n => n.NotasDevolucionesComprasDetalles)
+            .FirstOrDefaultAsync(n => n.IdNotaDevolucionCompra == id);
+
+        if (entity is null)
+        {
+            return;
+        }
+
+        if (entity.NotasDevolucionesComprasDetalles != null && entity.NotasDevolucionesComprasDetalles.Any())
+        {
+            _context.RemoveRange(entity.NotasDevolucionesComprasDetalles);
+        }
+
+        _context.NotasDevolucionesCompras.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<NotasDevolucionesCompra> CambiarEstadoAsync(int id, string nuevoEstadoStr)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -86,13 +106,34 @@ public class NotasDevolucionesCompraService : CrudServiceBase<NotasDevolucionesC
                 int idCuentaBancaria = ordenPagoDetalle?.IdCuentaBancaria ?? 1; // Fallback a 1 si no hay orden de pago
 
                 var cuenta = await _context.CuentasBancarias.FirstOrDefaultAsync(c => c.IdCuentaBancaria == idCuentaBancaria);
+                decimal montoTotal = nota.NotasDevolucionesComprasDetalles?.Sum(d => d.Subtotal) ?? 0;
+
                 if (cuenta != null)
                 {
-                    decimal montoTotal = nota.NotasDevolucionesComprasDetalles?.Sum(d => d.Subtotal) ?? 0;
                     cuenta.Saldo += montoTotal;
                     cuenta.SaldoDisponible += montoTotal;
                     _context.CuentasBancarias.Update(cuenta);
                 }
+
+                // 3. Crear Nota de Crédito
+                var notaCredito = new NotasCreditosCompra
+                {
+                    IdFacturaCompra = nota.IdFacturaCompra,
+                    IdNotaDevolucionCompra = nota.IdNotaDevolucionCompra,
+                    Timbrado = nota.IdFacturaCompraNavigation?.Timbrado ?? "00000000",
+                    Motivo = nota.Motivo,
+                    FechaEmision = DateTime.Now,
+                    Total = montoTotal,
+                    NotasCreditosComprasDetalles = nota.NotasDevolucionesComprasDetalles?.Select(d => new NotasCreditosComprasDetalle
+                    {
+                        IdProducto = d.IdProducto,
+                        Cantidad = d.Cantidad,
+                        PrecioUnitario = d.PrecioUnitario,
+                        Subtotal = d.Subtotal
+                    }).ToList() ?? new List<NotasCreditosComprasDetalle>()
+                };
+                
+                _context.NotasCreditosCompras.Add(notaCredito);
             }
 
             nota.IdEstado = nuevoEstado.IdEstado;

@@ -28,7 +28,7 @@ import { notify } from "@/lib/notifications"
 //Para listar los diferentes módulos en el navbar
 const modulos = [
   { title: "Ventas", items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"] },
-  { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Facturas", "Pagos", "Notas de Devolución"] },
+  { title: "Compras", items: ["Proveedores", "Pedidos", "Cotizaciones", "Órdenes", "Facturas", "Pagos", "Devoluciones"] },
   { title: "Banco y Tesorería", items: ["Cuentas", "Conciliación", "Caja"] },
   { title: "Stock", items: ["Productos", "Depósitos", "Movimientos"] },
   { title: "RRHH", items: ["Empleados", "Nómina", "Asistencia"] },
@@ -96,7 +96,8 @@ export default function Navbar() {
                                           item === "Órdenes" ? "/compras/ordenes" :
                                             item === "Facturas" ? "/compras/facturas" :
                                               item === "Pagos" ? "/compras/pagos" :
-                                                item === "Notas de Devolución" ? "/compras/notas-de-devolucion" :
+                                                item === "Devoluciones" ? "/compras/notas-de-devolucion" :
+                                                item === "Notas de Crédito" ? "/compras/notas-de-credito" :
                                                   "#"
                               }
                               className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
