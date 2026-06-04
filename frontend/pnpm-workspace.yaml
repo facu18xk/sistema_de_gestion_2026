@@ -1,4 +1,9 @@
 allowBuilds:
+<<<<<<< HEAD
   msw: true
   sharp: set this to true or false
   unrs-resolver: true
+=======
+  msw: set this to true or false
+  unrs-resolver: set this to true or false
+>>>>>>> front

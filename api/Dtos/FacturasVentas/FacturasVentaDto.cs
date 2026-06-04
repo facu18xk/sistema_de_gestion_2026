@@ -35,17 +35,13 @@ public class FacturasVentaDto
     public DateTime FechaPago { get; set; }
 }
 
-public class FacturasVentaUpsertDto
+public class FacturasVentaCreateDto
 {
     public int IdPresupuesto { get; set; }
 
     public int IdCliente { get; set; }
 
-    public string? NroComprobante { get; set; }
-
     public int IdEstado { get; set; }
-
-    public int IdTimbrado { get; set; }
 
     public DateTime Fecha { get; set; }
 
@@ -54,4 +50,11 @@ public class FacturasVentaUpsertDto
     public int IdMedioPagoCompra { get; set; }
 
     public DateTime FechaPago { get; set; }
+}
+
+public class FacturasVentaUpsertDto : FacturasVentaCreateDto
+{
+    public string? NroComprobante { get; set; }
+
+    public int IdTimbrado { get; set; }
 }

@@ -41,19 +41,19 @@ const columnWidths = {
 };
 
 export default function ProductosPage() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   //const [productos, setProductos] = useState<ProductoDTO[]>([])
-  const [todosLosProductos, setTodosLosProductos] = useState<ProductoDTO[]>([])
-  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null)
+  const [todosLosProductos, setTodosLosProductos] = useState<ProductoDTO[]>([]);
+  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null);
   const [productoAEliminar, setProductoAEliminar] = useState<ProductoDTO | null>(null);
-  const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [marcas, setMarcas] = useState<Marca[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  //const [totalPages, setTotalPages] = useState(1)
-  const [itemsPerPage] = useState(10) //10 por defecto
-  const [searchTerm, setSearchTerm] = useState("")
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  //const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
@@ -65,8 +65,17 @@ export default function ProductosPage() {
         categoriasAPI.getAll()
       ])
       //setProductos(resPaginada.items);
+      const soloProductos = resPaginada.items.filter((s) => s.esServicio === false);
+      const ordenados = [...soloProductos].sort((a, b) => {
+        const porDescripcion = a.descripcion.localeCompare(b.descripcion, 'es-PY');
+        if (porDescripcion === 0) {
+          return a.marca.localeCompare(b.marca, 'es-PY');
+        }
+        return porDescripcion;
+      });
+      setTodosLosProductos(ordenados);
+      //console.log(resPaginada.items)
       //setTotalPages(resPaginada.totalPages);
-      setTodosLosProductos(resPaginada.items);
       setMarcas(resMarcas.items);
       setCategorias(resCategorias);
     } catch (error) {
@@ -136,7 +145,7 @@ export default function ProductosPage() {
         await cargarPagina(); // Recarga la página actual
       } catch (error) {
         console.error("Error al eliminar el producto:", error);
-        notify.error("Error", "No se pudo eliminar");
+        notify.error("Error", "No se pudo eliminar. El producto tiene objetos asociados.");
       } finally {
         setIsAlertOpen(false);
         setProductoAEliminar(null);
@@ -149,14 +158,17 @@ export default function ProductosPage() {
       if (productoAEditar) {
         //console.log(data);
         await productosAPI.update(productoAEditar.idProducto, data)
+        notify.success("Actualizado", "Producto actualizado correctamente.");
       } else {
         //console.log(data);
         await productosAPI.create(data)
+        notify.success("Registrado", "Nuevo producto guardado.");
       }
       setIsSheetOpen(false)
       cargarPagina() // Refrescar la tabla
     } catch (error) {
       console.error("Error al guardar:", error)
+      notify.error("Error", "No se pudo procesar la solicitud.")
     }
   }
 
@@ -173,7 +185,7 @@ export default function ProductosPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por código, descripción o marca..."
+            placeholder="Buscar por código, descripción, marca o categoría..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -242,8 +254,8 @@ export default function ProductosPage() {
               <TableCell className={`${columnWidths.marca}`}>{p.marca}</TableCell>
               <TableCell className={`${columnWidths.categoria}`}>{p.categoria}</TableCell>
               <TableCell className={`${columnWidths.precio} text-right`}>{formatGuaranies(p.precioUnitario)}</TableCell>
-              <TableCell className={`${columnWidths.stock} text-right font-semibold`}>{p.cantidadTotal}</TableCell>
-              <TableCell className={`${columnWidths.acciones} text-right font-semibold space-x-1`}>
+              <TableCell className={`${columnWidths.stock} text-right font-semibold ${p.cantidadTotal <= 4 ? "text-red-500" : ""}`}>{p.cantidadTotal}</TableCell>
+              <TableCell className={`${columnWidths.acciones} text-right space-x-1`}>
                 <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
                   <Pencil className="size-3.5" />
                 </Button>
@@ -255,7 +267,7 @@ export default function ProductosPage() {
           ))}
           {productosVisiblesEnPagina.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="py-10 text-center text-muted-foreground text-sm">
+              <TableCell colSpan={7} className="py-10 text-center text-muted-foreground text-sm">
                 No hay productos que coincidan con la búsqueda.
               </TableCell>
             </TableRow>

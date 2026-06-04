@@ -26,8 +26,193 @@ public partial class DblosAmigosContext
 
     public virtual DbSet<ChequeTercero> ChequesTerceros { get; set; }
 
+    public virtual DbSet<Cargo> Cargos { get; set; }
+
+    public virtual DbSet<EmpleadoCargo> EmpleadosCargos { get; set; }
+
+    public virtual DbSet<ConceptoSalario> ConceptosSalarios { get; set; }
+
+    public virtual DbSet<EmpleadoConceptoMensual> EmpleadosConceptosMensuales { get; set; }
+
+    public virtual DbSet<ParametroSalario> ParametrosSalarios { get; set; }
+
+    public virtual DbSet<ProcesoPagoSalario> ProcesosPagosSalarios { get; set; }
+
+    public virtual DbSet<PagoSalarioDetalle> PagosSalariosDetalles { get; set; }
+
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Cargo>(entity =>
+        {
+            entity.HasKey(e => e.IdCargo);
+            entity.ToTable("Cargos");
+            entity.Property(e => e.IdCargo).HasColumnName("Id_Cargo");
+            entity.Property(e => e.Nombre).HasMaxLength(120).IsUnicode(false);
+            entity.Property(e => e.Descripcion).HasMaxLength(250).IsUnicode(false);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Nombre).IsUnique().HasDatabaseName("IX_Cargos_Nombre");
+        });
+
+        modelBuilder.Entity<EmpleadoCargo>(entity =>
+        {
+            entity.HasKey(e => e.IdEmpleadoCargo);
+            entity.ToTable("Empleados_Cargos");
+            entity.Property(e => e.IdEmpleadoCargo).HasColumnName("Id_Empleado_Cargo");
+            entity.Property(e => e.IdEmpleado).HasColumnName("Id_Empleado");
+            entity.Property(e => e.IdCargo).HasColumnName("Id_Cargo");
+            entity.Property(e => e.FechaDesde).HasColumnName("Fecha_Desde");
+            entity.Property(e => e.FechaHasta).HasColumnName("Fecha_Hasta");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.IdEmpleado)
+                .IsUnique()
+                .HasFilter("\"Activo\" = true")
+                .HasDatabaseName("IX_Empleados_Cargos_Empleado_Activo");
+
+            entity.HasOne(e => e.IdEmpleadoNavigation).WithMany(e => e.EmpleadosCargos)
+                .HasForeignKey(e => e.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Empleados_Cargos_Empleados");
+
+            entity.HasOne(e => e.IdCargoNavigation).WithMany(e => e.EmpleadosCargos)
+                .HasForeignKey(e => e.IdCargo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Empleados_Cargos_Cargos");
+        });
+
+        modelBuilder.Entity<ConceptoSalario>(entity =>
+        {
+            entity.HasKey(e => e.IdConceptoSalario);
+            entity.ToTable("Conceptos_Salarios");
+            entity.Property(e => e.IdConceptoSalario).HasColumnName("Id_Concepto_Salario");
+            entity.Property(e => e.Codigo).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Descripcion).HasMaxLength(160).IsUnicode(false);
+            entity.Property(e => e.Tipo).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.DeducibleIps).HasColumnName("Deducible_IPS");
+            entity.Property(e => e.EsSalarioBase).HasColumnName("Es_Salario_Base");
+            entity.Property(e => e.EsIps).HasColumnName("Es_IPS");
+            entity.Property(e => e.EsBonificacionFamiliar).HasColumnName("Es_Bonificacion_Familiar");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Codigo).IsUnique().HasDatabaseName("IX_Conceptos_Salarios_Codigo");
+            entity.HasData(
+                new ConceptoSalario
+                {
+                    IdConceptoSalario = 1,
+                    Codigo = "SALARIO",
+                    Descripcion = "Salario",
+                    Tipo = "Ingreso",
+                    DeducibleIps = true,
+                    EsSalarioBase = true,
+                    Activo = true
+                },
+                new ConceptoSalario
+                {
+                    IdConceptoSalario = 2,
+                    Codigo = "IPS",
+                    Descripcion = "Descuento IPS",
+                    Tipo = "Egreso",
+                    EsIps = true,
+                    Activo = true
+                },
+                new ConceptoSalario
+                {
+                    IdConceptoSalario = 3,
+                    Codigo = "BONIFICACION_FAMILIAR",
+                    Descripcion = "Bonificacion familiar",
+                    Tipo = "Ingreso",
+                    DeducibleIps = false,
+                    EsBonificacionFamiliar = true,
+                    Activo = true
+                });
+        });
+
+        modelBuilder.Entity<EmpleadoConceptoMensual>(entity =>
+        {
+            entity.HasKey(e => e.IdEmpleadoConceptoMensual);
+            entity.ToTable("Empleados_Conceptos_Mensuales");
+            entity.Property(e => e.IdEmpleadoConceptoMensual).HasColumnName("Id_Empleado_Concepto_Mensual");
+            entity.Property(e => e.IdEmpleado).HasColumnName("Id_Empleado");
+            entity.Property(e => e.IdConceptoSalario).HasColumnName("Id_Concepto_Salario");
+            entity.Property(e => e.Monto).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.FechaDesde).HasColumnName("Fecha_Desde");
+            entity.Property(e => e.FechaHasta).HasColumnName("Fecha_Hasta");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => new { e.IdEmpleado, e.IdConceptoSalario, e.Activo })
+                .HasDatabaseName("IX_Empleados_Conceptos_Mensuales_Empleado_Concepto_Activo");
+
+            entity.HasOne(e => e.IdEmpleadoNavigation).WithMany(e => e.EmpleadosConceptosMensuales)
+                .HasForeignKey(e => e.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Empleados_Conceptos_Mensuales_Empleados");
+
+            entity.HasOne(e => e.IdConceptoSalarioNavigation).WithMany(e => e.EmpleadosConceptosMensuales)
+                .HasForeignKey(e => e.IdConceptoSalario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Empleados_Conceptos_Mensuales_Conceptos_Salarios");
+        });
+
+        modelBuilder.Entity<ParametroSalario>(entity =>
+        {
+            entity.HasKey(e => e.IdParametroSalario);
+            entity.ToTable("Parametros_Salarios");
+            entity.Property(e => e.IdParametroSalario).HasColumnName("Id_Parametro_Salario");
+            entity.Property(e => e.FechaDesde).HasColumnName("Fecha_Desde");
+            entity.Property(e => e.FechaHasta).HasColumnName("Fecha_Hasta");
+            entity.Property(e => e.SalarioMinimo).HasColumnType("decimal(18, 2)").HasColumnName("Salario_Minimo");
+            entity.Property(e => e.PorcentajeIpsEmpleado).HasColumnType("decimal(9, 4)").HasColumnName("Porcentaje_IPS_Empleado");
+            entity.Property(e => e.PorcentajeBonificacionFamiliar).HasColumnType("decimal(9, 4)").HasColumnName("Porcentaje_Bonificacion_Familiar");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<ProcesoPagoSalario>(entity =>
+        {
+            entity.HasKey(e => e.IdProcesoPagoSalario);
+            entity.ToTable("Procesos_Pagos_Salarios");
+            entity.Property(e => e.IdProcesoPagoSalario).HasColumnName("Id_Proceso_Pago_Salario");
+            entity.Property(e => e.PeriodoAnho).HasColumnName("Periodo_Anho");
+            entity.Property(e => e.PeriodoMes).HasColumnName("Periodo_Mes");
+            entity.Property(e => e.FechaPago).HasColumnName("Fecha_Pago");
+            entity.Property(e => e.Estado).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.IdAsiento).HasColumnName("Id_Asiento");
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp without time zone").HasColumnName("Created_At");
+            entity.Property(e => e.CerradoAt).HasColumnType("timestamp without time zone").HasColumnName("Cerrado_At");
+            entity.HasIndex(e => new { e.PeriodoAnho, e.PeriodoMes }).IsUnique().HasDatabaseName("IX_Procesos_Pagos_Salarios_Periodo");
+
+            entity.HasOne(e => e.IdAsientoNavigation).WithMany(e => e.ProcesosPagosSalarios)
+                .HasForeignKey(e => e.IdAsiento)
+                .HasConstraintName("FK_Procesos_Pagos_Salarios_Asientos");
+        });
+
+        modelBuilder.Entity<PagoSalarioDetalle>(entity =>
+        {
+            entity.HasKey(e => e.IdPagoSalarioDetalle);
+            entity.ToTable("Pagos_Salarios_Detalles");
+            entity.Property(e => e.IdPagoSalarioDetalle).HasColumnName("Id_Pago_Salario_Detalle");
+            entity.Property(e => e.IdProcesoPagoSalario).HasColumnName("Id_Proceso_Pago_Salario");
+            entity.Property(e => e.IdEmpleado).HasColumnName("Id_Empleado");
+            entity.Property(e => e.IdConceptoSalario).HasColumnName("Id_Concepto_Salario");
+            entity.Property(e => e.Tipo).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Monto).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.DeducibleIps).HasColumnName("Deducible_IPS");
+            entity.Property(e => e.EsAutomatico).HasColumnName("Es_Automatico");
+            entity.Property(e => e.Observacion).HasMaxLength(250).IsUnicode(false);
+            entity.HasIndex(e => new { e.IdProcesoPagoSalario, e.IdEmpleado }).HasDatabaseName("IX_Pagos_Salarios_Detalles_Proceso_Empleado");
+
+            entity.HasOne(e => e.IdProcesoPagoSalarioNavigation).WithMany(e => e.PagosSalariosDetalles)
+                .HasForeignKey(e => e.IdProcesoPagoSalario)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Pagos_Salarios_Detalles_Procesos_Pagos_Salarios");
+
+            entity.HasOne(e => e.IdEmpleadoNavigation).WithMany(e => e.PagosSalariosDetalles)
+                .HasForeignKey(e => e.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pagos_Salarios_Detalles_Empleados");
+
+            entity.HasOne(e => e.IdConceptoSalarioNavigation).WithMany(e => e.PagosSalariosDetalles)
+                .HasForeignKey(e => e.IdConceptoSalario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pagos_Salarios_Detalles_Conceptos_Salarios");
+        });
+
         modelBuilder.Entity<Banco>(entity =>
         {
             entity.HasKey(e => e.IdBanco);

@@ -13,7 +13,7 @@ import { notify } from "@/lib/notifications";
 import { EstadoProcesoContable, ProcesoContableDTO } from "@/types/types";
 
 interface Props {
-  value?: number;
+  value?: number | null;
   onChange: (proceso: ProcesoContableDTO | null) => void;
 }
 
@@ -96,7 +96,7 @@ export function ContabilidadProcessSelector({ value, onChange }: Props) {
     cargarProcesos();
   }, []);
 
-  const selectedValue = value ? String(value) : undefined;
+  const selectedValue = value ? String(value) : "none";
 
   return (
     <div className="rounded-md border bg-white p-3 shadow-sm">
@@ -105,6 +105,10 @@ export function ContabilidadProcessSelector({ value, onChange }: Props) {
         <Select
           value={selectedValue}
           onValueChange={(id) => {
+            if (id === "none") {
+              onChange(null);
+              return;
+            }
             const selected =
               procesos.find((p) => p.idProcesoContable === Number(id)) ?? null;
             onChange(selected);
@@ -117,6 +121,7 @@ export function ContabilidadProcessSelector({ value, onChange }: Props) {
             />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="none">Seleccionar proceso contable</SelectItem>
             {procesos.map((proceso) => (
               <SelectItem
                 key={proceso.idProcesoContable}

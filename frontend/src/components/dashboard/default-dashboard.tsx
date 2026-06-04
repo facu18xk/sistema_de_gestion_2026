@@ -93,7 +93,7 @@ export function DefaultDashboard({ user }: DefaultDashboardProps) {
           />
           <DashboardModuleCard
             title="Recursos Humanos"
-            description="Empleados, cargos y salarios"
+            description="Empleados y parientes"
             href="/personas/empleados"
             icon={Briefcase}
           />

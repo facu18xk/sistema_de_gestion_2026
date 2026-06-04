@@ -20,10 +20,10 @@ export function FormContainer({
     submitDisabled = false // <-- Agregado con valor por defecto
 }: FormContainerProps) {
     return (
-        <form onSubmit={onSubmit} className="grid gap-4 py-4">
+        <form onSubmit={onSubmit} className="grid gap-4 py-2">
             {children}
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end gap-3">
                 <Button
                     type="button"
                     variant="outline"

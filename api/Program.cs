@@ -37,13 +37,14 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAsientoContableService, AsientoContableService>();
 builder.Services.AddScoped<IContabilidadReportesService, ContabilidadReportesService>();
 builder.Services.AddScoped<IPeriodoContableGeneratorService, PeriodoContableGeneratorService>();
+builder.Services.AddScoped<IPagoSalarioService, PagoSalarioService>();
 builder.Services.AddScoped<PreciosVentasService>();
 builder.Services.AddScoped<SalesPriceResolver>();
 builder.Services.AddScoped<TimbradoNumberingService>();
 builder.Services.AddScoped<VentasCompletasService>();
 builder.Services.AddScoped<MovimientoBancarioService>();
 builder.Services.AddScoped<ChequeEmitidoService>();
-builder.Services.AddScoped<DepositoBancarioService>();
+ builder.Services.AddScoped<DepositoBancarioService>();
 builder.Services.AddCrudServicesFromAssembly(typeof(Program).Assembly);
 
 builder.Services

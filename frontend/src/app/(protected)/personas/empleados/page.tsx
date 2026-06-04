@@ -153,7 +153,10 @@ export default function EmpleadosPage() {
   return (
     <>
       <PageBreadcrumb
-        steps={[{ label: "RRHH", href: "/dashboard" }, { label: "Empleados" }]}
+        steps={[
+          { label: "RRHH", href: "/personas/empleados" },
+          { label: "Empleados" },
+        ]}
       />
 
       <PageHeader

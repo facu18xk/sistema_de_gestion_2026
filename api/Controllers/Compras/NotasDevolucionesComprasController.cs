@@ -8,6 +8,11 @@ using System;
 
 namespace api.Controllers;
 
+public class CambiarEstadoDto
+{
+    public string Estado { get; set; } = string.Empty;
+}
+
 [ApiController]
 [Route("api/[controller]")]
 public class NotasDevolucionesComprasController : CrudControllerBase<NotasDevolucionesCompra, NotasDevolucionesCompraDto, NotasDevolucionesCompraUpsertDto, int>
@@ -63,6 +68,23 @@ public class NotasDevolucionesComprasController : CrudControllerBase<NotasDevolu
     protected override int GetId(NotasDevolucionesCompra entity)
     {
         return entity.IdNotaDevolucionCompra;
+    }
+
+    [HttpPut("{id}/estado")]
+    public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoDto dto)
+    {
+        try
+        {
+            var service = CrudService as NotasDevolucionesCompraService;
+            if (service == null) return StatusCode(500, new { message = "Service no configurado correctamente." });
+
+            var result = await service.CambiarEstadoAsync(id, dto.Estado);
+            return Ok(ToReadDto(result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     protected override async Task<NotasDevolucionesCompra> RefreshCreatedEntityAsync(NotasDevolucionesCompra entity)

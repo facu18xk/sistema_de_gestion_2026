@@ -1,9 +1,6 @@
 using System.Linq.Expressions;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
-using api.Dtos.Contabilidad; 
-using api.Dtos.AsientosDetalles; 
-using api.Dtos.Asientos; 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,15 +11,11 @@ namespace api.Services;
 public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
 {
     private readonly DblosAmigosContext _context;
-    private readonly IAsientoContableService _asientoContableService;
 
-    public FacturasCompraService(
-        DblosAmigosContext context, 
-        IAsientoContableService asientoContableService) 
+    public FacturasCompraService(DblosAmigosContext context) 
         : base(context)
     {
         _context = context;
-        _asientoContableService = asientoContableService;
     }
 
     protected override DbSet<FacturasCompra> Set => _context.FacturasCompras;
@@ -60,57 +53,32 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
         try
         {
             var nuevaFactura = await base.CreateAsync(entity);
-
-            decimal totalNeto = entity.FacturasComprasDetalles?.Sum(d => d.TotalNeto) ?? 0;
-            decimal totalIva = entity.FacturasComprasDetalles?.Sum(d => d.TotalIva) ?? 0;
-            decimal totalBruto = entity.FacturasComprasDetalles?.Sum(d => d.TotalBruto) ?? 0;
-
-            if (totalBruto > 0)
+            if (entity.FacturasComprasDetalles != null && entity.FacturasComprasDetalles.Any())
             {
-                var asientoDto = new AsientoCompletoUpsertDto
+                foreach (var detalle in entity.FacturasComprasDetalles)
                 {
-                    IdModulo = 1, 
-                    Fecha = DateOnly.FromDateTime(nuevaFactura.Fecha),
-                    Descripcion = string.IsNullOrWhiteSpace(nuevaFactura.Descripcion) 
-                        ? $"Registro de Factura de Compra Nro: {nuevaFactura.NroComprobante}" 
-                        : nuevaFactura.Descripcion,
-                    Automatico = true,
-                    Estado = "Registrado",
-                    ReferenciaOrigen = "Facturas_Compras",
-                    IdOrigen = nuevaFactura.IdFacturaCompra,
-                    
-                    Detalles = new List<AsientosDetalleUpsertDto>
+                    var stockActual = await _context.StocksDepositos
+                        .FirstOrDefaultAsync(s => s.IdProducto == detalle.IdProducto && s.IdDeposito == 1);
+
+                    if (stockActual != null)
                     {
-                        new AsientosDetalleUpsertDto
-                        {
-                            IdCuentaContable = 9, 
-                            Item = 1,
-                            TipoMovimiento = "Debe", 
-                            Monto = totalNeto,
-                            DescripcionItem = "Ingreso de mercadería s/ Factura"
-                        },
-                        new AsientosDetalleUpsertDto
-                        {
-                            IdCuentaContable = 10, 
-                            Item = 2,
-                            TipoMovimiento = "Debe", 
-                            Monto = totalIva,
-                            DescripcionItem = "IVA Crédito Fiscal"
-                        },
-                        new AsientosDetalleUpsertDto
-                        {
-                            IdCuentaContable = 11, 
-                            Item = 3,
-                            TipoMovimiento = "Haber", 
-                            Monto = totalBruto,
-                            DescripcionItem = $"Obligación con proveedor s/ Comprobante {nuevaFactura.NroComprobante}"
-                        }
+                        stockActual.Cantidad += detalle.Cantidad;
+                        _context.StocksDepositos.Update(stockActual);
                     }
-                };
-
-                await _asientoContableService.CreateManualAsync(asientoDto);
+                    else
+                    {
+                        var nuevoStock = new StocksDeposito
+                        {
+                            IdDeposito = 1,
+                            IdProducto = detalle.IdProducto,
+                            Cantidad = detalle.Cantidad
+                        };
+                        await _context.StocksDepositos.AddAsync(nuevoStock);
+                    }
+                }
+                
+                await _context.SaveChangesAsync();
             }
-
             await transaction.CommitAsync();
             return nuevaFactura;
         }
@@ -118,6 +86,119 @@ public class FacturasCompraService : CrudServiceBase<FacturasCompra, int>
         {
             await transaction.RollbackAsync();
             throw; 
+        }
+    }
+
+    public override async Task<FacturasCompra> UpdateAsync(int id, FacturasCompra incomingEntity)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var existingEntity = await BuildQuery().FirstOrDefaultAsync(BuildKeyPredicate(id));
+
+            if (existingEntity == null)
+                throw new KeyNotFoundException($"FacturaCompra con ID {id} no encontrada.");
+
+            UpdateEntity(existingEntity, incomingEntity);
+
+            var existingDetalles = existingEntity.FacturasComprasDetalles.ToList();
+            var incomingDetalles = incomingEntity.FacturasComprasDetalles?.ToList() ?? new List<FacturasComprasDetalle>();
+
+            foreach (var existingDetalle in existingDetalles)
+            {
+                if (!incomingDetalles.Any(d => d.IdFacturaCompraDetalle == existingDetalle.IdFacturaCompraDetalle && d.IdFacturaCompraDetalle != 0))
+                {
+                    var stock = await _context.StocksDepositos
+                        .FirstOrDefaultAsync(s => s.IdProducto == existingDetalle.IdProducto && s.IdDeposito == 1);
+                    if (stock != null)
+                    {
+                        stock.Cantidad -= existingDetalle.Cantidad;
+                        _context.StocksDepositos.Update(stock);
+                    }
+
+                    _context.FacturasComprasDetalles.Remove(existingDetalle);
+                }
+            }
+
+
+            foreach (var incomingDetalle in incomingDetalles)
+            {
+                if (incomingDetalle.IdFacturaCompraDetalle > 0)
+                {
+    
+                    var existingDetalle = existingDetalles.FirstOrDefault(d => d.IdFacturaCompraDetalle == incomingDetalle.IdFacturaCompraDetalle);
+                    if (existingDetalle != null)
+                    {
+                        if (existingDetalle.IdProducto == incomingDetalle.IdProducto)
+                        {
+            
+                            var difCantidad = incomingDetalle.Cantidad - existingDetalle.Cantidad;
+                            if (difCantidad != 0)
+                            {
+                                var stock = await _context.StocksDepositos
+                                    .FirstOrDefaultAsync(s => s.IdProducto == existingDetalle.IdProducto && s.IdDeposito == 1);
+                                if (stock != null)
+                                {
+                                    stock.Cantidad += difCantidad;
+                                    _context.StocksDepositos.Update(stock);
+                                }
+                            }
+                        }
+                        else
+                        {
+                    
+                            var stockViejo = await _context.StocksDepositos.FirstOrDefaultAsync(s => s.IdProducto == existingDetalle.IdProducto && s.IdDeposito == 1);
+                            if (stockViejo != null) { stockViejo.Cantidad -= existingDetalle.Cantidad; }
+
+                            var stockNuevo = await _context.StocksDepositos.FirstOrDefaultAsync(s => s.IdProducto == incomingDetalle.IdProducto && s.IdDeposito == 1);
+                            if (stockNuevo != null) { stockNuevo.Cantidad += incomingDetalle.Cantidad; }
+                            else { await _context.StocksDepositos.AddAsync(new StocksDeposito { IdDeposito = 1, IdProducto = incomingDetalle.IdProducto, Cantidad = incomingDetalle.Cantidad }); }
+                        }
+
+            
+                        existingDetalle.IdProducto = incomingDetalle.IdProducto;
+                        existingDetalle.Cantidad = incomingDetalle.Cantidad;
+                        existingDetalle.PrecioUnitario = incomingDetalle.PrecioUnitario;
+                        existingDetalle.TotalBruto = incomingDetalle.TotalBruto;
+                        existingDetalle.TotalIva = incomingDetalle.TotalIva;
+                        existingDetalle.TotalNeto = incomingDetalle.TotalNeto;
+                    }
+                }
+                else
+                {
+        
+                    incomingDetalle.IdFacturaCompra = existingEntity.IdFacturaCompra;
+                    existingEntity.FacturasComprasDetalles.Add(incomingDetalle);
+
+    
+                    var stock = await _context.StocksDepositos
+                        .FirstOrDefaultAsync(s => s.IdProducto == incomingDetalle.IdProducto && s.IdDeposito == 1);
+                    if (stock != null)
+                    {
+                        stock.Cantidad += incomingDetalle.Cantidad;
+                        _context.StocksDepositos.Update(stock);
+                    }
+                    else
+                    {
+                        await _context.StocksDepositos.AddAsync(new StocksDeposito
+                        {
+                            IdDeposito = 1,
+                            IdProducto = incomingDetalle.IdProducto,
+                            Cantidad = incomingDetalle.Cantidad
+                        });
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return existingEntity;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
         }
     }
 

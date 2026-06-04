@@ -156,7 +156,7 @@ export interface PresupuestoCabecera {
     idCliente: number;
     cliente: string;
     idEstado: number;
-    estado: string;
+    estado?: string;
     fecha: string;
     descripcion: string;
     fechaVencimiento: string;
@@ -251,6 +251,8 @@ export interface FacturaVentaCompleto {
     idCliente: number;
     cliente: string;
     nroComprobante: string;
+    idEstado: number;
+    estado: string;
     idTimbrado: number;
     timbrado: string;
     timbradoRuc: string;
@@ -265,11 +267,24 @@ export interface FacturaVentaCompleto {
 export interface FacturaVentaCompletoSave {
     idPresupuesto: number;
     idCliente: number;
+    idEstado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
     fechaPago: string;
     items: FacturaVentaItemSave[];
+}
+
+export interface FacturaVentaCabeceraSave {
+    idPresupuesto: number;
+    idCliente: number;
+    nroComprobante: string;
+    idEstado: number;
+    idTimbrado: number;
+    fecha: string;
+    descripcion: string;
+    idMedioPagoCompra: number;
+    fechaPago: string;
 }
 
 export interface FacturaVentaCabecera {
@@ -324,10 +339,13 @@ export interface NotaCreditoVenta {
     idNotaCreditoVenta: number;
     idFacturaVenta: number;
     facturaVenta: string;
+    idEstado: number;
+    estado: string;
     idNotaDevolucionVenta: number;
     notaDevolucionVenta: string;
     idTimbrado: number;
     timbrado: string;
+    nroComprobante: string;
     motivo: string;
     fechaEmision: string;
     total: number;
@@ -336,6 +354,7 @@ export interface NotaCreditoVenta {
 
 export interface NotaCreditoVentaSave {
     idFacturaVenta: number;
+    idEstado?: number;
     idTimbrado: number;
     motivo: string;
     fechaEmision: string;
@@ -350,6 +369,25 @@ export interface NotaCreditoVentaDetalle {
     cantidad: number;
     precioUnitario: number;
     subtotal: number;
+}
+
+export interface NotaConCliente {
+    idNotaCreditoVenta: number;
+    idFacturaVenta: number;
+    facturaVenta: string;
+    idEstado: number;
+    estado: string;
+    idCliente: number;
+    cliente: string;
+    idNotaDevolucionVenta: number;
+    notaDevolucionVenta: string;
+    idTimbrado: number;
+    timbrado: string;
+    nroComprobante: string;
+    motivo: string;
+    fechaEmision: string;
+    total: number;
+    detalles: NotaCreditoVentaItem[];
 }
 
 export interface OrdenVenta {
@@ -458,6 +496,15 @@ export interface PedidoDetalleSaveDTO {
     cantidad: number;
 }
 
+export type EstadoProcesoContable =
+    | "Habilitado"
+    | "Abierto"
+    | "Activo"
+    | "Activa"
+    | "Registrado"
+    | "Registrada"
+    | string
+
 export interface ProcesoContableDTO {
     idProcesoContable: number
     periodoAnho: number
@@ -465,7 +512,7 @@ export interface ProcesoContableDTO {
     cantNiveles: number
     cantDigitosNivel: number
     moneda: string
-    estado: string
+    estado: EstadoProcesoContable
 
     tienePeriodos?: boolean;
 }
@@ -565,6 +612,191 @@ export interface AsientoCompletoPayloadDTO {
 export interface AsientoCompletoDTO {
     asiento: AsientoDTO
     detalles: AsientoDetalleDTO[]
+}
+
+export interface ReportePeriodoContableDTO {
+    idPeriodoContable?: number
+    idProcesoContable?: number
+    procesoContable?: string | null
+    anho?: number
+    mes?: number
+    fechaInicio?: string | null
+    fechaFin?: string | null
+    estado?: string | null
+}
+
+export interface ReporteCuentaContableDTO {
+    idCuentaContable?: number
+    codigo?: string | null
+    numeroCuenta?: string | null
+    nombre?: string | null
+    tipoCuenta?: TipoCuentaContable | string | null
+}
+
+export interface ReporteContableBaseDTO {
+    periodo?: ReportePeriodoContableDTO | null
+    idPeriodoContable?: number
+    moneda?: string | null
+    generadoEn?: string | null
+}
+
+export interface LibroDiarioLineaDTO {
+    idAsiento?: number
+    numeroAsiento?: number
+    fecha?: string | null
+    descripcion?: string | null
+    item?: number
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuenta?: string | null
+    cuentaContable?: string | null
+    descripcionItem?: string | null
+    tipoMovimiento?: TipoMovimientoAsiento | string | null
+    debe?: number
+    haber?: number
+    monto?: number
+}
+
+export interface LibroDiarioAsientoDTO {
+    idAsiento?: number
+    numeroAsiento?: number
+    fecha?: string | null
+    descripcion?: string | null
+    referenciaOrigen?: string | null
+    balanceado?: boolean
+    totalDebe?: number
+    totalHaber?: number
+    diferencia?: number
+    lineas?: LibroDiarioLineaDTO[]
+    detalles?: LibroDiarioLineaDTO[]
+}
+
+export interface LibroDiarioReporteDTO extends ReporteContableBaseDTO {
+    asientos?: LibroDiarioAsientoDTO[]
+    items?: LibroDiarioAsientoDTO[]
+    totalDebe?: number
+    totalHaber?: number
+    diferencia?: number
+}
+
+export interface LibroMayorMovimientoDTO {
+    fecha?: string | null
+    idAsiento?: number
+    numeroAsiento?: number
+    descripcion?: string | null
+    referenciaOrigen?: string | null
+    debe?: number
+    haber?: number
+    saldo?: number
+}
+
+export interface LibroMayorCuentaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    saldoAnterior?: number
+    totalDebe?: number
+    totalHaber?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+    saldoFinal?: number
+    movimientos?: LibroMayorMovimientoDTO[]
+}
+
+export interface LibroMayorReporteDTO extends ReporteContableBaseDTO {
+    cuentas?: LibroMayorCuentaDTO[]
+    items?: LibroMayorCuentaDTO[]
+}
+
+export interface BalanceSumasYSaldosLineaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    saldoAnterior?: number
+    debe?: number
+    haber?: number
+    totalDebe?: number
+    totalHaber?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+    saldo?: number
+}
+
+export interface BalanceSumasYSaldosReporteDTO extends ReporteContableBaseDTO {
+    lineas?: BalanceSumasYSaldosLineaDTO[]
+    items?: BalanceSumasYSaldosLineaDTO[]
+    totalDebe?: number
+    totalHaber?: number
+    totalSaldoDeudor?: number
+    totalSaldoAcreedor?: number
+    diferencia?: number
+    cuadrado?: boolean
+}
+
+export interface BalanceGeneralLineaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    tipoCuenta?: TipoCuentaContable | string | null
+    grupo?: string | null
+    importe?: number
+    saldo?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+}
+
+export interface BalanceGeneralReporteDTO extends ReporteContableBaseDTO {
+    lineas?: BalanceGeneralLineaDTO[]
+    items?: BalanceGeneralLineaDTO[]
+    activo?: BalanceGeneralLineaDTO[]
+    pasivo?: BalanceGeneralLineaDTO[]
+    patrimonio?: BalanceGeneralLineaDTO[]
+    totalActivo?: number
+    totalPasivo?: number
+    totalPatrimonio?: number
+    diferencia?: number
+    cuadrado?: boolean
+}
+
+export interface BalanceResultadosLineaDTO {
+    cuenta?: ReporteCuentaContableDTO | null
+    idCuentaContable?: number
+    codigoCuenta?: string | null
+    numeroCuenta?: string | null
+    cuentaNombre?: string | null
+    nombreCuenta?: string | null
+    cuentaContable?: string | null
+    tipoCuenta?: TipoCuentaContable | string | null
+    grupo?: string | null
+    importe?: number
+    saldo?: number
+    saldoDeudor?: number
+    saldoAcreedor?: number
+}
+
+export interface BalanceResultadosReporteDTO extends ReporteContableBaseDTO {
+    lineas?: BalanceResultadosLineaDTO[]
+    items?: BalanceResultadosLineaDTO[]
+    ingresos?: BalanceResultadosLineaDTO[]
+    costosGastos?: BalanceResultadosLineaDTO[]
+    gastos?: BalanceResultadosLineaDTO[]
+    totalIngresos?: number
+    totalCostosGastos?: number
+    totalGastos?: number
+    resultadoNeto?: number
 }
 
 export interface Empleado {
@@ -692,6 +924,232 @@ export interface CotizacionItemForm {
     descuento: number;
 }
 
+export interface CotizacionFormState {
+    solicitudCotizacionId: string;
+    proveedorId: string;
+    fecha: string;
+    validaHasta: string;
+    idEstado: number;
+    numeroPedido: number;
+    items: CotizacionItemForm[];
+}
+
+export interface OrdenCompraDetalleDTO {
+    idOrdenCompraDetalle: number;
+    idOrdenCompra: number;
+    idProducto: number;
+    producto?: ProductoDTO;
+    descripcion?: string;
+    cantidad: number;
+}
+
+export interface OrdenCompraDetalleSaveDTO {
+    idOrdenCompraDetalle: number;
+    idOrdenCompra: number;
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface OrdenCompraDTO {
+    idOrdenCompra: number;
+    idPedidoCotizacion: number;
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+    estado: string;
+    proveedor?: string;
+    detalles?: OrdenCompraDetalleDTO[];
+}
+
+export interface OrdenCompraSaveDTO {
+    idPedidoCotizacion: number;
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface FacturaCompraDetalle {
+    idFacturaCompraDetalle?: number;
+    idFacturaCompra?: number;
+    idProducto: number;
+    producto?: ProductoDTO;
+    descripcion?: string;
+    cantidad: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaCompra {
+    id?: number;
+    idFacturaCompra: number;
+    idProveedor: number;
+    proveedor: string;
+    idOrdenCompra?: number;
+    idEstado?: number;
+    ordenCompraDescripcion?: string;
+    nroComprobante: string;
+    timbrado: string;
+    fecha: string;
+    estado: string;
+    nombreEstado?: string;
+    detalles?: FacturaCompraDetalle[];
+}
+
+export interface FacturaCompraDetalleSaveDTO {
+    idFacturaCompra?: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaCompraSaveDTO {
+    idOrdenCompra: number;
+    idProveedor: number;
+    nroComprobante: string;
+    timbrado: string;
+    fecha: string;
+    descripcion?: string;
+    estado?: string;
+    detalles?: FacturaCompraDetalleSaveDTO[];
+}
+
+export interface MedioPagoLinea {
+    tipo: string;
+    referencia: string;
+    monto: number;
+}
+
+export interface OrdenPagoCompraDetalle {
+    idOrdenPagoCompraDetalle?: number;
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+    montoPagado?: number;
+    subtotal?: number;
+}
+
+export interface OrdenPagoCompra {
+    idOrdenPagoCompra: number;
+    idProveedor: number;
+    proveedor?: string;
+    idEstado?: number;
+    estado: string;
+    fecha: string;
+    descripcion?: string;
+    detalles?: OrdenPagoCompraDetalle[];
+    detallesFacturas?: OrdenPagoCompraDetalle[];
+}
+
+export interface OrdenPagoCompraSaveDTO {
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface OrdenPagoCompraDetalleSaveDTO {
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+}
+
+export interface NotaCreditoItemForm {
+    idProducto: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoFormState {
+    idFacturaCompra: string;
+    idNotaDevolucionCompra: string;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoItemForm[];
+}
+
+export interface NotaCreditoCompraDetalleDTO {
+    idNotaCreditoCompraDetalle?: number;
+    idNotaCreditoCompra?: number;
+    idProducto: number;
+    producto?: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoCompraDTO {
+    idNotaCreditoCompra: number;
+    idFacturaCompra: number;
+    nroComprobanteFactura?: string;
+    idNotaDevolucionCompra?: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total?: number;
+    idProveedor?: number;
+    proveedor?: string;
+    detalles?: NotaCreditoCompraDetalleDTO[];
+}
+
+export interface NotaCreditoCompraSaveDTO {
+    idFacturaCompra: number;
+    idNotaDevolucionCompra?: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total?: number;
+    items: NotaCreditoItemForm[];
+}
+
+export interface ProductoNotaDevolucionDetalleDTO {
+    idProducto: number;
+    descripcion: string;
+}
+
+export interface NotasDevolucionesComprasDetalleDTO {
+    idNotaDevolucionCompraDetalle: number;
+    idNotaDevolucionCompra: number;
+    idProducto: number;
+    cantidad?: number;
+    precioUnitario: number;
+    subtotal: number;
+    producto?: ProductoNotaDevolucionDetalleDTO | null;
+}
+
+export interface NotaDevolucionCompraDTO {
+    idNotaDevolucionCompra: number;
+    idFacturaCompra: number;
+    idProveedor: number;
+    proveedor?: string;
+    fecha: string;
+    motivo: string;
+    estado: string;
+    detalles?: NotasDevolucionesComprasDetalleDTO[];
+}
+
+export interface NotaDevolucionCompraSaveDTO {
+    idFacturaCompra: number;
+    idEstado: number;
+    fecha: string;
+    motivo: string;
+    detalles: {
+        idProducto: number;
+        cantidad: number;
+        precioUnitario: number;
+        subtotal: number;
+    }[];
+}
+
 // Banco y Tesorería
 export interface Banco {
     idBanco: number;
@@ -757,7 +1215,7 @@ export interface MovimientoBancario {
     cuentaBancaria: string;
     idTipoMovimientoBancario: number;
     tipoMovimientoBancario: string;
-    idEstado: number;
+    idEstado: number | null;
     estado: string;
     idOrdenMedioPagoCompra: number | null;
     idChequeEmitido: number | null;
@@ -770,7 +1228,7 @@ export interface MovimientoBancario {
 export interface MovimientoBancarioSaveDTO {
     idCuentaBancaria: number;
     idTipoMovimientoBancario: number;
-    idEstado: number;
+    idEstado: number | null;
     idOrdenMedioPagoCompra?: number | null;
     idChequeEmitido?: number | null;
     fecha: string;
@@ -788,6 +1246,7 @@ export interface ChequeEmitido {
     numeroCheque: string;
     beneficiario: string;
     fechaEmision: string;
+    fechaPago?: string | null;
     monto: number;
     estado: string;
 }

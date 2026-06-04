@@ -21,7 +21,12 @@ import { depositosBancariosAPI } from "@/services/depositosBancariosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
-import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
+import {
+  enRangoFecha,
+  rangoFechaPorDefecto,
+  textoCoincide,
+} from "@/lib/list-filters";
+import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notifications";
 import type { CuentaBancaria, DepositoBancario } from "@/types/types";
 
@@ -39,7 +44,9 @@ function puedeRechazar(estado: string): boolean {
 
 export default function DepositosPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [todosLosDepositos, setTodosLosDepositos] = useState<DepositoBancario[]>([]);
+  const [todosLosDepositos, setTodosLosDepositos] = useState<
+    DepositoBancario[]
+  >([]);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -80,7 +87,10 @@ export default function DepositosPage() {
 
   const depositosFiltrados = useMemo(() => {
     return todosLosDepositos.filter((d) => {
-      if (idCuentaFiltro !== "all" && d.idCuentaBancaria !== Number(idCuentaFiltro)) {
+      if (
+        idCuentaFiltro !== "all" &&
+        d.idCuentaBancaria !== Number(idCuentaFiltro)
+      ) {
         return false;
       }
       if (!enRangoFecha(d.fecha, fechaDesde, fechaHasta)) return false;
@@ -221,7 +231,19 @@ export default function DepositosPage() {
                 <TableCell className="text-right font-medium">
                   {formatMoney(d.monto, monedaPorCuenta(d.idCuentaBancaria))}
                 </TableCell>
-                <TableCell>{d.estado}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      d.estado === "Confirmado"
+                        ? "activo"
+                        : d.estado === "Rechazado"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {d.estado}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-right space-x-1">
                   {puedeConfirmar(d.estado) && (
                     <Button

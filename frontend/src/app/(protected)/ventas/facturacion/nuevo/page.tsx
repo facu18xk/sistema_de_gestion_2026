@@ -10,9 +10,9 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { ProductoSelector } from "@/components/ventas/ProductoSelector";
 import { PresupuestoSelector } from "@/components/ventas/PresupuestoSelector";
 import { notify } from "@/lib/notifications";
-import { formatGuaranies } from "@/utils/money-format";
+import { formatGuaranies, formatNumberDots } from "@/utils/money-format";
 import { formatearNumeroProducto } from "@/utils/producto-format";
-import { Cliente, PresupuestoCompleto, ProductoDTO, PreciosVentas, FacturaVentaItem, PresupuestoItem, MedioPago, PresupuestoCabecera, FacturaVentaCompletoSave } from "@/types/types";
+import { Cliente, ProductoDTO, PreciosVentas, PresupuestoItem, MedioPago, PresupuestoCabecera, FacturaVentaCompletoSave } from "@/types/types";
 import { presupuestosAPI } from "@/services/presupuestosAPI";
 import { clientesAPI } from "@/services/clientesAPI";
 import { productosAPI } from "@/services/productosAPI";
@@ -20,6 +20,7 @@ import { preciosVentasAPI } from "@/services/preciosVentasAPI";
 import { mediosPagosAPI } from "@/services/mediosPagosAPI"; 
 import { facturasAPI } from "@/services/facturasAPI";
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
+import { formatPhone } from "@/utils/phone-format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,9 +33,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatCI, formatRUC } from "@/utils/cedula-format";
-import { formatearFecha } from "@/utils/date-utils";
 
-export default function NuevaFacturaPage() {
+function NuevaFacturaPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
@@ -55,6 +55,7 @@ export default function NuevaFacturaPage() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [indexAEliminar, setIndexAEliminar] = useState<number>(-1);
   const [itemAEliminarDescripcion, setItemAEliminarDescripcion] = useState("");
+  const [montoDescuento, setMontoDescuento] = useState<number>(0);
 
   const columnWidths = {
     producto: "w-[35%]",
@@ -201,6 +202,7 @@ export default function NuevaFacturaPage() {
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
+      idEstado: 7,
       fecha: fechaHoy,
       descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,
@@ -208,12 +210,16 @@ export default function NuevaFacturaPage() {
       items: itemsCarrito.map(item => ({
         idProducto: item.idProducto,
         cantidad: item.cantidad
-      }))
+      })),
+      //descuento: montoDescuento,
     };
 
     try {
-      await facturasAPI.create(payload);
-      notify.success("¡Factura Emitida!", "La factura ha sido registrada y procesada con éxito.");
+      const facturaCreada = await facturasAPI.create(payload);
+      notify.success(
+        "¡Factura Emitida!",
+        `Comprobante ${facturaCreada.nroComprobante || "generado"} registrado con éxito.`
+      );
       router.push("/ventas/facturacion");
     } catch (error) {
       console.error("Error al registrar la factura:", error);
@@ -224,10 +230,6 @@ export default function NuevaFacturaPage() {
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Cargando datos de facturación...</div>;
-
-  const totalGeneral = itemsCarrito.reduce(
-    (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1)), 0
-  );
 
   const handleSeleccionarPresupuesto = async (id: number) => {
     try {
@@ -251,6 +253,45 @@ export default function NuevaFacturaPage() {
       setIsImporting(false);
     }
   };
+
+  const handleCantidad = async (index: number ,input: string) => {
+    if (input === "") {
+      updateCantidad(index, 0);
+      return;
+    }
+    const soloNumerosRegex = /^[0-9]+$/;
+    if (soloNumerosRegex.test(input)) {
+      updateCantidad(index, Number(input));
+    }
+  }
+
+  {/* PARA MANEJAR EL DESCUENTO */}
+  const handleDescuentoChange = (input: string) => {
+    const valorLimpio = input.replace(/\./g, "");
+    if (valorLimpio === "") {
+      setMontoDescuento(0);
+      return;
+    }
+    const soloNumerosRegex = /^[0-9]+$/;
+    if (soloNumerosRegex.test(valorLimpio)) {
+      const valorNumerico = Number(valorLimpio);
+      const subtotalProductos = itemsCarrito.reduce(
+        (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1)), 0
+      );
+      // Validación: El descuento no puede ser mayor que el subtotal
+      if (valorNumerico > subtotalProductos) {
+        notify.error("Descuento Inválido", "El descuento no puede superar el total de los productos.");
+        return;
+      }
+      setMontoDescuento(valorNumerico);
+    }
+  };
+
+  const subtotalProductos = itemsCarrito.reduce(
+    (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1)), 0
+  );
+
+  const totalGeneral = Math.max(0, subtotalProductos - montoDescuento);
 
   return (
     <>
@@ -304,7 +345,7 @@ export default function NuevaFacturaPage() {
       </div>
       {/* CABECERA DE DATOS */}
         <div className="p-3 border rounded-lg bg-slate-50/40 text-xs shadow-sm my-2">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             {/* DATOS CLIENTE */}
             <div className="md:col-span-2 border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
                 <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
@@ -328,10 +369,8 @@ export default function NuevaFacturaPage() {
                     <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
                 </div>
                 <div>
-                    <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
-                    <p className="font-medium text-slate-700 text-[13px]">
-                        {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
-                </p>
+                    <p className="text-muted-foreground text-[13px]">Teléfono</p>
+                    <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
                 </div>
             </div>
             </div>
@@ -358,13 +397,13 @@ export default function NuevaFacturaPage() {
                   </SelectContent>
               </Select>
               <div>
-                  <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción Interna</label>
-                  <Input 
-                      placeholder="Observaciones de la factura..."
-                      value={descripcionFactura} 
-                      onChange={(e) => setDescripcionFactura(e.target.value)} 
-                      className="h-8 bg-white mt-0.5 text-sm px-2"
-                  />
+                <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción Interna</label>
+                <Input 
+                    placeholder="Observaciones de la factura..."
+                    value={descripcionFactura} 
+                    onChange={(e) => setDescripcionFactura(e.target.value)} 
+                    className="h-8 bg-white mt-0.5 text-sm px-2"
+                />
               </div>
             </div>
             {/* ESTADO DE LA FACTURA */}
@@ -377,9 +416,17 @@ export default function NuevaFacturaPage() {
               </span>
             </div>
           </div>*/}
-          <div className="self-start">
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">N° Comprobante</p>
-              <p className="font-medium text-slate-800 text-[13px]">123</p>
+          <div className="grid grid-cols-1 hidden"> {/*quitar hidden si se usará descuento */}
+            <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descuento (₲)</label>
+            <Input 
+              type="text" 
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="0"
+              className="mt-2.5 h-8 bg-white text-sm px-2 text-right font-medium"
+              value={montoDescuento === 0 ? "" : formatNumberDots(montoDescuento)}
+              onChange={(e) => handleDescuentoChange(e.target.value)}
+            />
           </div>
         </div>
         </div>
@@ -434,12 +481,13 @@ export default function NuevaFacturaPage() {
                     {/* CANTIDAD */}
                     <TableCell className={columnWidths.cantidad}>
                       <Input 
-                        type="number" 
+                        type="text" 
+                        inputMode="numeric"
                         min="1"
                         max={maxStock}
                         className="w-16 h-8 px-2"
                         value={item.cantidad} 
-                        onChange={(e) => updateCantidad(index, Number(e.target.value))} 
+                        onChange={(e) => handleCantidad(index, e.target.value)} 
                       />
                     </TableCell>
                     {/* PRECIO UNITARIO */}
@@ -482,13 +530,35 @@ export default function NuevaFacturaPage() {
       </div>
       {/* INFORMACIÓN ÚTIL */}
       <div className="flex justify-end p-4 border rounded-b-md bg-slate-50/30 mb-8">
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Total a Facturar</p>
-          <p className="text-2xl font-black text-primary mt-1">
-            {formatGuaranies(totalGeneral)}
-          </p>
+        <div className="text-right flex flex-col gap-1.5 min-w-[200px]">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Subtotal Productos:</span>
+            <span className="font-medium">{formatGuaranies(subtotalProductos)}</span>
+          </div>
+          
+          {montoDescuento > 0 && (
+            <div className="flex justify-between text-xs text-destructive font-medium">
+              <span>Descuento aplicado:</span>
+              <span>- {formatGuaranies(montoDescuento)}</span>
+            </div>
+          )}
+          
+          <div className="border-t pt-1.5 mt-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Total a Facturar</p>
+            <p className="text-2xl font-black text-emerald-600 mt-0.5">
+              {formatGuaranies(totalGeneral)}
+            </p>
+          </div>
         </div>
       </div>
     </>
+  );
+}
+
+export default function NuevaFacturaPage() {
+  return (
+    <Suspense fallback={null}>
+      <NuevaFacturaPageContent />
+    </Suspense>
   );
 }

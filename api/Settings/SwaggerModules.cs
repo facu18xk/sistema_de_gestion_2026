@@ -16,6 +16,7 @@ public static class SwaggerModules
             ["compras"] = new() { Title = "api - Compras", Version = "v1" },
             ["ventas"] = new() { Title = "api - Ventas", Version = "v1" },
             ["contabilidad"] = new() { Title = "api - Contabilidad", Version = "v1" },
+            ["rrhh"] = new() { Title = "api - RRHH", Version = "v1" },
             ["tesoreria"] = new() { Title = "api - Tesoreria", Version = "v1" }
         };
 
@@ -64,6 +65,15 @@ public static class SwaggerModules
             ["Presupuestos"] = "ventas",
             ["PresupuestosDetalles"] = "ventas",
             ["Timbrados"] = "ventas",
+
+            ["Cargos"] = "rrhh",
+            ["ConceptosSalarios"] = "rrhh",
+            ["Empleados"] = "rrhh",
+            ["EmpleadosCargos"] = "rrhh",
+            ["EmpleadosConceptosMensuales"] = "rrhh",
+            ["ParametrosSalarios"] = "rrhh",
+            ["Parientes"] = "rrhh",
+            ["ProcesosPagosSalarios"] = "rrhh",
 
             ["Asientos"] = "contabilidad",
             ["AsientosDetalles"] = "contabilidad",

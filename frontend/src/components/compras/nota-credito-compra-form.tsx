@@ -49,7 +49,7 @@ export function NotaCreditoCompraForm({
         }
 
         // Al seleccionar la factura, pre-cargamos sus detalles en la tabla de la nota de crédito
-        const itemsCargados: NotaCreditoItemForm[] = facturaSeleccionada.detalles.map(d => ({
+        const itemsCargados: NotaCreditoItemForm[] = (facturaSeleccionada.detalles ?? []).map(d => ({
             idProducto: d.idProducto,
             descripcion: d.producto?.descripcion || "Producto",
             cantidad: d.cantidad,
