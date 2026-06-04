@@ -51,17 +51,14 @@ public class NotasDevolucionesCompraService : CrudServiceBase<NotasDevolucionesC
 
             if (nota == null) throw new Exception("Nota de devolución no encontrada");
 
-            // No procesar si ya está en ese estado
             if (nota.IdEstadoNavigation?.Nombre?.ToLower() == nuevoEstadoStr.ToLower())
                 return nota;
 
             var nuevoEstado = await _context.Estados.FirstOrDefaultAsync(e => e.Nombre.ToLower() == nuevoEstadoStr.ToLower());
             if (nuevoEstado == null) throw new Exception("Estado no válido");
 
-            // Si pasa a Aprobado
             if (nuevoEstadoStr.Equals("Aprobado", StringComparison.OrdinalIgnoreCase))
             {
-                // 1. Descontar stock (IdDeposito = 1 asumido por defecto como en FacturasCompra)
                 if (nota.NotasDevolucionesComprasDetalles != null)
                 {
                     foreach (var detalle in nota.NotasDevolucionesComprasDetalles)
@@ -72,18 +69,16 @@ public class NotasDevolucionesCompraService : CrudServiceBase<NotasDevolucionesC
                         if (stock != null)
                         {
                             stock.Cantidad -= detalle.Cantidad;
-                            // Prevenir stock negativo si se requiere, aunque a veces se permite
                             if (stock.Cantidad < 0) stock.Cantidad = 0; 
                             _context.StocksDepositos.Update(stock);
                         }
                     }
                 }
 
-                // 2. Aumentar monto en cuenta bancaria enlazada a la factura
                 var ordenPagoDetalle = await _context.OrdenesPagosComprasDetalles
                     .FirstOrDefaultAsync(d => d.IdFacturaCompra == nota.IdFacturaCompra);
 
-                int idCuentaBancaria = ordenPagoDetalle?.IdCuentaBancaria ?? 1; // Fallback a 1 si no hay orden de pago
+                int idCuentaBancaria = ordenPagoDetalle?.IdCuentaBancaria ?? 1; 
 
                 var cuenta = await _context.CuentasBancarias.FirstOrDefaultAsync(c => c.IdCuentaBancaria == idCuentaBancaria);
                 if (cuenta != null)
