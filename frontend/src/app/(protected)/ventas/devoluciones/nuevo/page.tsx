@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,11 @@ import { formatearNumeroProducto } from "@/utils/producto-format";
 import { formatearNumeroFactura } from "@/utils/factura-format";
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
 import { facturasAPI } from "@/services/facturasAPI";
+import { clientesAPI } from "@/services/clientesAPI";
 import { notasCreditosVentasAPI } from "@/services/notasCreditosVentasAPI";
-import { FacturaVentaCabecera, FacturaVentaCompleto, NotaCreditoVentaSave, ProductoDTO, PreciosVentas } from "@/types/types";
+import { FacturaVentaCabecera, FacturaVentaCompleto, NotaCreditoVentaSave, ProductoDTO, PreciosVentas, Cliente } from "@/types/types";
 import { formatearFecha } from "@/utils/date-utils";
+import { formatCI, formatRUC } from "@/utils/cedula-format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { esVigenteParaNotaCredito } from "@/utils/date-utils";
 
-function NuevaDevolucionPageContent() {
+export default function NuevaDevolucionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idFacturaQuery = searchParams.get("facturaId");
@@ -40,18 +42,11 @@ function NuevaDevolucionPageContent() {
   const [isImporting, setIsImporting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProductoModalOpen, setIsProductoModalOpen] = useState(false);
-
-  // Datos maestros para selección manual
   const [listaFacturas, setListaFacturas] = useState<FacturaVentaCabecera[]>([]);
-  
-  // Factura activa seleccionada (completa)
   const [facturaSeleccionada, setFacturaSeleccionada] = useState<FacturaVentaCompleto | null>(null);
-  
-  // Estado del formulario de Nota de Crédito
+  const [cliente, setCliente] =useState<Cliente | null>(null);
   const [motivo, setMotivo] = useState("");
-  const [itemsDevolucion, setItemsDevolucion] = useState<any[]>([]); // Items agregados a devolver
-
-  // Alertas de eliminación
+  const [itemsDevolucion, setItemsDevolucion] = useState<any[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [indexAEliminar, setIndexAEliminar] = useState<number>(-1);
 
@@ -78,12 +73,24 @@ function NuevaDevolucionPageContent() {
             return;
           }
           setFacturaSeleccionada(resFactura);
+          try {
+            const resCliente = await clientesAPI.getById(resFactura.idCliente);
+            setCliente(resCliente);
+          } catch (error) {
+            console.error("Error al cargar datos del cliente:", error);
+            notify.error("Error de conexión", "No se pudieron cargar los datos del cliente.");
+          }
         } else {
           // Modo 2: Ingreso manual, cargar lista de facturas para el selector
           const resFacturas = await facturasAPI.getAll(1, 200); // Trae las últimas facturas emitidas
-          const facturasVigentes = resFacturas.items.filter((f) => {esVigenteParaNotaCredito(f.fechaPago)});
+          const facturasVigentes = resFacturas.items.filter((f) => esVigenteParaNotaCredito(f.fechaPago));
+          const facturasEmitidas = facturasVigentes.filter((f) => f.idEstado === 7);
           //setListaFacturas(resFacturas.items);
-          setListaFacturas(facturasVigentes);
+          console.log(resFacturas)
+          console.log("Vigentes:",facturasVigentes)
+          console.log("Emitidas:",facturasEmitidas)
+          //setListaFacturas(facturasVigentes);
+          setListaFacturas(facturasEmitidas);
         }
       } catch (error) {
         console.error("Error al inicializar la devolución:", error);
@@ -103,8 +110,15 @@ function NuevaDevolucionPageContent() {
       const resFactura = await facturasAPI.getById(id);
       if (resFactura) {
         setFacturaSeleccionada(resFactura);
+        try {
+          const resCliente = await clientesAPI.getById(resFactura.idCliente);
+          setCliente(resCliente);
+        } catch (error) {
+          console.error("Error al cargar datos del cliente:", error);
+          notify.error("Error de conexión", "No se pudieron cargar los datos del cliente.");
+        }
         setItemsDevolucion([]); // Limpiar carrito anterior si cambia de factura
-        notify.success("Factura Cargada", `Se importaron los datos del comprobante ${resFactura.nroComprobante}`);
+        notify.success("Factura Cargada", `Se importaron los datos de la factura ${resFactura.nroComprobante}`);
       }
     } catch (error) {
       console.error("Error al importar factura:", error);
@@ -121,13 +135,8 @@ function NuevaDevolucionPageContent() {
       idProducto: item.idProducto,
       descripcion: item.producto,
       precioUnitario: item.precioUnitario,
-      esServicio: false,
       porcentajeIva: 10, // Puedes estimarlo o mapearlo según tu lógica (ej: item.totalIva > 0 ? 10 : 0)
-      cantidadTotal: item.cantidad, // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
-      idMarca: 0,
-      marca: "",
-      idCategoria: 0,
-      categoria: "",
+      cantidadTotal: item.cantidad // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
     }));
   };
 
@@ -135,17 +144,24 @@ function NuevaDevolucionPageContent() {
     // Buscamos cuánto se compró originalmente en la factura
     const itemOriginal = facturaSeleccionada?.items.find(i => i.idProducto === prodMapeado.idProducto);
     const maxCantFacturada = itemOriginal ? itemOriginal.cantidad : 0;
+    const yaDevueltoPrevio = itemOriginal ? itemOriginal.cantidadDevuelta : 0;
+    const saldoDisponible = maxCantFacturada - yaDevueltoPrevio;
+
+    if (saldoDisponible <= 0) {
+      notify.error("Sin saldo", "Este producto ya fue devuelto en su totalidad en notas de crédito anteriores.");
+      return;
+    }
 
     setItemsDevolucion(prev => {
       const existe = prev.find(item => item.idProducto === prodMapeado.idProducto);
       if (existe) {
-        if (existe.cantidad + 1 > maxCantFacturada) {
-          notify.error("Límite superado", `No puedes devolver más de las ${maxCantFacturada} unidades facturadas.`);
+        if (existe.cantidad + 1 > saldoDisponible) {
+          notify.error("Límite superado", `No puedes devolver más de las ${saldoDisponible} unidades facturadas.`);
           return prev;
         }
         return prev.map(item =>
           item.idProducto === prodMapeado.idProducto
-            ? { ...item, cantidad: item.cantidad + 1 }
+            ? { ...item, cantidad: item.cantidad + 1, totalNeto: (item.cantidad + 1) * item.precioUnitario }
             : item
         );
       }
@@ -154,6 +170,7 @@ function NuevaDevolucionPageContent() {
         idProducto: prodMapeado.idProducto,
         producto: prodMapeado.descripcion,
         cantidadFacturada: maxCantFacturada,
+        cantidadDevuelta: yaDevueltoPrevio,
         cantidad: 1,
         precioUnitario: prodMapeado.precioUnitario,
         totalNeto: prodMapeado.precioUnitario // inicial (1 unidad)
@@ -164,13 +181,20 @@ function NuevaDevolucionPageContent() {
 
   const updateCantidadDevolver = (index: number, nuevaCantidad: number) => {
     const item = itemsDevolucion[index];
-    if (!item || nuevaCantidad < 1) return;
+    if (!item) return;
+    const saldoDisponible = item.cantidadFacturada - item.cantidadDevuelta;
 
-    if (nuevaCantidad > item.cantidadFacturada) {
+    if (nuevaCantidad > saldoDisponible) {
       notify.error(
         "Cantidad Inválida", 
-        `La cantidad a devolver (${nuevaCantidad}) supera la cantidad comprada en la factura (${item.cantidadFacturada}).`
+        `La cantidad {${nuevaCantidad}} supera el saldo disponible. Máximo a devolver: ${saldoDisponible}. Ya devuelto: ${item.cantidadDevuelta}.`
       );
+      //Para mostrar la cantidad introducida
+      setItemsDevolucion(prev => {
+        const nuevoCarrito = [...prev];
+        nuevoCarrito[index] = { ...nuevoCarrito[index], cantidad: nuevaCantidad};
+        return nuevoCarrito;
+      });
       return;
     }
 
@@ -198,13 +222,37 @@ function NuevaDevolucionPageContent() {
       notify.error("Carrito vacío", "Debe añadir al menos un producto a devolver.");
       return;
     }
+    const tieneCantidadCero = itemsDevolucion.some(item => item.cantidad <= 0);
+    if (tieneCantidadCero) {
+      notify.error(
+        "Cantidad Inválida", 
+        "Tienes productos con cantidad igual a 0. Modifica el valor o quita el ítem usando el botón de la papelera."
+      );
+      return;
+    }
+    let productoExcedidoName = "";
+    const tieneCantidadExcedida = itemsDevolucion.some(item => {
+      const saldoDisponible = item.cantidadFacturada - item.cantidadDevuelta;
+      if (item.cantidad > saldoDisponible) {
+        productoExcedidoName = item.producto;
+        return true;
+      }
+      return false;
+    });
+    if (tieneCantidadExcedida) {
+      notify.error(
+        "Límite Excedido", 
+        `El producto "${productoExcedidoName}" supera el saldo disponible que queda de la factura original.`
+      );
+      return;
+    }
 
     setIsSubmitting(true);
     const fechaHoy = new Date().toISOString().split('T')[0];
 
     const payload: NotaCreditoVentaSave = {
       idFacturaVenta: facturaSeleccionada.idFacturaVenta,
-      idTimbrado: 1, //Cuidado con este ID
+      idEstado: 7, //Estado 'Emitido'
       motivo: motivo.trim(),
       fechaEmision: fechaHoy,
       items: itemsDevolucion.map(item => ({
@@ -229,15 +277,26 @@ function NuevaDevolucionPageContent() {
 
   const totalDevolucion = itemsDevolucion.reduce((acc, item) => acc + (item.cantidad * item.precioUnitario), 0);
 
+  const handleCantidad = async (index: number ,input: string) => {
+    if (input === "") {
+      updateCantidadDevolver(index, 0);
+      return;
+    }
+    const soloNumerosRegex = /^[0-9]+$/;
+    if (soloNumerosRegex.test(input)) {
+      updateCantidadDevolver(index, Number(input));
+    }
+}
+
   return (
     <>
+      {/* BREADCRUMB */}
       <PageBreadcrumb steps={[
         { label: "Ventas", href: "#" }, 
         { label: "Devoluciones", href: "/ventas/devoluciones" }, 
         { label: "Nueva Nota de Crédito" }
       ]} />
       <h1 className="text-xl font-bold tracking-tight">Emitir Nota de Crédito</h1>
-
       {/* CONFIRMACIÓN ELIMINAR ÍTEM */}
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
@@ -259,7 +318,6 @@ function NuevaDevolucionPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* BARRA DE ACCIONES SUPERIOR */}
       <div className="flex justify-between items-center my-2">
         <div>
@@ -286,18 +344,17 @@ function NuevaDevolucionPageContent() {
           </Button>
         </div>
       </div>
-
       {/* CABECERA DE DATOS VINCULADOS */}
       <div className="p-4 border rounded-lg bg-slate-50/50 text-xs shadow-sm my-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
           {/* COLUMNA 1: CLIENTE */}
           <div>
             <p className="text-[12px] font-bold uppercase text-muted-foreground mb-1.5">Datos del Cliente</p>
             <p className="text-slate-500 text-[13px]">Razón Social:</p>
             <p className="font-bold text-slate-900 text-[13px] mb-1">{facturaSeleccionada?.cliente || "---"}</p>
+            <p className="text-slate-500 text-[13px]">CI/RUC:</p>
+            <p className="font-bold text-slate-900 text-[13px] mb-1">{cliente?.ruc ? `RUC: ${formatRUC(cliente?.ruc)}` : `CI: ${formatCI(cliente?.ci)}`}</p>
           </div>
-
           {/* COLUMNA 2: FACTURA ORIGEN */}
           <div>
             <p className="text-[12px] font-bold uppercase text-muted-foreground mb-1.5">Factura de Referencia</p>
@@ -311,7 +368,6 @@ function NuevaDevolucionPageContent() {
               </p>
             )}
           </div>
-
           {/* COLUMNA 3: MOTIVO DE LA NOTA DE CRÉDITO */}
           <div>
             <label className="text-[12px] font-bold uppercase text-muted-foreground block mb-1">
@@ -328,7 +384,6 @@ function NuevaDevolucionPageContent() {
 
         </div>
       </div>
-
       {/* PRODUCTO SELECTOR FILTRADO */}
       <ProductoSelector 
         isOpen={isProductoModalOpen}
@@ -337,7 +392,7 @@ function NuevaDevolucionPageContent() {
         productos={obtenerProductosFiltrados()} // ¡Filtrados! Sólo los de la factura
         precios={[]} // No requerimos lista de precios extras porque el item ya trae su precio unitario mapeado
       />
-
+      {/* BOTÓN ADD */}
       <div className="mt-4 flex justify-end">
         <Button 
           variant="default" 
@@ -349,8 +404,7 @@ function NuevaDevolucionPageContent() {
           <Plus className="h-4 w-4"/> Seleccionar Producto a Devolver
         </Button>
       </div>
-
-      {/* TABLA DE DEVOLUCIONES */}
+      {/* TABLA DE DEVOLUCIONES (CABECERA) */}
       <div className="rounded-md border bg-white shadow-sm overflow-hidden flex flex-col mt-2">
         <div className="bg-slate-50 border-b">
           <Table className="table-fixed">
@@ -366,12 +420,16 @@ function NuevaDevolucionPageContent() {
             </TableHeader>
           </Table>
         </div>
-        
+        {/* TABLA DE DEVOLUCIONES (CUERPO) */}
         <div className="max-h-[250px] overflow-y-auto">
           <Table className="table-fixed">
             <TableBody>
-              {itemsDevolucion.map((item, index) => (
+              {itemsDevolucion.map((item, index) => {
+                const saldoDisponible = item.cantidadFacturada - item.cantidadDevuelta;
+                const esCantidadInvalida = item.cantidad > saldoDisponible || item.cantidad <= 0;
+                return(
                 <TableRow key={item.idProducto} className="border-b last:border-0 hover:bg-slate-50/50">
+                  {/* NOMBRE PRODUCTO */}
                   <TableCell className={columnWidths.producto}>
                     <div className="flex flex-col">
                       <span className="font-medium truncate">{item.producto}</span>
@@ -380,10 +438,12 @@ function NuevaDevolucionPageContent() {
                       </span>
                     </div>
                   </TableCell>
+                  {/* CANTIDAD ORIGINAL DE LA FACTURA */}
                   <TableCell className={`${columnWidths.cantFacturada} text-slate-500 font-medium pl-4`}>
                     {item.cantidadFacturada} unids.
                   </TableCell>
-                  <TableCell className={columnWidths.cantDevolver}>
+                  {/* CANTIDAD A DEVOLVER */}
+                  {/*<TableCell className={columnWidths.cantDevolver}>
                     <Input 
                       type="number" 
                       min="1"
@@ -392,13 +452,40 @@ function NuevaDevolucionPageContent() {
                       value={item.cantidad} 
                       onChange={(e) => updateCantidadDevolver(index, Number(e.target.value))} 
                     />
-                  </TableCell>
+                  </TableCell>*/}
+                  <TableCell className={columnWidths.cantDevolver}>
+                      <Input 
+                        type="text" 
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className={`w-16 h-8 px-2 text-center transition-colors ${
+                          esCantidadInvalida 
+                            ? "border-destructive text-destructive focus-visible:ring-destructive bg-destructive/5 font-bold" 
+                            : "border-input"
+                        }`}
+                        value={item.cantidad === 0 ? "" : item.cantidad}
+                        onChange={(e) => {handleCantidad(index, e.target.value)}}
+                        onBlur={() => {
+                          if (item.cantidad === 0) {
+                            updateCantidadDevolver(index, 1);
+                          }
+                        }} 
+                      />
+                      {item.cantidad > saldoDisponible && (
+                        <span className="text-[10px] text-destructive block mt-0.5 text-start font-medium">
+                          Máx. {saldoDisponible}
+                        </span>
+                      )}
+                    </TableCell>
+                  {/* PRECIO UNITARIO */}
                   <TableCell className={columnWidths.precio}>
                     {formatGuaranies(item.precioUnitario)}
                   </TableCell>
+                  {/* TOTAL NETO */}
                   <TableCell className={`${columnWidths.subtotal} text-right font-bold text-slate-900`}>
                     {formatGuaranies(item.totalNeto)}
                   </TableCell>
+                  {/* ACCIONES */}
                   <TableCell className={`${columnWidths.acciones} text-right`}>
                     <Button 
                       variant="ghost" 
@@ -413,7 +500,7 @@ function NuevaDevolucionPageContent() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
               {itemsDevolucion.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="py-12 text-center text-muted-foreground text-sm">
@@ -427,7 +514,6 @@ function NuevaDevolucionPageContent() {
           </Table>
         </div>
       </div>
-
       {/* SECCIÓN TOTAL */}
       <div className="flex justify-end p-4 border rounded-b-md bg-slate-50/30 mb-8">
         <div className="text-right">
@@ -438,13 +524,5 @@ function NuevaDevolucionPageContent() {
         </div>
       </div>
     </>
-  );
-}
-
-export default function NuevaDevolucionPage() {
-  return (
-    <Suspense fallback={null}>
-      <NuevaDevolucionPageContent />
-    </Suspense>
   );
 }

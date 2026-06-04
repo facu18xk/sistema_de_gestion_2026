@@ -2,6 +2,7 @@
 
 import { Cliente, ClienteSaveDTO, Pais } from "@/types/types"
 import { useState, useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { Pencil, Trash2, Loader2, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -144,6 +145,7 @@ const columnWidths = {
 }*/
 
 export default function ProveedoresPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
@@ -154,7 +156,7 @@ export default function ProveedoresPage() {
   const [paises, setPaises] = useState<Pais[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   //const [totalPages, setTotalPages] = useState(1)
-  const [itemsPerPage] = useState(10)
+  const [itemsPerPage] = useState(8)
   const [searchTerm, setSearchTerm] = useState("")
 
   const cargarPagina = async () => {

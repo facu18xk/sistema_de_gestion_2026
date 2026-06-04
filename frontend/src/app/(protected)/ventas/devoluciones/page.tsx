@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Loader2, Eye, Search, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { TableRow, TableCell, TableHead } from "@/components/ui/table"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
@@ -13,15 +13,32 @@ import { notasCreditosVentasAPI } from "@/services/notasCreditosVentasAPI"
 import { facturasAPI } from "@/services/facturasAPI"
 import { FacturaVentaCabecera, NotaCreditoVenta, NotaConCliente } from "@/types/types"
 import { notify } from "@/lib/notifications"
+import { formatearNumeroFactura } from "@/utils/factura-format"
+import { formatearNumeroNotaCredito, formatearTimbradoNota } from "@/utils/nota-format";
+import { Badge } from "@/components/ui/badge";
+import { formatGuaranies } from "@/utils/money-format"
+
+const columnWidths = {
+  nota: "w-[140px]",
+  factura: "w-[140px]",
+  cliente: "w-[130px]",
+  fecha: "w-[100px]",
+  estado: "w-[100px]",
+  total: "w-[100px]",
+  acciones: "w-[80px]",
+};
 
 export default function DevolucionesPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [facturas, setFacturas] = useState<FacturaVentaCabecera[]>([]);
+  const [notasCredito, setNotasCredito] = useState<NotaCreditoVenta[]>([]);
   const [todasLasNotas, setTodasLasNotas] = useState<NotaCreditoVenta[]>([]);
+  const [notas, setNotas] = useState<NotaConCliente[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  //const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("")
 
   //const fechaHoy = new Date().toISOString().split('T')[0];
 
@@ -29,8 +46,10 @@ export default function DevolucionesPage() {
   const cargarPagina = async () => {
     setIsLoading(true)
     try {
-      const resPaginada = await notasCreditosVentasAPI.getAll(1, 200);
+      const resPaginada = await notasCreditosVentasAPI.getAll(currentPage, itemsPerPage);
+      //setNotasCredito(resPaginada.items);
       setTodasLasNotas(resPaginada.items);
+      //setTotalPages(resPaginada.totalPages);
     } catch (error) {
       console.error("Error al cargar notas de crédito:", error)
       notify.error("Error de conexión", "No se pudo obtener la lista de notas de crédito.")
@@ -43,6 +62,7 @@ export default function DevolucionesPage() {
     try {
         const resPaginada = await facturasAPI.getAll(1, 200);
         setFacturas(resPaginada.items);
+        //setTotalPages(resPaginada.totalPages);
       } catch (error) {
         console.error("Error al cargar las facturas:", error)
         notify.error("Error de conexión", "No se pudo obtener la lista de facturas.")
@@ -130,11 +150,13 @@ export default function DevolucionesPage() {
           caption="Lista de notas de crédito."
           headerRow={
             <TableRow>
-              <TableHead>Nota Crédito</TableHead>
-              <TableHead>Factura</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Fecha Emisión</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className={`${columnWidths.nota}`}>Nota Crédito</TableHead>
+              <TableHead className={`${columnWidths.factura}`}>Factura</TableHead>
+              <TableHead className={`${columnWidths.cliente}`}>Cliente</TableHead>
+              <TableHead className={`${columnWidths.fecha}`}>Fecha Emisión</TableHead>
+              <TableHead className={`${columnWidths.estado}`}>Estado</TableHead>
+              <TableHead className={`${columnWidths.total} text-right`}>Total</TableHead>
+              <TableHead className={`${columnWidths.acciones} text-right`}>Acciones</TableHead>
             </TableRow>
           }
           currentPage={currentPage}
@@ -143,6 +165,10 @@ export default function DevolucionesPage() {
         >
           {notasVisiblesEnPagina.map((nota) => {
           //const facturaAsociada = facturas.find((f) => f.idFacturaVenta == nota.idFacturaVenta);
+          const estadoActual = nota.estado;
+          const totalNota = nota.detalles.reduce((acc, item) => {
+            return acc + (item.subtotal);
+          }, 0);
 
           return (
             <TableRow key={nota.idNotaCreditoVenta}>
@@ -150,6 +176,11 @@ export default function DevolucionesPage() {
               <TableCell>{nota.facturaVenta}</TableCell>
               <TableCell className="font-medium">{nota.cliente}</TableCell>
               <TableCell>{new Date(nota.fechaEmision).toLocaleDateString()}</TableCell>
+              <TableCell className={`${columnWidths.estado}`}>{
+                estadoActual === 'Emitido' ? <Badge variant="aprobado">{estadoActual}</Badge> : 
+                <Badge variant="destructive">{estadoActual}</Badge>}
+              </TableCell>
+              <TableCell className={`${columnWidths.acciones} text-right`}>{formatGuaranies(totalNota)}</TableCell>
               <TableCell className="text-right">
                 <Button
                   variant="ghost"
@@ -164,12 +195,12 @@ export default function DevolucionesPage() {
           )
         })}
         {notasVisiblesEnPagina.length === 0 && (
-                <TableRow>
-                <TableCell className="py-12 text-center text-muted-foreground text-sm" colSpan={5}>
-                  No hay notas de crédito para mostrar.
-                </TableCell>
-                </TableRow>
-              )}
+          <TableRow>
+          <TableCell className="py-12 text-center text-muted-foreground text-sm" colSpan={7}>
+            No hay notas de crédito para mostrar.
+          </TableCell>
+          </TableRow>
+        )}
         </DataTable>
       )}
     </>

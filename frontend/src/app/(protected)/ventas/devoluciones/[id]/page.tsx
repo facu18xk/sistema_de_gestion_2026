@@ -2,20 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Printer, FileText, Save } from "lucide-react";
+import { ArrowLeft, Printer, ReceiptText, Calendar, Hash, FileText, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { notify } from "@/lib/notifications";
 import { formatGuaranies } from "@/utils/money-format";
 import { formatearNumeroProducto } from "@/utils/producto-format";
-import { formatearNumeroNotaCredito } from "@/utils/nota-format";
+import { formatearNumeroNotaCredito, formatearTimbradoNota } from "@/utils/nota-format";
 import { notasCreditosVentasAPI } from "@/services/notasCreditosVentasAPI";
 import { facturasAPI } from "@/services/facturasAPI";
 import { clientesAPI } from "@/services/clientesAPI";
 import { estadosAPI } from "@/services/estadosAPI";
 import { timbradosAPI } from "@/services/timbradosAPI";
-import { Timbrado, Estado, NotaCreditoVenta, FacturaVentaCompleto, Cliente, NotaCreditoVentaSave } from "@/types/types";
+import { Timbrado, Estado, NotaCreditoVenta, NotaCreditoVentaItem, NotaCreditoVentaDetalle, FacturaVentaCabecera, FacturaVentaCompleto, Cliente, NotaCreditoVentaSave } from "@/types/types";
 import { formatearFecha } from "@/utils/date-utils";
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { formatPhone } from "@/utils/phone-format";
@@ -172,7 +172,6 @@ export default function DetalleNotaCreditoPage() {
       const payload: NotaCreditoVentaSave = {
         idFacturaVenta: notaCredito.idFacturaVenta,
         idEstado: idEstadoNuevo,
-        idTimbrado: notaCredito.idTimbrado,
         motivo: notaCredito.motivo,
         fechaEmision: notaCredito.fechaEmision,
         items: notaCredito.detalles

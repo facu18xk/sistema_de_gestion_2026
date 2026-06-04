@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Printer, ReceiptText, Save } from "lucide-react";
+import { ArrowLeft, Printer, FileText, ReceiptText, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";

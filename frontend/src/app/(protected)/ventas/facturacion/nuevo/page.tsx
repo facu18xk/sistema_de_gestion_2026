@@ -10,17 +10,19 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { ProductoSelector } from "@/components/ventas/ProductoSelector";
 import { PresupuestoSelector } from "@/components/ventas/PresupuestoSelector";
 import { notify } from "@/lib/notifications";
-import { formatGuaranies, formatNumberDots } from "@/utils/money-format";
+import { formatGuaranies } from "@/utils/money-format";
 import { formatearNumeroProducto } from "@/utils/producto-format";
-import { Cliente, ProductoDTO, PreciosVentas, PresupuestoItem, MedioPago, PresupuestoCabecera, FacturaVentaCompletoSave } from "@/types/types";
+import { Cliente, PresupuestoCompleto, ProductoDTO, PreciosVentas, FacturaVentaItem, PresupuestoItem, MedioPago, PresupuestoCabecera, FacturaVentaCompletoSave, Timbrado, PresupuestoCabeceraSave } from "@/types/types";
 import { presupuestosAPI } from "@/services/presupuestosAPI";
 import { clientesAPI } from "@/services/clientesAPI";
 import { productosAPI } from "@/services/productosAPI";
 import { preciosVentasAPI } from "@/services/preciosVentasAPI";
 import { mediosPagosAPI } from "@/services/mediosPagosAPI"; 
 import { facturasAPI } from "@/services/facturasAPI";
+import { timbradosAPI } from "@/services/timbradosAPI";
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
 import { formatPhone } from "@/utils/phone-format";
+import { formatNumberDots } from "@/utils/money-format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,8 +35,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatCI, formatRUC } from "@/utils/cedula-format";
+import { formatearFecha } from "@/utils/date-utils";
+import { describe } from "node:test";
 
-function NuevaFacturaPageContent() {
+export default function NuevaFacturaPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
@@ -47,6 +51,7 @@ function NuevaFacturaPageContent() {
   const [listaPrecios, setListaPrecios] = useState<PreciosVentas[]>([]);
   const [listaMediosPagos, setListaMediosPagos] = useState<MedioPago[]>([]);
   const [listaPresupuestos, setListaPresupuestos] = useState<PresupuestoCabecera[]>([]);
+  const [timbrado, setTimbrado] = useState<Timbrado | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [presupuestoSel, setPresupuestoSel] = useState<PresupuestoCabecera>();
   const [itemsCarrito, setItemsCarrito] = useState<PresupuestoItem[]>([]);
@@ -70,6 +75,9 @@ function NuevaFacturaPageContent() {
     const inicializarPantalla = async () => {
       try {
         setLoading(true);
+
+        const resTimbrado = await timbradosAPI.getById(1);
+        setTimbrado(resTimbrado);
 
         const resProductos = await productosAPI.getAll(1, 300);
         setListaProductos(resProductos.items);
@@ -154,7 +162,7 @@ function NuevaFacturaPageContent() {
   };
 
   const updateCantidad = (index: number, nuevaCantidad: number) => {
-    if (nuevaCantidad < 1) return;
+    //if (nuevaCantidad < 1) return;
     const itemAEditar = itemsCarrito[index];
     if (!itemAEditar) return;
     const productoOriginal = listaProductos.find(p => p.idProducto === itemAEditar.idProducto);
@@ -164,6 +172,12 @@ function NuevaFacturaPageContent() {
         "Stock Excedido", 
         `Solo hay ${stockDisponible} unidades disponibles de "${itemAEditar.producto}".`
       );
+      //Para mostrar la cantidad introducida
+      setItemsCarrito(prev => {
+        const nuevoCarrito = [...prev];
+        nuevoCarrito[index] = { ...nuevoCarrito[index], cantidad: nuevaCantidad};
+        return nuevoCarrito;
+      });
       return;
     }
     setItemsCarrito(prev => {
@@ -195,14 +209,39 @@ function NuevaFacturaPageContent() {
       notify.error("Incompleto", "Asegúrese de contar con un cliente e ítems cargados.");
       return;
     }
+    const tieneCantidadInvalida = itemsCarrito.some(item => item.cantidad <= 0);
+    if (tieneCantidadInvalida) {
+      notify.error("Cantidad Inválida", "Hay productos con cantidad vacía o en cero. Corrígelos o quítalos antes de continuar.");
+      return;
+    }
+    let productoExcedidoName = "";
+    const tieneExcesoStock = itemsCarrito.some(item => {
+      const prodMaster = listaProductos.find(p => p.idProducto === item.idProducto);
+      const maxStock = prodMaster ? (prodMaster.cantidadTotal ?? 0) : 0;
+      if (item.cantidad > maxStock) {
+        productoExcedidoName = item.producto;
+        return true;
+      }
+      return false;
+    });
+    if (tieneExcesoStock) {
+      notify.error(
+        "Stock Superado", 
+        `El producto "${productoExcedidoName}" supera las existencias físicas en el inventario.`
+      );
+      return;
+    }
 
     setIsSubmitting(true);
     const fechaHoy = new Date().toISOString().split('T')[0];
+    const ultimoNumero = Number(timbrado?.ultimoNumeroUsado) + 1;
 
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
-      idEstado: 7,
+      nroComprobante: "",
+      idEstado: 7, //Estado 'Emitido'
+      idTimbrado: 1,
       fecha: fechaHoy,
       descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,
@@ -214,12 +253,18 @@ function NuevaFacturaPageContent() {
       //descuento: montoDescuento,
     };
 
+    const updatedPresupuesto: PresupuestoCabeceraSave = {
+      idCliente: Number(presupuestoSel?.idCliente),
+      idEstado: 9, //Estado 'Facturado'
+      fecha: String(presupuestoSel?.fecha),
+      descripcion: String(presupuestoSel?.descripcion),
+      fechaVencimiento: String(presupuestoSel?.fechaVencimiento)
+    }
+
     try {
-      const facturaCreada = await facturasAPI.create(payload);
-      notify.success(
-        "¡Factura Emitida!",
-        `Comprobante ${facturaCreada.nroComprobante || "generado"} registrado con éxito.`
-      );
+      await facturasAPI.create(payload);
+      await presupuestosAPI.updateCabecera(presupuestoIdFinal, updatedPresupuesto)
+      notify.success("¡Factura Emitida!", "La factura ha sido registrada y procesada con éxito.");
       router.push("/ventas/facturacion");
     } catch (error) {
       console.error("Error al registrar la factura:", error);
@@ -368,9 +413,15 @@ function NuevaFacturaPageContent() {
                     <p className="text-muted-foreground text-[13px]">Email</p>
                     <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
                 </div>
-                <div>
-                    <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                    <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
+                {/*<div>
+                    <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
+                    <p className="font-medium text-slate-700 text-[13px]">
+                        {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
+                </p>
+                </div>*/}
+                <div className="hidden sm:block">
+                  <p className="text-muted-foreground text-[13px]">Teléfono</p>
+                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
                 </div>
             </div>
             </div>
@@ -466,7 +517,8 @@ function NuevaFacturaPageContent() {
               {itemsCarrito.map((item, index) => {
                 const subtotal = (item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1);
                 const prodMaster = listaProductos.find(p => p.idProducto === item.idProducto);
-                const maxStock = prodMaster ? (prodMaster.cantidadTotal ?? 0) : 9999;
+                const maxStock = prodMaster ? (prodMaster.cantidadTotal ?? 0) : 0;
+                const esCantidadInvalida = item.cantidad > maxStock || item.cantidad <= 0;
                 return (
                   <TableRow key={item.idProducto} className="border-b last:border-0 hover:bg-slate-50/50">
                     {/* PRODUCTO */}
@@ -479,16 +531,39 @@ function NuevaFacturaPageContent() {
                       </div>
                     </TableCell>
                     {/* CANTIDAD */}
-                    <TableCell className={columnWidths.cantidad}>
+                    {/*<TableCell className={columnWidths.cantidad}>
                       <Input 
-                        type="text" 
-                        inputMode="numeric"
+                        type="number" 
                         min="1"
                         max={maxStock}
                         className="w-16 h-8 px-2"
                         value={item.cantidad} 
-                        onChange={(e) => handleCantidad(index, e.target.value)} 
+                        onChange={(e) => updateCantidad(index, Number(e.target.value))} 
                       />
+                    </TableCell>*/}
+                    <TableCell className={columnWidths.cantidad}>
+                      <Input 
+                        type="text" 
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className={`w-16 h-8 px-2 text-center transition-colors ${
+                          esCantidadInvalida 
+                            ? "border-destructive text-destructive focus-visible:ring-destructive bg-destructive/5 font-bold" 
+                            : "border-input"
+                        }`}
+                        value={item.cantidad === 0 ? "" : item.cantidad}
+                        onChange={(e) => {handleCantidad(index, e.target.value)}}
+                        onBlur={() => {
+                          if (item.cantidad === 0) {
+                            updateCantidad(index, 1);
+                          }
+                        }} 
+                      />
+                      {item.cantidad > maxStock && (
+                        <span className="text-[10px] text-destructive block mt-0.5 text-start font-semibold whitespace-nowrap">
+                          Stock: {maxStock}
+                        </span>
+                      )}
                     </TableCell>
                     {/* PRECIO UNITARIO */}
                     <TableCell className={columnWidths.precio}>
@@ -552,13 +627,5 @@ function NuevaFacturaPageContent() {
         </div>
       </div>
     </>
-  );
-}
-
-export default function NuevaFacturaPage() {
-  return (
-    <Suspense fallback={null}>
-      <NuevaFacturaPageContent />
-    </Suspense>
   );
 }

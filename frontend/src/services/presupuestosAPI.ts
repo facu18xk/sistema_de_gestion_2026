@@ -3,9 +3,15 @@ import { API_CONFIG } from "../config/api"
 import { PaginatedResponse, PresupuestoCabecera, PresupuestoCabeceraSave, PresupuestoCompleto, PresupuestoCompletoSave, PresupuestoDetalle } from "@/types/types"
 
 export const presupuestosAPI = {
-    getAll: async (page: number = 1, pageSize: number = 10, idEstado?: number): Promise<PaginatedResponse<PresupuestoCabecera>> => {
+    getAll: async (page: number = 1, pageSize: number = 10): Promise<PaginatedResponse<PresupuestoCabecera>> => {
         const response = await api.get(API_CONFIG.ENDPOINTS.PRESUPUESTOS, {
-            params: { Page: page, PageSize: pageSize, IdEstado: idEstado }
+            params: { Page: page, PageSize: pageSize }
+        });
+        return response.data;
+    },
+    getAllCompleto: async (page: number = 1, pageSize: number = 10 ): Promise<PaginatedResponse<PresupuestoCompleto>> => {
+        const response = await api.get(`${API_CONFIG.ENDPOINTS.PRESUPUESTOS}/completo`, {
+            params: { Page: page, PageSize: pageSize }
         });
         return response.data;
     },
