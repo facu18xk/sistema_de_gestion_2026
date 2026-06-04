@@ -1,70 +1,51 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
-using DatabaseHastaCompraVenta.Models; 
-using api.Services;
 
-namespace api.Services
+namespace api.Services;
+
+public class ProductoService : CrudServiceBase<Producto, int>
 {
-    public class ProductoService : ICrudService<Producto, int>
+    private readonly DblosAmigosContext _context;
+
+    public ProductoService(DblosAmigosContext context)
+        : base(context)
     {
-        private readonly DblosAmigosContext _context;
+        _context = context;
+    }
 
-        public ProductoService(DblosAmigosContext context)
-        {
-            _context = context;
-        }
+    protected override DbSet<Producto> Set => _context.Productos;
 
-        public async Task<IEnumerable<Producto>> GetAllAsync()
-        {
-            return await _context.Productos
-                .Include(p => p.IdCategoriaNavigation)
-                .Include(p => p.IdMarcaNavigation)
-                .ToListAsync();
-        }
+    protected override IQueryable<Producto> BuildReadQuery()
+    {
+        return _context.Productos
+            .Include(p => p.IdCategoriaNavigation)
+            .Include(p => p.IdMarcaNavigation)
+            .Include(p => p.StocksDepositos)
+            .AsNoTracking();
+    }
 
-        public async Task<Producto?> GetByIdAsync(int id)
-        {
-            return await _context.Productos
-                .Include(p => p.IdCategoriaNavigation)
-                .Include(p => p.IdMarcaNavigation)
-                .FirstOrDefaultAsync(p => p.IdProducto == id);
-        }
+    protected override IQueryable<Producto> BuildGetByIdQuery()
+    {
+        return _context.Productos
+            .Include(p => p.IdCategoriaNavigation)
+            .Include(p => p.IdMarcaNavigation)
+            .Include(p => p.StocksDepositos)
+            .AsNoTracking();
+    }
 
-        public async Task<Producto> CreateAsync(Producto entity)
-        {
-            _context.Productos.Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
-        }
+    protected override Expression<Func<Producto, bool>> BuildKeyPredicate(int id)
+    {
+        return producto => producto.IdProducto == id;
+    }
 
-        public async Task<Producto> UpdateAsync(int id, Producto entity)
-        {
-            var existe = await _context.Productos.FindAsync(id);
-
-            if (existe == null)
-                throw new KeyNotFoundException($"No existe el producto con ID {id}");
-
-            existe.Descripcion = entity.Descripcion;
-            existe.PrecioUnitario = entity.PrecioUnitario;
-            existe.IdMarca = entity.IdMarca;
-            existe.IdCategoria = entity.IdCategoria;
-            existe.EsServicio = entity.EsServicio;
-            existe.PorcentajeIva = entity.PorcentajeIva;
-
-            _context.Productos.Update(existe);
-            await _context.SaveChangesAsync();
-            return existe;
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto != null)
-            {
-                _context.Productos.Remove(producto);
-                await _context.SaveChangesAsync();
-            }
-        }
+    protected override void UpdateEntity(Producto existingEntity, Producto incomingEntity)
+    {
+        existingEntity.Descripcion = incomingEntity.Descripcion;
+        existingEntity.PrecioUnitario = incomingEntity.PrecioUnitario;
+        existingEntity.IdMarca = incomingEntity.IdMarca;
+        existingEntity.IdCategoria = incomingEntity.IdCategoria;
+        existingEntity.EsServicio = incomingEntity.EsServicio;
+        existingEntity.PorcentajeIva = incomingEntity.PorcentajeIva;
     }
 }
