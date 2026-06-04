@@ -193,6 +193,7 @@ export default function NuevoPresupuestoPage() {
         items: itemsMapeados,
       };
       await presupuestosAPI.create(payload);
+      //console.log("Payload:",payload)
       notify.success("!Éxito!", "Presupuesto guardado correctamente.");
       router.push("/ventas/presupuestos");
       router.refresh();
@@ -311,7 +312,7 @@ export default function NuevoPresupuestoPage() {
           onClick={handleGuardar}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Guardando..." : "Guardar"}
+          {isSubmitting ? "Guardando..." : "Guardar Presupuesto"}
         </Button>
         </div>
       </div>

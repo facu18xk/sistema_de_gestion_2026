@@ -22,6 +22,7 @@ import { facturasAPI } from "@/services/facturasAPI";
 import { timbradosAPI } from "@/services/timbradosAPI";
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format";
 import { formatPhone } from "@/utils/phone-format";
+import { formatNumberDots } from "@/utils/money-format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +60,7 @@ export default function NuevaFacturaPage() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [indexAEliminar, setIndexAEliminar] = useState<number>(-1);
   const [itemAEliminarDescripcion, setItemAEliminarDescripcion] = useState("");
+  const [montoDescuento, setMontoDescuento] = useState<number>(0);
 
   const columnWidths = {
     producto: "w-[35%]",
@@ -237,7 +239,7 @@ export default function NuevaFacturaPage() {
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
-      nroComprobante: `${timbrado?.establecimiento}-${timbrado?.puntoExpedicion}-${String(ultimoNumero).padStart(7, "0")}`,
+      nroComprobante: "",
       idEstado: 7, //Estado 'Emitido'
       idTimbrado: 1,
       fecha: fechaHoy,
@@ -247,7 +249,8 @@ export default function NuevaFacturaPage() {
       items: itemsCarrito.map(item => ({
         idProducto: item.idProducto,
         cantidad: item.cantidad
-      }))
+      })),
+      //descuento: montoDescuento,
     };
 
     const updatedPresupuesto: PresupuestoCabeceraSave = {
@@ -272,10 +275,6 @@ export default function NuevaFacturaPage() {
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Cargando datos de facturación...</div>;
-
-  const totalGeneral = itemsCarrito.reduce(
-    (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1)), 0
-  );
 
   const handleSeleccionarPresupuesto = async (id: number) => {
     try {
@@ -309,7 +308,35 @@ export default function NuevaFacturaPage() {
     if (soloNumerosRegex.test(input)) {
       updateCantidad(index, Number(input));
     }
-}
+  }
+
+  {/* PARA MANEJAR EL DESCUENTO */}
+  const handleDescuentoChange = (input: string) => {
+    const valorLimpio = input.replace(/\./g, "");
+    if (valorLimpio === "") {
+      setMontoDescuento(0);
+      return;
+    }
+    const soloNumerosRegex = /^[0-9]+$/;
+    if (soloNumerosRegex.test(valorLimpio)) {
+      const valorNumerico = Number(valorLimpio);
+      const subtotalProductos = itemsCarrito.reduce(
+        (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1)), 0
+      );
+      // Validación: El descuento no puede ser mayor que el subtotal
+      if (valorNumerico > subtotalProductos) {
+        notify.error("Descuento Inválido", "El descuento no puede superar el total de los productos.");
+        return;
+      }
+      setMontoDescuento(valorNumerico);
+    }
+  };
+
+  const subtotalProductos = itemsCarrito.reduce(
+    (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva / 100) + 1)), 0
+  );
+
+  const totalGeneral = Math.max(0, subtotalProductos - montoDescuento);
 
   return (
     <>
@@ -363,7 +390,7 @@ export default function NuevaFacturaPage() {
       </div>
       {/* CABECERA DE DATOS */}
         <div className="p-3 border rounded-lg bg-slate-50/40 text-xs shadow-sm my-2">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             {/* DATOS CLIENTE */}
             <div className="md:col-span-2 border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
                 <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
@@ -421,13 +448,13 @@ export default function NuevaFacturaPage() {
                   </SelectContent>
               </Select>
               <div>
-                  <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción Interna</label>
-                  <Input 
-                      placeholder="Observaciones de la factura..."
-                      value={descripcionFactura} 
-                      onChange={(e) => setDescripcionFactura(e.target.value)} 
-                      className="h-8 bg-white mt-0.5 text-sm px-2"
-                  />
+                <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción Interna</label>
+                <Input 
+                    placeholder="Observaciones de la factura..."
+                    value={descripcionFactura} 
+                    onChange={(e) => setDescripcionFactura(e.target.value)} 
+                    className="h-8 bg-white mt-0.5 text-sm px-2"
+                />
               </div>
             </div>
             {/* ESTADO DE LA FACTURA */}
@@ -440,6 +467,18 @@ export default function NuevaFacturaPage() {
               </span>
             </div>
           </div>*/}
+          <div className="grid grid-cols-1 hidden"> {/*quitar hidden si se usará descuento */}
+            <label className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Descuento (₲)</label>
+            <Input 
+              type="text" 
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="0"
+              className="mt-2.5 h-8 bg-white text-sm px-2 text-right font-medium"
+              value={montoDescuento === 0 ? "" : formatNumberDots(montoDescuento)}
+              onChange={(e) => handleDescuentoChange(e.target.value)}
+            />
+          </div>
         </div>
         </div>
       {/* SELECTOR DE PRODUCTOS */}
@@ -566,11 +605,25 @@ export default function NuevaFacturaPage() {
       </div>
       {/* INFORMACIÓN ÚTIL */}
       <div className="flex justify-end p-4 border rounded-b-md bg-slate-50/30 mb-8">
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Total a Facturar</p>
-          <p className="text-2xl font-black text-primary mt-1">
-            {formatGuaranies(totalGeneral)}
-          </p>
+        <div className="text-right flex flex-col gap-1.5 min-w-[200px]">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Subtotal Productos:</span>
+            <span className="font-medium">{formatGuaranies(subtotalProductos)}</span>
+          </div>
+          
+          {montoDescuento > 0 && (
+            <div className="flex justify-between text-xs text-destructive font-medium">
+              <span>Descuento aplicado:</span>
+              <span>- {formatGuaranies(montoDescuento)}</span>
+            </div>
+          )}
+          
+          <div className="border-t pt-1.5 mt-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Total a Facturar</p>
+            <p className="text-2xl font-black text-emerald-600 mt-0.5">
+              {formatGuaranies(totalGeneral)}
+            </p>
+          </div>
         </div>
       </div>
     </>

@@ -2,6 +2,7 @@
 
 import { Cliente, ClienteSaveDTO, Pais } from "@/types/types"
 import { useState, useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { Pencil, Trash2, Loader2, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -144,6 +145,7 @@ const columnWidths = {
 }*/
 
 export default function ProveedoresPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
@@ -154,7 +156,7 @@ export default function ProveedoresPage() {
   const [paises, setPaises] = useState<Pais[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   //const [totalPages, setTotalPages] = useState(1)
-  const [itemsPerPage] = useState(10)
+  const [itemsPerPage] = useState(8)
   const [searchTerm, setSearchTerm] = useState("")
 
   const cargarPagina = async () => {
@@ -162,8 +164,14 @@ export default function ProveedoresPage() {
     try {
       const resPaginada = await clientesAPI.getAll(currentPage, 100);
       //setClientes(resPaginada.items);
-      setTodosLosClientes(resPaginada.items);
-      console.log("aqui")
+      const ordenados = [...resPaginada.items].sort((a, b) => {
+        const nombreComp = a.nombres.localeCompare(b.nombres, 'es-PY');
+        if (nombreComp === 0) {
+          return a.apellidos.localeCompare(b.apellidos, 'es-PY');
+        }
+        return nombreComp;
+      });
+      setTodosLosClientes(ordenados);
       //console.log(resPaginada);
       //setTotalPages(resPaginada.totalPages);
     } catch (error) {
@@ -278,7 +286,6 @@ export default function ProveedoresPage() {
         await clientesAPI.create(cleanData);
         notify.success("Registrado", "Nuevo cliente guardado.");
       }
-
       setIsSheetOpen(false);
       cargarPagina();
     } catch (error) {

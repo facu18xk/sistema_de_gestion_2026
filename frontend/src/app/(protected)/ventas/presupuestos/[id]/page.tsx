@@ -484,6 +484,10 @@ export default function VerPresupuestoPage() {
                 <p className="text-muted-foreground text-[13px]">Email</p>
                 <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
               </div>
+              <div className="hidden sm:block">
+                  <p className="text-muted-foreground text-[13px]">Teléfono</p>
+                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
+                </div>
               {/*<div>
                 <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
                 <p className="font-medium text-slate-700 text-[13px]">

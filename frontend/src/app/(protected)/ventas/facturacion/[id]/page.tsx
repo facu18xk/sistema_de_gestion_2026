@@ -288,6 +288,8 @@ export default function DetalleFacturaPage() {
               <p><span class="data-label">Fecha Fin:</span> ${formatearFecha(fechaEnd)}</p>
               <div class="comprobante-titulo">Factura de Venta</div>
               <div class="comprobante-numero">${factura.nroComprobante}</div>
+              <div class="comprobante-titulo">Presupuesto Asociado</div>
+              <div class="comprobante-numero">${formatearNumeroPresupuesto(factura.idPresupuesto)}</div>
             </div>
           </div>
   

@@ -316,6 +316,8 @@ export default function DetalleNotaCreditoPage() {
                 <p><strong><span class="data-label">Fecha Fin:</strong></span> ${formatearFecha(fechaEnd)}</p>
                 <div class="comprobante-titulo"><strong>Nota de Crédito</strong></div>
                 <div class="comprobante-numero">${notaCredito.nroComprobante}</div>
+                <div class="comprobante-titulo"><strong>Factura Asociada</strong></div>
+                <div class="comprobante-numero">${facturaAsociada?.nroComprobante}</div>
               </div>
             </div>
     

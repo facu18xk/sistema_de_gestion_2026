@@ -123,7 +123,7 @@ export default function DevolucionesPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nota crédito, factura o estado..."
+            placeholder="Buscar por nota crédito, factura, cliente o estado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
