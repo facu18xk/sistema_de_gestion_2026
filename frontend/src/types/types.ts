@@ -340,7 +340,7 @@ export interface FacturaCompraSaveDTO {
     timbrado: string
     fecha: string
     descripcion: string
-    estado: string // "Pendiente", "Pagado" o "Anulado"
+    idEstado: number
     detalles: FacturaCompraDetalleBulkDTO[]
 }
 

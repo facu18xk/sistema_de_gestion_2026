@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Eye, Trash2, Loader2, X, ArrowUpRight } from "lucide-react"
+import { Plus, Pencil, Eye, Trash2, Loader2, X, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
 import { proveedoresAPI } from "@/services/proveedoresAPI"
 import { FilterBar, FilterField } from "@/components/shared/filter-bar"
@@ -148,6 +148,12 @@ export default function FacturasPage() {
 
             const calculadoTotalPaginas = Math.ceil(registros.length / 10) || 1
             setTotalPaginas(calculadoTotalPaginas)
+
+            // Asegurar que la página actual no quede huérfana tras filtrar
+            if (numPagina > calculadoTotalPaginas) {
+                setPagina(calculadoTotalPaginas)
+                return
+            }
 
             const indiceInicial = (numPagina - 1) * 10
             const indiceFinal = indiceInicial + 10
@@ -309,121 +315,153 @@ export default function FacturasPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="rounded-lg border bg-card shadow-sm overflow-hidden w-full">
-                        <Table className="w-full">
-                            <TableHeader className="bg-muted/50">
-                                <TableRow>
-                                    <TableHead className="w-28">Fecha</TableHead>
-                                    <TableHead className="w-36">Nro Comprobante</TableHead>
-                                    <TableHead className="w-28">Timbrado</TableHead>
-                                    <TableHead className="w-32 text-center">Nro Orden</TableHead>
-                                    <TableHead>Proveedor</TableHead>
-                                    <TableHead className="w-32">Estado</TableHead>
-                                    <TableHead className="w-32 text-right">Monto Total</TableHead>
-                                    <TableHead className="w-32 text-center">Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {facturas.length === 0 ? (
+                    <div className="space-y-2.5 w-full">
+                        <div className="rounded-lg border bg-card shadow-sm overflow-hidden w-full">
+                            <Table className="w-full">
+                                <TableHeader className="bg-muted/50">
                                     <TableRow>
-                                        <TableCell colSpan={8} className="text-center py-10 text-xs text-muted-foreground">
-                                            No se encontraron facturas con los criterios seleccionados.
-                                        </TableCell>
+                                        <TableHead className="w-28">Fecha</TableHead>
+                                        <TableHead className="w-36">Nro Comprobante</TableHead>
+                                        <TableHead className="w-28">Timbrado</TableHead>
+                                        <TableHead className="w-32 text-center">Nro Orden</TableHead>
+                                        <TableHead>Proveedor</TableHead>
+                                        <TableHead className="w-32">Estado</TableHead>
+                                        <TableHead className="w-32 text-right">Monto Total</TableHead>
+                                        <TableHead className="w-32 text-center">Acciones</TableHead>
                                     </TableRow>
-                                ) : (
-                                    facturas.map((f) => {
-                                        const idEstadoNum = Number(f.idEstado)
-                                        const esCRUDPermitido = idEstadoNum === 1 || (f.estado || "").toLowerCase().includes("pend")
+                                </TableHeader>
+                                <TableBody>
+                                    {facturas.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={8} className="text-center py-10 text-xs text-muted-foreground">
+                                                No se encontraron facturas con los criterios seleccionados.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        facturas.map((f) => {
+                                            const idEstadoNum = Number(f.idEstado)
+                                            const esCRUDPermitido = idEstadoNum === 1 || (f.estado || "").toLowerCase().includes("pend")
 
-                                        return (
-                                            <TableRow key={f.idFacturaCompra} className="hover:bg-muted/40 transition-colors">
-                                                <TableCell className="text-xs text-muted-foreground">
-                                                    {f.fecha ? f.fecha.substring(0, 10) : "—"}
-                                                </TableCell>
+                                            return (
+                                                <TableRow key={f.idFacturaCompra} className="hover:bg-muted/40 transition-colors">
+                                                    <TableCell className="text-xs text-muted-foreground">
+                                                        {f.fecha ? f.fecha.substring(0, 10) : "—"}
+                                                    </TableCell>
 
-                                                <TableCell className="font-mono text-xs font-bold text-foreground">
-                                                    {f.nroComprobante}
-                                                </TableCell>
+                                                    <TableCell className="font-mono text-xs font-bold text-foreground">
+                                                        {f.nroComprobante}
+                                                    </TableCell>
 
-                                                <TableCell className="text-xs text-muted-foreground">
-                                                    {f.timbrado || "—"}
-                                                </TableCell>
+                                                    <TableCell className="text-xs text-muted-foreground">
+                                                        {f.timbrado || "—"}
+                                                    </TableCell>
 
-                                                {/* Enlace a la Orden Origen usando la estructura con ?view=true */}
-                                                <TableCell className="text-center">
-                                                    {f.idOrdenCompra ? (
-                                                        <Link href={`/compras/ordenes/${f.idOrdenCompra}/editar?view=true`}>
-                                                            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-bold text-primary ring-1 ring-inset ring-primary/10 hover:bg-primary/10 transition cursor-pointer">
-                                                                {formatOrdenNro(f.idOrdenCompra)}
-                                                                <ArrowUpRight className="h-3 w-3 opacity-70" />
+                                                    <TableCell className="text-center">
+                                                        {f.idOrdenCompra ? (
+                                                            <Link href={`/compras/ordenes/${f.idOrdenCompra}/editar?view=true`}>
+                                                                <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-bold text-primary ring-1 ring-inset ring-primary/10 hover:bg-primary/10 transition cursor-pointer">
+                                                                    {formatOrdenNro(f.idOrdenCompra)}
+                                                                    <ArrowUpRight className="h-3 w-3 opacity-70" />
+                                                                </span>
+                                                            </Link>
+                                                        ) : (
+                                                            <span className="text-[11px] text-muted-foreground italic">
+                                                                Directa
                                                             </span>
-                                                        </Link>
-                                                    ) : (
-                                                        <span className="text-[11px] text-muted-foreground italic">
-                                                            Directa
+                                                        )}
+                                                    </TableCell>
+
+                                                    <TableCell className="text-xs font-medium">
+                                                        {f.proveedor || `Proveedor #${f.idProveedor}`}
+                                                    </TableCell>
+
+                                                    <TableCell className="text-xs">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(f.estado, f.idEstado)}`}>
+                                                            {getEstadoLiteral(f.estado, f.idEstado)}
                                                         </span>
-                                                    )}
-                                                </TableCell>
+                                                    </TableCell>
 
-                                                <TableCell className="text-xs font-medium">
-                                                    {f.proveedor || `Proveedor #${f.idProveedor}`}
-                                                </TableCell>
+                                                    <TableCell className="text-xs text-right font-bold font-mono text-foreground">
+                                                        {calcularTotalFactura(f).toLocaleString("es-PY")} Gs.
+                                                    </TableCell>
 
-                                                <TableCell className="text-xs">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(f.estado, f.idEstado)}`}>
-                                                        {getEstadoLiteral(f.estado, f.idEstado)}
-                                                    </span>
-                                                </TableCell>
-
-                                                <TableCell className="text-xs text-right font-bold font-mono text-foreground">
-                                                    {calcularTotalFactura(f).toLocaleString("es-PY")} Gs.
-                                                </TableCell>
-
-                                                <TableCell className="text-center">
-                                                    <div className="flex justify-center gap-1">
-                                                        {/* Vista de Detalle usando la estructura /editar?view=true */}
-                                                        <Link href={`/compras/facturas/${f.idFacturaCompra}/editar?view=true`}>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-7 w-7 text-muted-foreground hover:text-primary transition"
-                                                                title="Visualizar Detalle"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-
-                                                        {esCRUDPermitido && (
-                                                            <>
-                                                                <Link href={`/compras/facturas/${f.idFacturaCompra}/editar`}>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="h-7 w-7 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
-                                                                        title="Editar Factura"
-                                                                    >
-                                                                        <Pencil className="h-3.5 w-3.5" />
-                                                                    </Button>
-                                                                </Link>
+                                                    <TableCell className="text-center">
+                                                        <div className="flex justify-center gap-1">
+                                                            <Link href={`/compras/facturas/${f.idFacturaCompra}/editar?view=true`}>
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
-                                                                    onClick={() => handleEliminar(f.idFacturaCompra, f.nroComprobante)}
-                                                                    className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                                                    title="Eliminar Factura"
+                                                                    className="h-7 w-7 text-muted-foreground hover:text-primary transition"
+                                                                    title="Visualizar Detalle"
                                                                 >
-                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                    <Eye className="h-4 w-4" />
                                                                 </Button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        )
-                                    })
-                                )}
-                            </TableBody>
-                        </Table>
+                                                            </Link>
+
+                                                            {esCRUDPermitido && (
+                                                                <>
+                                                                    <Link href={`/compras/facturas/${f.idFacturaCompra}/editar`}>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-7 w-7 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                                                            title="Editar Factura"
+                                                                        >
+                                                                            <Pencil className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    </Link>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => handleEliminar(f.idFacturaCompra, f.nroComprobante)}
+                                                                        className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                                                        title="Eliminar Factura"
+                                                                    >
+                                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Bloque de Paginar Añadido */}
+                        {totalPaginas > 1 && (
+                            <div className="flex items-center justify-between border rounded-lg bg-card p-2 shadow-xs w-full">
+                                <div className="text-xs text-muted-foreground pl-1">
+                                    Página <span className="font-semibold text-foreground">{pagina}</span> de{" "}
+                                    <span className="font-semibold text-foreground">{totalPaginas}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2 text-xs gap-1 font-medium"
+                                        onClick={() => setPagina((p: number) => Math.max(p - 1, 1))}
+                                        disabled={pagina === 1}
+                                    >
+                                        <ChevronLeft className="h-3.5 w-3.5" />
+                                        Anterior
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2 text-xs gap-1 font-medium"
+                                        onClick={() => setPagina((p: number) => Math.min(p + 1, totalPaginas))}
+                                        disabled={pagina === totalPaginas}
+                                    >
+                                        Siguiente
+                                        <ChevronRight className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>
