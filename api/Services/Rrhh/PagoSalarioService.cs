@@ -1,4 +1,5 @@
 using api.Dtos.AsientosDetalles;
+using api.Dtos.Common;
 using api.Dtos.Contabilidad;
 using api.Dtos.Rrhh;
 using api.Models;
@@ -17,15 +18,32 @@ public class PagoSalarioService : IPagoSalarioService
         _asientoContableService = asientoContableService;
     }
 
-    public async Task<List<ProcesoPagoSalarioDto>> GetProcesosAsync()
+    public async Task<PagedResultDto<ProcesoPagoSalarioDto>> GetProcesosAsync(PaginationQueryDto pagination)
     {
-        var procesos = await BuildProcesoQuery()
+        var page = pagination.GetNormalizedPage();
+        var pageSize = pagination.GetNormalizedPageSize();
+        var query = BuildProcesoQuery()
             .AsNoTracking()
             .OrderByDescending(item => item.PeriodoAnho)
-            .ThenByDescending(item => item.PeriodoMes)
-            .ToListAsync();
+            .ThenByDescending(item => item.PeriodoMes);
 
-        return procesos.Select(ToProcesoDto).ToList();
+        var totalCount = await query.CountAsync();
+        var procesos = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedResultDto<ProcesoPagoSalarioDto>
+        {
+            Items = procesos.Select(ToProcesoDto).ToArray(),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = page > 1 && totalPages > 0,
+            HasNextPage = page < totalPages
+        };
     }
 
     public async Task<ProcesoPagoSalarioDto?> GetProcesoAsync(int id)

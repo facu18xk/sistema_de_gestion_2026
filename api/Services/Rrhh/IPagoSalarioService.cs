@@ -1,3 +1,4 @@
+using api.Dtos.Common;
 using api.Dtos.Rrhh;
 using api.Models;
 
@@ -5,7 +6,7 @@ namespace api.Services;
 
 public interface IPagoSalarioService
 {
-    Task<List<ProcesoPagoSalarioDto>> GetProcesosAsync();
+    Task<PagedResultDto<ProcesoPagoSalarioDto>> GetProcesosAsync(PaginationQueryDto pagination);
 
     Task<ProcesoPagoSalarioDto?> GetProcesoAsync(int id);
 

@@ -1,3 +1,4 @@
+using api.Dtos.Common;
 using api.Dtos.Rrhh;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,9 @@ public class ProcesosPagosSalariosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProcesoPagoSalarioDto>>> GetAll()
+    public async Task<ActionResult<PagedResultDto<ProcesoPagoSalarioDto>>> GetAll([FromQuery] PaginationQueryDto pagination)
     {
-        return Ok(await _pagoSalarioService.GetProcesosAsync());
+        return Ok(await _pagoSalarioService.GetProcesosAsync(pagination));
     }
 
     [HttpGet("{id:int}")]

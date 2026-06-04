@@ -1,4 +1,6 @@
 using System;
+using api.Models;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,31 +9,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace api.Migrations.DblosAmigos
 {
     /// <inheritdoc />
+    [DbContext(typeof(DblosAmigosContext))]
+    [Migration("20260604120000_AddRrhhSalarios")]
     public partial class AddRrhhSalarios : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Nombre",
-                table: "Parientes",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Apellido",
-                table: "Parientes",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "CI",
-                table: "Parientes",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.Sql("""
+                ALTER TABLE "Parientes" ADD COLUMN IF NOT EXISTS "Nombre" text NOT NULL DEFAULT '';
+                ALTER TABLE "Parientes" ADD COLUMN IF NOT EXISTS "Apellido" text NOT NULL DEFAULT '';
+                ALTER TABLE "Parientes" ADD COLUMN IF NOT EXISTS "CI" text NOT NULL DEFAULT '';
+                """);
 
             migrationBuilder.CreateTable(
                 name: "Cargos",
@@ -204,6 +193,7 @@ namespace api.Migrations.DblosAmigos
             migrationBuilder.InsertData(
                 table: "Conceptos_Salarios",
                 columns: new[] { "Id_Concepto_Salario", "Activo", "Codigo", "Deducible_IPS", "Descripcion", "Es_Bonificacion_Familiar", "Es_IPS", "Es_Salario_Base", "Tipo" },
+                columnTypes: new[] { "integer", "boolean", "character varying(50)", "boolean", "character varying(160)", "boolean", "boolean", "boolean", "character varying(20)" },
                 values: new object[,]
                 {
                     { 1, true, "SALARIO", true, "Salario", false, false, true, "Ingreso" },
