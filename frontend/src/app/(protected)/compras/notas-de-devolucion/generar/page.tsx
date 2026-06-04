@@ -12,7 +12,7 @@ import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { notasDevolucionesCompraAPI } from "@/services/notasDevolucionesCompraAPI"
 import { notify } from "@/lib/notifications"
 import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
-import { FacturaCompra, FacturaCompraDetalle } from "@/types/types"
+import { FacturaCompra, FacturaCompraDetalle, NotaDevolucionCompraSaveDTO } from "@/types/types"
 import { SearchableSelect } from "@/components/searchable-select"
 
 interface DetalleDevolucion {
@@ -46,7 +46,7 @@ export default function GenerarNotaDevolucionPage() {
         const res = await FacturasCompraAPI.getAll(1, 100)
         const items = res.items || res || []
         // Si hay una propiedad estado, filtramos por "aprobado", de lo contrario mostramos todas
-        const aprobadas = items.filter((f: any) => !f.estado || f.estado?.toLowerCase() === "aprobado")
+        const aprobadas = items.filter((f: FacturaCompra & { estado?: string }) => !f.estado || f.estado?.toLowerCase() === "aprobado")
         setFacturasDisponibles(aprobadas.length > 0 ? aprobadas : items)
       } catch (err) {
         console.error("Error al cargar facturas", err)
@@ -133,12 +133,12 @@ export default function GenerarNotaDevolucionPage() {
     setIsSubmitting(true)
     setIsSubmitting(true)
     try {
-      const payloadCabecera: any = {
+      const payloadCabecera = {
         idFacturaCompra: Number(formData.idFacturaCompra),
         idEstado: 1, // Asumiendo que 1 es "Borrador" o "Generado"
         fecha: formData.fecha, // Se envía "YYYY-MM-DD" sin Z para evitar el error de UTC en PostgreSQL
         motivo: formData.motivo,
-      }
+      } as unknown as NotaDevolucionCompraSaveDTO
 
       const cabeceraGuardada = await notasDevolucionesCompraAPI.create(payloadCabecera)
       
@@ -157,13 +157,10 @@ export default function GenerarNotaDevolucionPage() {
 
       notify.success("Éxito", "Nota de devolución registrada correctamente.")
       router.push("/compras/notas-de-devolucion")
-    } catch (error: any) {
-      console.error("Error completo:", error)
-      if (error.response) {
-        console.error("Status:", error.response.status)
-        console.error("Data del error:", error.response.data)
-      }
-      notify.error("Error", "Ocurrió un problema al guardar la nota de devolución.")
+    } catch (error: unknown) {
+      console.error("Error al registrar:", error)
+      const err = error as { response?: { data?: { message?: string } } };
+      notify.error("Error", err?.response?.data?.message || "Ocurrió un error al intentar generar la nota.")
     } finally {
       setIsSubmitting(false)
     }

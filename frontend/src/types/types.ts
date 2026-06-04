@@ -470,6 +470,20 @@ export interface NotaCreditoFormState {
     items: NotaCreditoItemForm[];
 }
 
+export interface ProductoNotaDevolucionDetalleDTO {
+    idProducto: number;
+    descripcion: string;
+}
+
+export interface NotasDevolucionesComprasDetalleDTO {
+    idNotaDevolucionCompraDetalle: number;
+    idNotaDevolucionCompra: number;
+    idProducto: number;
+    precioUnitario: number;
+    subtotal: number;
+    producto?: ProductoNotaDevolucionDetalleDTO | null;
+}
+
 export interface NotaDevolucionCompraDTO {
     idNotaDevolucionCompra: number;
     idFacturaCompra: number;  
@@ -478,7 +492,7 @@ export interface NotaDevolucionCompraDTO {
     fecha: string;
     motivo: string;
     estado: string;
-    detalles?: any[];
+    detalles?: NotasDevolucionesComprasDetalleDTO[];
 }
 
 export interface NotaDevolucionCompraSaveDTO {

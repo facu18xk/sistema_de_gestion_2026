@@ -8,6 +8,7 @@ import { FormContainer } from "@/components/FormContainer"
 import { FieldWrapper } from "@/components/FieldWrapper"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { notasDevolucionesCompraAPI } from "@/services/notasDevolucionesCompraAPI"
+import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
 import { notify } from "@/lib/notifications"
 import { Loader2 } from "lucide-react"
 
@@ -31,7 +32,7 @@ export default function EditarNotaDevolucionPage() {
   })
 
   // Estado de los Detalles (Productos a devolver)
-  const [detalles, setDetalles] = useState<any[]>([])
+  const [detalles, setDetalles] = useState<Record<string, unknown>[]>([])
 
   useEffect(() => {
     const cargarNota = async () => {
@@ -48,8 +49,28 @@ export default function EditarNotaDevolucionPage() {
           estado: data.estado || "",
         })
 
-        if (data.detalles) {
-          setDetalles(data.detalles)
+        if (data.detalles && data.detalles.length > 0) {
+          try {
+             const factura = await FacturasCompraAPI.getById(Number(data.idFacturaCompra));
+             const detallesMapeados = data.detalles.map((det: any) => {
+                const prodFactura = factura.detalles?.find(fd => fd.idProducto === det.idProducto);
+                return {
+                    ...det,
+                    cantidad: det.cantidad || (det.precioUnitario ? Math.round(det.subtotal / det.precioUnitario) : 0),
+                    producto: {
+                        descripcion: det.producto?.descripcion || prodFactura?.producto?.descripcion || "Producto " + det.idProducto
+                    }
+                }
+             });
+             setDetalles(detallesMapeados);
+          } catch (err) {
+             console.error("Error fetching FacturaCompra details to map description", err);
+             const fallbackDetalles = data.detalles.map((det: any) => ({
+                ...det,
+                cantidad: det.cantidad || (det.precioUnitario ? Math.round(det.subtotal / det.precioUnitario) : 0)
+             }));
+             setDetalles(fallbackDetalles);
+          }
         } else {
             setDetalles([])
         }
@@ -204,15 +225,15 @@ export default function EditarNotaDevolucionPage() {
                     <TableRow key={index}>
                       <TableCell>
                         <Input
-                          type="number"
-                          value={det.idProducto}
+                          type="text"
+                          value={((det as Record<string, unknown>).producto as Record<string, unknown>)?.descripcion as string || det.idProducto as string}
                           disabled
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
-                          value={det.cantidad}
+                          value={det.cantidad as number}
                           disabled
                         />
                       </TableCell>

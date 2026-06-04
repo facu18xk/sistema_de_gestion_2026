@@ -222,9 +222,10 @@ export default function NotasDevolucionPage() {
             await notasDevolucionesCompraAPI.updateEstado(n.idNotaDevolucionCompra, { estado: "Aprobado" })
             notify.success("Aprobada", `Nota ${formatearNumeroNota(n.idNotaDevolucionCompra)} aprobada correctamente.`)
             await cargarDatosPagina()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error al aprobar:", error)
-            notify.error("Error", error?.response?.data?.message || "Ocurrió un error al intentar aprobar la nota.")
+            const err = error as { response?: { data?: { message?: string } } };
+            notify.error("Error", err?.response?.data?.message || "Ocurrió un error al intentar aprobar la nota.")
         }
     }
 
@@ -234,9 +235,10 @@ export default function NotasDevolucionPage() {
             await notasDevolucionesCompraAPI.updateEstado(n.idNotaDevolucionCompra, { estado: "Anulado" })
             notify.success("Anulada", `Nota ${formatearNumeroNota(n.idNotaDevolucionCompra)} anulada correctamente.`)
             await cargarDatosPagina()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error al anular:", error)
-            notify.error("Error", error?.response?.data?.message || "Ocurrió un error al intentar anular la nota.")
+            const err = error as { response?: { data?: { message?: string } } };
+            notify.error("Error", err?.response?.data?.message || "Ocurrió un error al intentar anular la nota.")
         }
     }
 
