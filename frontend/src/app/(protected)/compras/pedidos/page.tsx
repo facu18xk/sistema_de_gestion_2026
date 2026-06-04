@@ -82,7 +82,10 @@ export default function PedidosPage() {
   const formatearNumeroPedido = (numero: number | string) => {
     return `PD-${String(numero).padStart(4, "0")}`
   }
-
+  const formatearFecha = (fechaISO: string) => {
+    const [year, month, day] = fechaISO.substring(0, 10).split("-");
+    return `${day}-${month}-${year}`;
+  };
   const handleFilterChange = (id: string, value: string) => {
     setFilters(prev => ({ ...prev, [id]: value }))
     setCurrentPage(1)
@@ -242,8 +245,9 @@ export default function PedidosPage() {
           caption="Lista de pedidos de compra."
           headerRow={
             <TableRow>
-              <TableHead>Nro Pedido</TableHead>
+
               <TableHead>Fecha</TableHead>
+              <TableHead>Nro Pedido</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -257,8 +261,8 @@ export default function PedidosPage() {
 
             return (
               <TableRow key={p.idPedidoCompra}>
+                <TableCell>{formatearFecha(p.fecha)}</TableCell>
                 <TableCell>{formatearNumeroPedido(p.idPedidoCompra)}</TableCell>
-                <TableCell>{p.fecha.substring(0, 10)}</TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getEstadoStyle(p.estado)}`}>
                     {p.estado}

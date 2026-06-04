@@ -14,6 +14,14 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
+const formatearGs = (valor: number) => {
+  return new Intl.NumberFormat('es-PY', {
+    style: 'currency',
+    currency: 'PYG',
+    maximumFractionDigits: 0
+  }).format(valor);
+};
+
 interface PedidoItemsTableProps {
   items: PedidoItem[];
   readOnly?: boolean;
@@ -49,6 +57,7 @@ export function PedidoItemsTable({
             <TableHead className="w-[120px]">Cantidad</TableHead>
             <TableHead>Descripción</TableHead>
             <TableHead>Categoría</TableHead>
+            <TableHead className="text-right">Precio</TableHead>
             {!readOnly && <TableHead className="w-[80px] text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
@@ -93,7 +102,9 @@ export function PedidoItemsTable({
                   <TableCell className="py-3 px-4 text-sm">
                     {item.categoria}
                   </TableCell>
-
+                  <TableCell className="py-3 px-4 text-sm text-right">
+                    {formatearGs(item.precio || 0)}
+                  </TableCell>
                   {!readOnly && (
                     <TableCell className="text-right">
                       <Button

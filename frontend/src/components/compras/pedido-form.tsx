@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { FormContainer } from "@/components/FormContainer"
 import { FieldWrapper } from "@/components/FieldWrapper"
 import { PedidoItemsTable } from "@/components/compras/pedido-item-table"
+import { useMemo } from "react"
 import {
   AgregarProductosModal,
   ProductoSeleccionable,
@@ -20,6 +21,7 @@ export interface PedidoItem {
   idProducto: number;
   idCategoria: number;
   cantidad: number;
+  precio?: number;
   descripcion: string;
   categoria: string;
   esNuevo?: boolean;
@@ -63,6 +65,13 @@ export function PedidoForm({
 
   // Si está en modo lectura (parámetro en URL), bloqueamos la edición por completo
   const esEditable = readOnly ? false : formData.estado === "Pendiente"
+  const formatearGs = (valor: number) => {
+    return new Intl.NumberFormat('es-PY', {
+      style: 'currency',
+      currency: 'PYG',
+      maximumFractionDigits: 0
+    }).format(valor);
+  };
 
   useEffect(() => {
     if (pedidoEditado) {
@@ -74,7 +83,9 @@ export function PedidoForm({
     try {
       const res = await productosAPI.getAll(currentPage, itemsPerPage)
 
-      const mapeados: ProductoSeleccionable[] = res.items.map((p) => ({
+      const productosFiltrados = res.items.filter((p) => !p.esServicio)
+
+      const mapeados: ProductoSeleccionable[] = productosFiltrados.map((p) => ({
         id: p.idProducto,
         idCategoria: p.idCategoria,
         descripcion: p.descripcion,
@@ -85,6 +96,7 @@ export function PedidoForm({
       }))
 
       setProductos(mapeados)
+
       setTotalPages(res.totalPages)
     } catch (error) {
       console.error("Error al cargar productos:", error)
@@ -116,6 +128,10 @@ export function PedidoForm({
     }))
   }
 
+  const totalEstimado = useMemo(() => {
+    return formData.items.reduce((acc, item) => acc + (item.precio ? item.precio * item.cantidad : 0), 0);
+  }, [formData.items]);
+
   const handleAgregarProductos = (
     productosSeleccionados: ProductoSeleccionadoParaPedido[],
   ) => {
@@ -128,6 +144,7 @@ export function PedidoForm({
           idProducto: nuevo.id,
           idCategoria: nuevo.idCategoria,
           cantidad: nuevo.cantidad,
+          precio: nuevo.precio,
           descripcion: nuevo.descripcion,
           categoria: nuevo.categoria,
           esNuevo: !itemAnterior,
@@ -185,6 +202,9 @@ export function PedidoForm({
       {/* MODIFICACIÓN: Título y Botón alineados en la misma fila para ahorrar espacio vertical */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-muted-foreground">Productos del Pedido</span>
+        <span className="text-xs font-bold bg-muted px-2 py-0.5 rounded text-primary">
+          Total Estimado: {formatearGs(totalEstimado)}
+        </span>
         {esEditable && (
           <Button
             type="button"

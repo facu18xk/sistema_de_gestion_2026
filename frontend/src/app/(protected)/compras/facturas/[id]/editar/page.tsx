@@ -21,9 +21,9 @@ export interface ItemFacturaForm {
     descripcion: string
     cantidadPedida: number
     cantidadFacturadaPrevia: number
-    cantidadRestante: number // Remanente máximo permitido (incluyendo lo de esta factura)
+    cantidadRestante: number
     descuentoUnitarioBase: number
-    cantidadRecibidaAhora: number // Cantidad asignada en este comprobante
+    cantidadRecibidaAhora: number
     precioUnitario: number
     descuento: number
     totalBruto: number
@@ -381,7 +381,7 @@ function FacturaDetalleContent() {
 
     const handleIrAPagar = () => {
         if (!factura) return
-        router.push(`/compras/ordenes-pago/nuevo?idProveedor=${factura.idProveedor}&idFactura=${factura.idFacturaCompra || id}`)
+        router.push(`/compras/pagos/pagar`)
     }
 
     // Para el modal, queremos mostrar cualquier producto de la OC que tenga saldo libre para usar

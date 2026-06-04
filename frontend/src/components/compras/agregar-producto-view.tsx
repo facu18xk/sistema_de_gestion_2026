@@ -307,7 +307,7 @@ export function AgregarProductosModal({
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground py-1 truncate">{p.marca || "—"}</TableCell>
                             <TableCell className="text-xs py-1 truncate">{p.categoria}</TableCell>
-                            <TableCell className="font-semibold text-xs py-1">${p.precio}</TableCell>
+                            <TableCell className="font-semibold text-xs py-1">{new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG', maximumFractionDigits: 0 }).format(p.precio)}</TableCell>
                             <TableCell className="text-center py-1">
                               <Button
                                 type="button"
