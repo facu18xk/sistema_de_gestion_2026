@@ -122,7 +122,7 @@ public class NotasDevolucionesCompraService : CrudServiceBase<NotasDevolucionesC
                     IdNotaDevolucionCompra = nota.IdNotaDevolucionCompra,
                     Timbrado = nota.IdFacturaCompraNavigation?.Timbrado ?? "00000000",
                     Motivo = nota.Motivo,
-                    FechaEmision = DateTime.UtcNow,
+                    FechaEmision = DateTime.Now,
                     Total = montoTotal,
                     NotasCreditosComprasDetalles = nota.NotasDevolucionesComprasDetalles?.Select(d => new NotasCreditosComprasDetalle
                     {
