@@ -421,7 +421,7 @@ export default function CargarOrdenPagoPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
                         {/* IZQUIERDA: Facturas Involucradas */}
-                        <div className="border rounded-lg bg-card overflow-hidden">
+                        <div className="border rounded-lg sm-card overflow-hidden">
                             <div className="bg-muted/50 p-3 border-b flex justify-between items-center">
                                 <span className="text-xs font-bold uppercase tracking-wide">
                                     {isReadOnly ? "Documentos Liquidados" : "1. Facturas Pendientes"}
@@ -579,7 +579,7 @@ export default function CargarOrdenPagoPage() {
                             size="sm"
                             onClick={handleGuardarOrdenPago}
                             disabled={isProcesando || isLoadingData || (!isEditMode && (totalFacturasSeleccionadas !== totalMediosPago || totalFacturasSeleccionadas === 0))}
-                            className={cn("gap-1.5", isEditMode && "bg-amber-600 hover:bg-amber-700 text-white")}
+                            className={cn("gap-1.5", !isEditMode && "bg-amber-600 hover:bg-amber-700 text-white")}
                         >
                             {isProcesando ? (
                                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Procesando...</>

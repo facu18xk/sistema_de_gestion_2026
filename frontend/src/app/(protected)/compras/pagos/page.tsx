@@ -269,7 +269,7 @@ export default function OrdenesPagosPage() {
                     />
                     {tieneFiltrosActivos && (
                         <Button
-                            variant="ghost"
+
                             size="sm"
                             onClick={handleLimpiarFiltros}
                             className="absolute right-3 -top-3.5 h-6 text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1 bg-background border px-2 rounded-full shadow-xs z-10"
