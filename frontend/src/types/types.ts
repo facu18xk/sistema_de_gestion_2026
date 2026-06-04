@@ -906,7 +906,6 @@ export interface CotizacionDetalleDTO {
 }
 
 export interface CotizacionDetalleSaveDTO {
-<<<<<<< HEAD
     idPedidoCotizacion: number
     idProducto: number
     idCategoria: number
@@ -914,28 +913,6 @@ export interface CotizacionDetalleSaveDTO {
     cantidad: number
     precioProducto: number
     descuento: number
-=======
-    idPedidoCotizacion: number;
-    idProducto: number;
-    idCategoria: number;
-    descripcion: string;
-    cantidad: number;
-    precioProducto: number;
-    descuento: number;
-}
-
-/**
- * ESTADO PARA EL FORMULARIO (Mantiene la UI del Frontend intacta)
- */
-export interface CotizacionFormState {
-    solicitudCotizacionId: string;
-    proveedorId: string;
-    fecha: string;
-    validaHasta: string;
-    idEstado: number;
-    numeroPedido: number;
-    items: CotizacionItemForm[];
->>>>>>> origin/ordenesC
 }
 
 export interface CotizacionItemForm {
@@ -965,7 +942,6 @@ export interface OrdenCompraDetalleDTO {
     descripcion?: string;
     cantidad: number;
 }
-<<<<<<< HEAD
 
 export interface OrdenCompraDetalleSaveDTO {
     idOrdenCompraDetalle: number;
@@ -984,33 +960,6 @@ export interface OrdenCompraDTO {
     estado: string;
     proveedor?: string;
     detalles?: OrdenCompraDetalleDTO[];
-=======
-export interface FacturaCompra {
-    idFacturaCompra: number
-    idOrdenCompra: number
-    ordenCompraDescripcion: string
-    idProveedor: number
-    proveedor: string
-    nroComprobante: string
-    timbrado: string
-    fecha: string
-    descripcion: string
-    idEstado: number
-    estado: string // "Pendiente" | "Pagado" | "Anulado"
-    detalles: FacturaCompraDetalle[]
-}
-
-// Swagger Actualizado: POST todo junto (Cabecera + Detalles + Estado)
-export interface FacturaCompraSaveDTO {
-    idOrdenCompra: number
-    idProveedor: number
-    nroComprobante: string
-    timbrado: string
-    fecha: string
-    descripcion: string
-    idEstado: number
-    detalles: FacturaCompraDetalleBulkDTO[]
->>>>>>> origin/ordenesC
 }
 
 export interface OrdenCompraSaveDTO {
@@ -1045,12 +994,12 @@ export interface FacturaCompra {
     nroComprobante: string;
     timbrado: string;
     fecha: string;
+    descripcion?: string;
     estado: string;
     nombreEstado?: string;
     detalles?: FacturaCompraDetalle[];
 }
 
-<<<<<<< HEAD
 export interface FacturaCompraDetalleSaveDTO {
     idFacturaCompra?: number;
     idProducto: number;
@@ -1069,6 +1018,7 @@ export interface FacturaCompraSaveDTO {
     fecha: string;
     descripcion?: string;
     estado?: string;
+    idEstado?: number;
     detalles?: FacturaCompraDetalleSaveDTO[];
 }
 
@@ -1085,17 +1035,9 @@ export interface OrdenPagoCompraDetalle {
     monto: number;
     montoPagado?: number;
     subtotal?: number;
-=======
-// DTO para el envío masivo dentro del SaveDTO (sin ID de factura madre)
-export interface FacturaCompraDetalleBulkDTO {
-    idProducto: number
-    cantidad: number
-    precioUnitario: number
-    totalBruto: number
-    totalIva: number
-    totalNeto: number
->>>>>>> origin/ordenesC
 }
+
+export interface FacturaCompraDetalleBulkDTO extends FacturaCompraDetalleSaveDTO {}
 
 export interface OrdenPagoCompra {
     idOrdenPagoCompra: number;

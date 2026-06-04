@@ -20,7 +20,6 @@ export const ordenesPagosAPI = {
         return response.data;
     },
     update: async (id: number, payload: OrdenPagoCompraSaveDTO) => {
-<<<<<<< HEAD
         const response = await api.put(`${API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA}/${id}`, payload);
         return response.data;
     },
@@ -28,12 +27,3 @@ export const ordenesPagosAPI = {
         await api.delete(`${API_CONFIG.ENDPOINTS.ORDENES_PAGO_COMPRA}/${id}`);
     },
 };
-=======
-        const response = await api.put(`/OrdenesPagosCompras/${id}`, payload);
-        return response.data;
-    },
-    delete: async (id: number) => {
-        await api.delete(`/OrdenesPagosCompras/${id}`);
-    },
-};
->>>>>>> origin/ordenesC

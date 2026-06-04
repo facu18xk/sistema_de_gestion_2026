@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { Suspense, useState, useEffect, useMemo } from "react"
 import { Pencil, Trash2, Loader2, Eye, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +26,7 @@ import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { OrdenCompraDTO, Proveedor } from "@/types/types"
 import { notify } from "@/lib/notifications"
 
-export default function OrdenesPage() {
+function OrdenesPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -425,5 +425,13 @@ export default function OrdenesPage() {
                 </DataTable>
             )}
         </>
+    )
+}
+
+export default function OrdenesPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center p-6"><Loader2 className="animate-spin text-primary" /></div>}>
+            <OrdenesPageContent />
+        </Suspense>
     )
 }

@@ -9,7 +9,7 @@ import { Loader2, Save, ArrowLeft, Trash2, Receipt, ChevronLeft, ChevronRight, L
 import { ordenesCompraAPI } from "@/services/ordenesCompraAPI"
 import { ordenesCompraDetallesAPI } from "@/services/ordenesCompraDetallesAPI"
 import { FacturasCompraAPI } from "@/services/facturasCompraAPI"
-import { notasCreditosCompraAPI } from "@/services/notasCreditosCompraApi"
+import { notasCreditosCompraAPI } from "@/services/notasCreditosCompraAPI"
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI"
 import { notify } from "@/lib/notifications"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
