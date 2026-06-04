@@ -115,6 +115,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:3003",
                 "http://localhost:5066",
                 "https://localhost:7299",
+                "https://sistema-de-gestion-2026.vercel.app"
                 "https://facu18xk.github.io")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
