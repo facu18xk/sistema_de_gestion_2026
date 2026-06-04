@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Pencil, Trash2, Loader2, Eye, X } from "lucide-react"
+import { Pencil, Trash2, Loader2, Eye, X, CheckCircle, Ban } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     AlertDialog,
@@ -215,6 +215,31 @@ export default function NotasDevolucionPage() {
         }
     }
 
+    const handleAprobar = async (n: NotaDevolucionCompraDTO) => {
+        try {
+            // Se llamará a un endpoint que actualizará el estado, el stock y la cuenta
+            // Por ahora, solo actualiza el estado a Aprobado si tu backend soporta /estado
+            await notasDevolucionesCompraAPI.updateEstado(n.idNotaDevolucionCompra, { estado: "Aprobado" })
+            notify.success("Aprobada", `Nota ${formatearNumeroNota(n.idNotaDevolucionCompra)} aprobada correctamente.`)
+            await cargarDatosPagina()
+        } catch (error: any) {
+            console.error("Error al aprobar:", error)
+            notify.error("Error", error?.response?.data?.message || "Ocurrió un error al intentar aprobar la nota.")
+        }
+    }
+
+    const handleAnular = async (n: NotaDevolucionCompraDTO) => {
+        if (!confirm(`¿Está seguro de que desea anular la nota ${formatearNumeroNota(n.idNotaDevolucionCompra)}?`)) return;
+        try {
+            await notasDevolucionesCompraAPI.updateEstado(n.idNotaDevolucionCompra, { estado: "Anulado" })
+            notify.success("Anulada", `Nota ${formatearNumeroNota(n.idNotaDevolucionCompra)} anulada correctamente.`)
+            await cargarDatosPagina()
+        } catch (error: any) {
+            console.error("Error al anular:", error)
+            notify.error("Error", error?.response?.data?.message || "Ocurrió un error al intentar anular la nota.")
+        }
+    }
+
     const tieneFiltrosActivos = Object.values(filters).some((val) => val !== "");
 
     return (
@@ -308,8 +333,14 @@ export default function NotasDevolucionPage() {
                                     </Button>
                                     {esModificable && (
                                         <>
+                                            <Button variant="ghost" size="icon" onClick={() => handleAprobar(n)} className="cursor-pointer" title="Aprobar">
+                                                <CheckCircle className="size-3.5 text-emerald-600 hover:text-emerald-700 transition-colors" />
+                                            </Button>
                                             <Button variant="ghost" size="icon" onClick={() => handleEditar(n)} className="cursor-pointer" title="Editar">
                                                 <Pencil className="size-3.5 text-muted-foreground hover:text-primary" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleAnular(n)} className="cursor-pointer" title="Anular">
+                                                <Ban className="size-3.5 text-rose-500 hover:text-rose-700 transition-colors" />
                                             </Button>
                                             <Button
                                                 variant="ghost"
