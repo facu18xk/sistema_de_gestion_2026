@@ -50,7 +50,7 @@ const modulos = [
     ],
   },
   { title: "Stock", items: ["Productos", "Servicios", "Depósitos", "Movimientos"] },
-  { title: "RRHH", items: ["Empleados", "Parientes", "Nómina", "Asistencia"] },
+  { title: "RRHH", items: ["Empleados", "Parientes"] },
   {
     title: "Contabilidad",
     items: [

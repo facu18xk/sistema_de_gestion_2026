@@ -156,10 +156,9 @@ export default function ParientesPage() {
       <PageBreadcrumb
         steps={[
           {
-            label: "Personas",
-            href: "#",
+            label: "RRHH",
+            href: "/personas/empleados",
           },
-
           {
             label: "Parientes",
           },
