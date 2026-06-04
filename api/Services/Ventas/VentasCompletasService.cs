@@ -236,7 +236,7 @@ public class VentasCompletasService
         {
             IdPresupuesto = dto.IdPresupuesto,
             IdCliente = dto.IdCliente,
-            NroComprobante = dto.NroComprobante ?? string.Empty,
+            NroComprobante = string.Empty,
             IdEstado = idEstado,
             Fecha = dto.Fecha,
             Descripcion = dto.Descripcion,

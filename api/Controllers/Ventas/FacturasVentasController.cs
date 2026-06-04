@@ -19,6 +19,39 @@ public class FacturasVentasController : CrudControllerBase<FacturasVenta, Factur
         _ventasCompletasService = ventasCompletasService;
     }
 
+    [HttpPost]
+    public async Task<ActionResult<FacturasVentaDto>> Create(FacturasVentaCreateDto dto)
+    {
+        FacturasVenta createdEntity;
+        try
+        {
+            createdEntity = await CrudService.CreateAsync(ToEntity(new FacturasVentaUpsertDto
+            {
+                IdPresupuesto = dto.IdPresupuesto,
+                IdCliente = dto.IdCliente,
+                IdEstado = dto.IdEstado,
+                Fecha = dto.Fecha,
+                Descripcion = dto.Descripcion,
+                IdMedioPagoCompra = dto.IdMedioPagoCompra,
+                FechaPago = dto.FechaPago
+            }));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        var responseEntity = await RefreshCreatedEntityAsync(createdEntity);
+
+        return CreatedAtAction(nameof(GetById), new { id = responseEntity.IdFacturaVenta }, ToReadDto(responseEntity));
+    }
+
+    [NonAction]
+    public override Task<ActionResult<FacturasVentaDto>> Create(FacturasVentaUpsertDto dto)
+    {
+        return base.Create(dto);
+    }
+
     [HttpPost("completo")]
     public async Task<ActionResult<FacturasVentaDto>> CreateCompleto(FacturaVentaCompletaCreateDto dto)
     {

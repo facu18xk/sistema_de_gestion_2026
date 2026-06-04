@@ -10,8 +10,11 @@ BalanceSumasYSaldosCuadra(data);
 BalanceGeneralAcumulaYCuadraConResultado(data);
 BalanceResultadosCalculaResultadoNeto(data);
 CuentasNoAsentablesNoLleganAlCalculo(data);
+IpsCalculaSobreIngresosDeducibles();
+BonificacionFamiliarCalculaPorHijosMenores();
+HijoMayorNoAplicaBonificacion();
 
-Console.WriteLine("Contabilidad reportes tests passed.");
+Console.WriteLine("Contabilidad and RRHH tests passed.");
 
 static void LibroDiarioSimpleBalanceado(ContabilidadReporteBaseData data)
 {
@@ -72,6 +75,39 @@ static void BalanceResultadosCalculaResultadoNeto(ContabilidadReporteBaseData da
 static void CuentasNoAsentablesNoLleganAlCalculo(ContabilidadReporteBaseData data)
 {
     AssertFalse(data.Cuentas.Any(item => !item.EsAsentable), "La base del reporte debe excluir cuentas no asentables.");
+}
+
+static void IpsCalculaSobreIngresosDeducibles()
+{
+    var detalles = new List<PagoSalarioDetalle>
+    {
+        new() { Tipo = SalarioRules.TipoIngreso, Monto = 3_000_000m, DeducibleIps = true },
+        new() { Tipo = SalarioRules.TipoIngreso, Monto = 250_000m, DeducibleIps = false },
+        new() { Tipo = SalarioRules.TipoEgreso, Monto = 50_000m, DeducibleIps = false }
+    };
+
+    var ips = SalarioRules.CalcularIps(detalles, 9m);
+
+    AssertEqual(270_000m, ips, "IPS debe calcular 9% solo sobre ingresos deducibles.");
+}
+
+static void BonificacionFamiliarCalculaPorHijosMenores()
+{
+    var bonificacion = SalarioRules.CalcularBonificacionFamiliar(2, 2_798_309m, 5m);
+
+    AssertEqual(279_830.90m, bonificacion, "Bonificacion familiar debe ser 5% del salario minimo por hijo menor.");
+}
+
+static void HijoMayorNoAplicaBonificacion()
+{
+    var fechaCorte = new DateOnly(2026, 6, 30);
+    var menor = new Pariente { TipoRelacion = "H", FechaNacimiento = new DateOnly(2010, 7, 1) };
+    var mayor = new Pariente { TipoRelacion = "H", FechaNacimiento = new DateOnly(2008, 6, 30) };
+    var otroPariente = new Pariente { TipoRelacion = "C", FechaNacimiento = new DateOnly(2020, 1, 1) };
+
+    AssertTrue(SalarioRules.EsHijoMenor(menor, fechaCorte), "Hijo menor de 18 debe aplicar.");
+    AssertFalse(SalarioRules.EsHijoMenor(mayor, fechaCorte), "Hijo de 18 o mas no debe aplicar.");
+    AssertFalse(SalarioRules.EsHijoMenor(otroPariente, fechaCorte), "Pariente que no es hijo no debe aplicar.");
 }
 
 static ContabilidadReporteBaseData BuildData()
