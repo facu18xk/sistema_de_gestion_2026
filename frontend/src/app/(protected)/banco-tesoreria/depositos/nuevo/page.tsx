@@ -25,12 +25,13 @@ import {
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { CuentaBancariaSelector } from "@/components/banco-tesoreria/cuenta-bancaria-selector";
 import { BancoSelector } from "@/components/banco-tesoreria/banco-selector";
-import { ClienteSelector } from "@/components/ventas/ClienteSelector";
+//import { ClienteSelector } from "@/components/ventas/ClienteSelector";
 import { depositosBancariosAPI } from "@/services/depositosBancariosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { tiposDepositosBancariosAPI } from "@/services/tiposDepositosBancariosAPI";
+import { detallesDepositosBancariosAPI } from "@/services/detallesDepositosBancariosAPI";
 import { bancosAPI } from "@/services/bancosAPI";
-import { clientesAPI } from "@/services/clientesAPI";
+//import { clientesAPI } from "@/services/clientesAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { modoTipoDeposito, nombreCliente } from "@/lib/deposito-tipo";
 import { notify } from "@/lib/notifications";
@@ -48,12 +49,11 @@ import type {
 
 type LineaTerceroUI = ChequeTerceroLineSave & {
   idBanco?: number;
-  idCliente?: number;
+  //idCliente?: number;
 };
 
-type LineaMismoBancoUI = ChequeMismoBancoLineSave & {
-  idCliente?: number;
-};
+type LineaMismoBancoUI = ChequeMismoBancoLineSave;
+//idCliente?: number;
 
 const lineaTerceroVacia = (): LineaTerceroUI => ({
   bancoEmisor: "",
@@ -75,7 +75,7 @@ export default function NuevoDepositoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [bancos, setBancos] = useState<Banco[]>([]);
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  // const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tiposDeposito, setTiposDeposito] = useState<TipoDepositoBancario[]>(
     [],
   );
@@ -87,7 +87,7 @@ export default function NuevoDepositoPage() {
   const [chequesMismoBanco, setChequesMismoBanco] = useState<
     LineaMismoBancoUI[]
   >([]);
-  const [efectivoCliente, setEfectivoCliente] = useState<Cliente | null>(null);
+  //const [efectivoCliente, setEfectivoCliente] = useState<Cliente | null>(null);
   const [efectivoMonto, setEfectivoMonto] = useState(0);
 
   const tipoSel = tiposDeposito.find(
@@ -100,16 +100,16 @@ export default function NuevoDepositoPage() {
       cuentasBancariasAPI.getAll(1, 200),
       tiposDepositosBancariosAPI.getAll(1, 50),
       bancosAPI.getAll(1, 200),
-      clientesAPI.getAll(1, 300),
+      //clientesAPI.getAll(1, 300),
     ])
-      .then(([resCuentas, resTipos, resBancos, resClientes]) => {
+      .then(([resCuentas, resTipos, resBancos /*, resClientes*/]) => {
         setCuentas(resCuentas.items);
         setTiposDeposito(resTipos.items);
         setBancos(resBancos.items);
-        const ordenados = [...resClientes.items].sort((a, b) =>
+        /*const ordenados = [...resClientes.items].sort((a, b) =>
           a.nombres.localeCompare(b.nombres, "es-PY"),
-        );
-        setClientes(ordenados);
+        );*/
+        //setClientes(ordenados);
         if (resTipos.items.length > 0) {
           setIdTipoDeposito(String(resTipos.items[0].idTipoDepositoBancario));
         }
@@ -123,7 +123,7 @@ export default function NuevoDepositoPage() {
     setIdTipoDeposito(value);
     setChequesTercero([]);
     setChequesMismoBanco([]);
-    setEfectivoCliente(null);
+    //setEfectivoCliente(null);
     setEfectivoMonto(0);
   };
 
@@ -148,7 +148,7 @@ export default function NuevoDepositoPage() {
     }
 
     if (modo === "efectivo") {
-      if (!efectivoCliente || efectivoMonto <= 0) {
+      if (/*!efectivoCliente ||*/ efectivoMonto <= 0) {
         notify.error(
           "Datos incompletos",
           "Seleccione el cliente e ingrese el monto en efectivo.",
@@ -157,7 +157,12 @@ export default function NuevoDepositoPage() {
       }
     } else if (modo === "tercero") {
       const validos = chequesTercero.filter(
-        (c) => c.monto > 0 && c.idBanco && c.idCliente && c.numeroCheque.trim(),
+        (c) =>
+          c.monto > 0 &&
+          c.idBanco &&
+          /*c.idCliente && */
+          c.numeroCheque.trim() &&
+          c.librador.trim(),
       );
       if (validos.length === 0) {
         notify.error(
@@ -168,7 +173,11 @@ export default function NuevoDepositoPage() {
       }
     } else if (modo === "mismo_banco") {
       const validos = chequesMismoBanco.filter(
-        (c) => c.monto > 0 && c.idCliente && c.numeroCheque.trim(),
+        (c) =>
+          c.monto > 0 &&
+          /*c.idCliente && */
+          c.numeroCheque.trim() &&
+          c.librador.trim(),
       );
       if (validos.length === 0) {
         notify.error(
@@ -193,11 +202,10 @@ export default function NuevoDepositoPage() {
       return;
     }
 
-    const conceptoFinal =
-      concepto.trim() ||
-      (modo === "efectivo" && efectivoCliente
+    const conceptoFinal = concepto.trim() || "Depósito bancario";
+    /*(modo === "efectivo" && efectivoCliente
         ? `Depósito en efectivo — ${nombreCliente(efectivoCliente.nombres, efectivoCliente.apellidos)}`
-        : "Depósito bancario");
+        : "Depósito bancario");*/
 
     setIsSubmitting(true);
     try {
@@ -212,6 +220,12 @@ export default function NuevoDepositoPage() {
       // 2. OBTENER ID REAL GENERADO
       const idDeposito = deposito.idDepositoBancario;
 
+      await detallesDepositosBancariosAPI.create({
+        idDepositoBancario: idDeposito,
+        monto: efectivoMonto,
+        descripcion: "Depósito en efectivo",
+      });
+
       // 3. CHEQUES DE TERCEROS
       if (modo === "tercero") {
         const chequesValidos = chequesTercero.filter(
@@ -219,6 +233,11 @@ export default function NuevoDepositoPage() {
         );
 
         for (const cheque of chequesValidos) {
+          await detallesDepositosBancariosAPI.create({
+            idDepositoBancario: idDeposito,
+            monto: cheque.monto,
+            descripcion: `Cheque tercero N° ${cheque.numeroCheque}`,
+          });
           await chequesTercerosAPI.create({
             idDepositoBancario: idDeposito,
             bancoEmisor: cheque.bancoEmisor,
@@ -238,6 +257,11 @@ export default function NuevoDepositoPage() {
         );
 
         for (const cheque of chequesValidos) {
+          await detallesDepositosBancariosAPI.create({
+            idDepositoBancario: idDeposito,
+            monto: cheque.monto,
+            descripcion: `Cheque mismo banco N° ${cheque.numeroCheque}`,
+          });
           await chequesMismoBancoAPI.create({
             idDepositoBancario: idDeposito,
             numeroCheque: cheque.numeroCheque,
@@ -369,19 +393,19 @@ export default function NuevoDepositoPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/2">Cliente / librador</TableHead>
+                {/*<TableHead className="w-1/2">Cliente / librador</TableHead>*/}
                 <TableHead className="w-1/2 text-right">Monto (₲)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
-                <TableCell>
+                {/*<TableCell>
                   <ClienteSelector
                     clientesIniciales={clientes}
                     selectedClienteId={efectivoCliente?.idCliente}
                     onSelect={setEfectivoCliente}
                   />
-                </TableCell>
+                </TableCell>*/}
                 <TableCell>
                   <Input
                     id="efectivoMonto"
@@ -476,7 +500,19 @@ export default function NuevoDepositoPage() {
                       </TableCell>
                       <TableCell>
                         <div className={selectorCompacto}>
-                          <ClienteSelector
+                          <Input
+                            value={linea.librador}
+                            onChange={(e) => {
+                              const next = [...chequesTercero];
+                              next[idx] = {
+                                ...linea,
+                                librador: e.target.value,
+                              };
+                              setChequesTercero(next);
+                            }}
+                            className="h-8"
+                          />
+                          {/*<ClienteSelector
                             clientesIniciales={clientes}
                             selectedClienteId={linea.idCliente}
                             onSelect={(cliente) => {
@@ -493,7 +529,7 @@ export default function NuevoDepositoPage() {
                               };
                               setChequesTercero(next);
                             }}
-                          />
+                          />*/}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -611,7 +647,19 @@ export default function NuevoDepositoPage() {
                       </TableCell>
                       <TableCell>
                         <div className={selectorCompacto}>
-                          <ClienteSelector
+                          <Input
+                            value={linea.librador}
+                            onChange={(e) => {
+                              const next = [...chequesMismoBanco];
+                              next[idx] = {
+                                ...linea,
+                                librador: e.target.value,
+                              };
+                              setChequesMismoBanco(next);
+                            }}
+                            className="h-8"
+                          />
+                          {/*<ClienteSelector
                             clientesIniciales={clientes}
                             selectedClienteId={linea.idCliente}
                             onSelect={(cliente) => {
@@ -628,7 +676,7 @@ export default function NuevoDepositoPage() {
                               };
                               setChequesMismoBanco(next);
                             }}
-                          />
+                          />*/}
                         </div>
                       </TableCell>
                       <TableCell>

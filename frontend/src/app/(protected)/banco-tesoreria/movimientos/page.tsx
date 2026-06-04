@@ -44,6 +44,7 @@ import type {
   MovimientoBancarioSaveDTO,
   TipoMovimientoBancario,
 } from "@/types/types";
+import { Badge } from "@/components/ui/badge";
 
 const defaultRango = rangoFechaPorDefecto();
 
@@ -316,7 +317,18 @@ export default function MovimientosBancariosPage() {
                 <TableCell className="text-right font-medium">
                   {formatMoney(m.monto, monedaPorCuenta(m.idCuentaBancaria))}
                 </TableCell>
-                <TableCell>{m.estado}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      m.estado === "Aprobado"
+                        ? "activo"
+                        : m.estado === "Rechazado"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {m.estado}
+                  </Badge></TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
                     variant="ghost"

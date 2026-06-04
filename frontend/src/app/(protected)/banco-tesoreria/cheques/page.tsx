@@ -24,6 +24,7 @@ import { formatDate } from "@/lib/format-date";
 import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
 import { notify } from "@/lib/notifications";
 import type { ChequeEmitido, CuentaBancaria } from "@/types/types";
+import { Badge } from "@/components/ui/badge";
 
 const defaultRango = rangoFechaPorDefecto();
 
@@ -152,7 +153,6 @@ export default function ChequesPage() {
               <TableHead>Cuenta</TableHead>
               <TableHead>Beneficiario</TableHead>
               <TableHead>Emisión</TableHead>
-              <TableHead>Pago</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Estado</TableHead>
             </TableRow>
@@ -179,13 +179,21 @@ export default function ChequesPage() {
                 </TableCell>
                 <TableCell>{c.beneficiario}</TableCell>
                 <TableCell>{formatDate(c.fechaEmision)}</TableCell>
-                <TableCell>
-                  {c.fechaPago ? formatDate(c.fechaPago) : "—"}
-                </TableCell>
                 <TableCell className="text-right font-medium">
                   {formatMoney(c.monto, monedaPorCuenta(c.idCuentaBancaria))}
                 </TableCell>
-                <TableCell>{c.estado}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      c.estado === "Emitido"
+                        ? "activo"
+                        : c.estado === "Rechazado"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {c.estado}
+                  </Badge></TableCell>
               </TableRow>
             ))
           )}

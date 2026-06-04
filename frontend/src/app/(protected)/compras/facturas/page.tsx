@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
@@ -24,7 +24,7 @@ export const formatOrdenNro = (id: number | string) => {
     return `OC-${String(id).padStart(4, "0")}`
 }
 
-export default function FacturasPage() {
+function FacturasPageContent() {
     const searchParams = useSearchParams()
 
     const [facturas, setFacturas] = useState<FacturaCompra[]>([])
@@ -428,5 +428,13 @@ export default function FacturasPage() {
                 )}
             </main>
         </div>
+    )
+}
+
+export default function FacturasPage() {
+    return (
+        <Suspense fallback={null}>
+            <FacturasPageContent />
+        </Suspense>
     )
 }

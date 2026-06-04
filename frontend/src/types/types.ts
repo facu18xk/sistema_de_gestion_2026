@@ -458,6 +458,15 @@ export interface PedidoDetalleSaveDTO {
     cantidad: number;
 }
 
+export type EstadoProcesoContable =
+    | "Habilitado"
+    | "Abierto"
+    | "Activo"
+    | "Activa"
+    | "Registrado"
+    | "Registrada"
+    | string
+
 export interface ProcesoContableDTO {
     idProcesoContable: number
     periodoAnho: number
@@ -465,7 +474,7 @@ export interface ProcesoContableDTO {
     cantNiveles: number
     cantDigitosNivel: number
     moneda: string
-    estado: string
+    estado: EstadoProcesoContable
 
     tienePeriodos?: boolean;
 }
@@ -692,6 +701,189 @@ export interface CotizacionItemForm {
     descuento: number;
 }
 
+export interface CotizacionFormState {
+    solicitudCotizacionId: string;
+    proveedorId: string;
+    fecha: string;
+    validaHasta: string;
+    idEstado: number;
+    numeroPedido: number;
+    items: CotizacionItemForm[];
+}
+
+export interface OrdenCompraDetalleDTO {
+    idOrdenCompraDetalle: number;
+    idOrdenCompra: number;
+    idProducto: number;
+    producto?: ProductoDTO;
+    descripcion?: string;
+    cantidad: number;
+}
+
+export interface OrdenCompraDetalleSaveDTO {
+    idOrdenCompraDetalle: number;
+    idOrdenCompra: number;
+    idProducto: number;
+    cantidad: number;
+}
+
+export interface OrdenCompraDTO {
+    idOrdenCompra: number;
+    idPedidoCotizacion: number;
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+    estado: string;
+    proveedor?: string;
+    detalles?: OrdenCompraDetalleDTO[];
+}
+
+export interface OrdenCompraSaveDTO {
+    idPedidoCotizacion: number;
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface FacturaCompraDetalle {
+    idFacturaCompraDetalle?: number;
+    idFacturaCompra?: number;
+    idProducto: number;
+    producto?: ProductoDTO;
+    descripcion?: string;
+    cantidad: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaCompra {
+    id?: number;
+    idFacturaCompra: number;
+    idProveedor: number;
+    proveedor: string;
+    idOrdenCompra?: number;
+    idEstado?: number;
+    ordenCompraDescripcion?: string;
+    nroComprobante: string;
+    timbrado: string;
+    fecha: string;
+    estado: string;
+    nombreEstado?: string;
+    detalles?: FacturaCompraDetalle[];
+}
+
+export interface FacturaCompraDetalleSaveDTO {
+    idFacturaCompra?: number;
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+    totalBruto: number;
+    totalIva: number;
+    totalNeto: number;
+}
+
+export interface FacturaCompraSaveDTO {
+    idOrdenCompra: number;
+    idProveedor: number;
+    nroComprobante: string;
+    timbrado: string;
+    fecha: string;
+    descripcion?: string;
+    estado: string;
+    detalles?: FacturaCompraDetalleSaveDTO[];
+}
+
+export interface MedioPagoLinea {
+    tipo: string;
+    referencia: string;
+    monto: number;
+}
+
+export interface OrdenPagoCompraDetalle {
+    idOrdenPagoCompraDetalle?: number;
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+    montoPagado?: number;
+    subtotal?: number;
+}
+
+export interface OrdenPagoCompra {
+    idOrdenPagoCompra: number;
+    idProveedor: number;
+    proveedor?: string;
+    idEstado?: number;
+    estado: string;
+    fecha: string;
+    descripcion?: string;
+    detalles?: OrdenPagoCompraDetalle[];
+    detallesFacturas?: OrdenPagoCompraDetalle[];
+}
+
+export interface OrdenPagoCompraSaveDTO {
+    idProveedor: number;
+    idEstado: number;
+    fecha: string;
+    descripcion: string;
+}
+
+export interface OrdenPagoCompraDetalleSaveDTO {
+    idOrdenPagoCompra: number;
+    idFacturaCompra: number;
+    monto: number;
+}
+
+export interface NotaCreditoItemForm {
+    idProducto: number;
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoFormState {
+    idFacturaCompra: string;
+    idNotaDevolucionCompra: string;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoItemForm[];
+}
+
+export interface NotaCreditoCompraDetalleDTO {
+    idNotaCreditoCompraDetalle?: number;
+    idNotaCreditoCompra?: number;
+    idProducto: number;
+    producto?: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+}
+
+export interface NotaCreditoCompraDTO {
+    idNotaCreditoCompra: number;
+    idFacturaCompra: number;
+    idNotaDevolucionCompra?: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    total?: number;
+    detalles?: NotaCreditoCompraDetalleDTO[];
+}
+
+export interface NotaCreditoCompraSaveDTO {
+    idFacturaCompra: number;
+    idNotaDevolucionCompra?: number;
+    timbrado: string;
+    motivo: string;
+    fechaEmision: string;
+    items: NotaCreditoItemForm[];
+}
+
 // Banco y Tesorería
 export interface Banco {
     idBanco: number;
@@ -757,7 +949,7 @@ export interface MovimientoBancario {
     cuentaBancaria: string;
     idTipoMovimientoBancario: number;
     tipoMovimientoBancario: string;
-    idEstado: number;
+    idEstado: number | null;
     estado: string;
     idOrdenMedioPagoCompra: number | null;
     idChequeEmitido: number | null;
@@ -770,7 +962,7 @@ export interface MovimientoBancario {
 export interface MovimientoBancarioSaveDTO {
     idCuentaBancaria: number;
     idTipoMovimientoBancario: number;
-    idEstado: number;
+    idEstado: number | null;
     idOrdenMedioPagoCompra?: number | null;
     idChequeEmitido?: number | null;
     fecha: string;
@@ -788,6 +980,7 @@ export interface ChequeEmitido {
     numeroCheque: string;
     beneficiario: string;
     fechaEmision: string;
+    fechaPago?: string | null;
     monto: number;
     estado: string;
 }

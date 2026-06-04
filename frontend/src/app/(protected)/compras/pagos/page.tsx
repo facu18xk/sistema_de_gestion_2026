@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
@@ -25,7 +25,7 @@ export const formatPagoNro = (id: number | string) => {
     return `PP-${String(id).padStart(4, "0")}`;
 };
 
-export default function OrdenesPagosPage() {
+function OrdenesPagosPageContent() {
     const searchParams = useSearchParams();
 
     const [ordenesPago, setOrdenesPago] = useState<OrdenPagoCompra[]>([]);
@@ -397,5 +397,13 @@ export default function OrdenesPagosPage() {
                 )}
             </main>
         </div>
+    );
+}
+
+export default function OrdenesPagosPage() {
+    return (
+        <Suspense fallback={null}>
+            <OrdenesPagosPageContent />
+        </Suspense>
     );
 }

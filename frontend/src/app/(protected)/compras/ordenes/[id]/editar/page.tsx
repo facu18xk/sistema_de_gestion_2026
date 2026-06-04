@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,7 @@ const ESTADOS_MAP: Record<number, string> = {
     6: "Rechazado", 7: "Emitido", 8: "Anulado", 9: "Facturado", 10: "Registrado", 11: "Completado"
 }
 
-export default function EditarOrdenPage() {
+function EditarOrdenPageContent() {
     const router = useRouter()
     const params = useParams()
     const searchParams = useSearchParams()
@@ -561,5 +561,13 @@ export default function EditarOrdenPage() {
                 onConfirm={handleConfirmarSeleccionModal}
             />
         </div>
+    )
+}
+
+export default function EditarOrdenPage() {
+    return (
+        <Suspense fallback={null}>
+            <EditarOrdenPageContent />
+        </Suspense>
     )
 }

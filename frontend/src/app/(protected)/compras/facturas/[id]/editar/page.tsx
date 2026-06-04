@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { Suspense, useEffect, useState, useMemo } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,7 @@ export interface FacturaCompra {
     detalles?: any[]
 }
 
-export default function VerEditarFacturaPage() {
+function VerEditarFacturaPageContent() {
     const router = useRouter()
     const params = useParams()
     const searchParams = useSearchParams()
@@ -391,5 +391,13 @@ export default function VerEditarFacturaPage() {
                 )}
             </main>
         </div>
+    )
+}
+
+export default function VerEditarFacturaPage() {
+    return (
+        <Suspense fallback={null}>
+            <VerEditarFacturaPageContent />
+        </Suspense>
     )
 }
