@@ -414,7 +414,7 @@ function FacturaDetalleContent() {
             <main className="w-full">
                 {/* Cabecera, Títulos y Botones de acción igual */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
-                    <h5 className="text-2xl font-bold tracking-tight">
+                    <h5 className="font-bold tracking-tight">
                         {isViewMode ? `Comprobante Asentado: ${nroComprobante}` : "Modificar Comprobante de Compra"}
                     </h5>
 

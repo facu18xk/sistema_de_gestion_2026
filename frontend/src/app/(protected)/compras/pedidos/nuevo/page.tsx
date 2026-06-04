@@ -60,7 +60,7 @@ export default function NuevoPedidoPage() {
         ]}
       />
       <div className="container py-6">
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Nuevo Pedido</h2>
+        <h5 className="font-bold tracking-tight mb-2">Nuevo Pedido</h5>
 
         <PedidoForm
           pedidoEditado={null}

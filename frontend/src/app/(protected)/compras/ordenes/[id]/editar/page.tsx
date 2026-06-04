@@ -328,13 +328,13 @@ export default function EditarOrdenPage() {
                 ]}
             />
 
-            <main className="w-full px-4 pb-2 flex-1 flex flex-col space-y-2 overflow-hidden">
+            <main className="w-full pb-2 flex-1 flex flex-col space-y-2 overflow-hidden">
                 {/* CONTROL SUPERIOR CON ALTURA REDUCIDA */}
                 <div className="flex items-center justify-between py-1 shrink-0">
                     <div>
-                        <h2 className="text-lg font-bold tracking-tight">
+                        <h5 className="font-bold tracking-tight">
                             {esEditable ? `Editar Orden #${idOrden}` : `Visualizar Orden #${idOrden}`}
-                        </h2>
+                        </h5>
                     </div>
 
                     <div className="flex items-center gap-1.5">

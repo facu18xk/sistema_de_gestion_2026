@@ -382,11 +382,11 @@ export default function GenerarOrdenesPage() {
                 ]}
             />
 
-            <main className="container mx-auto">
+            <main className="container">
                 {/* Título y botón alineados horizontalmente, pegados al nivel del breadcrumb */}
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Generar Órdenes</h2>
+                        <h5 className="font-bold tracking-tight">Generar Órdenes</h5>
                     </div>
                     <Button
                         variant="outline"

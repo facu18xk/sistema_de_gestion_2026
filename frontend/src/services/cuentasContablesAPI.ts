@@ -10,13 +10,12 @@ export const cuentasContablesAPI = {
         return response.data
     },
 
-    getById: async (id: number): Promise<any> => {
+    getById: async (id: number): Promise<types.CuentaContable> => {
         const response = await api.get(`${API_CONFIG.ENDPOINTS.CUENTAS_CONTABLES}/${id}`)
         return response.data
     },
 
-    create: async (data: any): Promise<any> => {
-        console.log("POST Cuenta Contable - Payload:", data)
+    create: async (data: any): Promise<types.CuentaContable> => {
         const response = await api.post(API_CONFIG.ENDPOINTS.CUENTAS_CONTABLES, data)
         return response.data
     },

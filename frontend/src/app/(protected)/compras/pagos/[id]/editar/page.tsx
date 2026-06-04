@@ -316,9 +316,9 @@ export default function CargarOrdenPagoPage() {
 
             <main className="container">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-bold tracking-tight">
+                    <h5 className="font-bold tracking-tight">
                         {isEditMode ? "Modificar Estado de Orden" : isViewMode ? "Detalle de Orden de Pago" : "Cargar Orden de Pago"}
-                    </h2>
+                    </h5>
                     <Button variant="outline" size="sm" onClick={() => router.push("/compras/pagos")} className="gap-1">
                         <ArrowLeft className="h-4 w-4" /> Volver
                     </Button>

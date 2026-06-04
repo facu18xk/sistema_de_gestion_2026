@@ -324,7 +324,7 @@ export default function CargarFacturaPage() {
 
             <main className="w-full">
                 <div className="flex items-center justify-between mb-2">
-                    <h5 className="text-2xl font-bold tracking-tight">Registrar Factura de Proveedor</h5>
+                    <h5 className="font-bold tracking-tight">Registrar Factura de Proveedor</h5>
                     <Button variant="outline" size="sm" onClick={() => router.push("/compras/facturas")} className="gap-1">
                         <ArrowLeft className="h-4 w-4" /> Volver
                     </Button>

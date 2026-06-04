@@ -145,9 +145,9 @@ export default function EditarPedidoPage() {
       />
       <div className="container">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold tracking-tight">
+          <h5 className="font-bold tracking-tight">
             {isReadOnly ? "Visualizar Pedido" : "Editar Pedido"}
-          </h2>
+          </h5>
 
           {/* Botón dinámico insertado en la cabecera */}
           {pedido.estado === "Respondido" && (

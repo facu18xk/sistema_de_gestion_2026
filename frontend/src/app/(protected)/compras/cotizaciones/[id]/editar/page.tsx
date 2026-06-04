@@ -6,7 +6,7 @@ import { useRouter, useParams, useSearchParams } from "next/navigation"; // Impo
 import { CotizacionForm } from "@/components/compras/cotizacion-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { Button } from "@/components/ui/button"; // Importamos Button para la navegación cruzada
-import { FileText } from "lucide-react"; // Importamos el icono para el botón
+import { FileText, Heading5 } from "lucide-react"; // Importamos el icono para el botón
 import { cotizacionesAPI } from "@/services/cotizacionesAPI";
 import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI";
 import { pedidosAPI } from "@/services/pedidosAPI";
@@ -181,9 +181,9 @@ export default function EditarCotizacionPage() {
       />
       <main className="container p-2">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold tracking-tight">
+          <h5 className="font-bold tracking-tight">
             {isViewMode ? "Ver Cotización" : "Editar Cotización"} #{params.id} {/* Título dinámico */}
-          </h2>
+          </h5>
 
           {/* Botón dinámico insertado en la cabecera si la cotización está Aprobada (idEstado === 2) */}
           {cotizacion && Number(cotizacion.idEstado) === 2 && (
