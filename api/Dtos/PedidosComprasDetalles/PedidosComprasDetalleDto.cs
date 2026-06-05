@@ -33,3 +33,14 @@ public class PedidosComprasDetalleUpsertDto
 
     public int Cantidad { get; set; }
 }
+
+public class PedidosComprasDetalleCompletoCreateDto
+{
+    public int IdProducto { get; set; }
+
+    public int IdCategoria { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int Cantidad { get; set; }
+}

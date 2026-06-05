@@ -107,24 +107,31 @@ public class PeriodoContableService : CrudServiceBase<PeriodoContable, int>
             throw new InvalidOperationException("El año del periodo debe coincidir con el proceso contable.");
         }
 
-        if (entity.FechaInicio.Year != entity.Anho ||
-            entity.FechaFin.Year != entity.Anho ||
-            entity.FechaInicio.Month != entity.Mes ||
-            entity.FechaFin.Month != entity.Mes)
+        var isAnnualPeriodo =
+            entity.FechaInicio == new DateOnly(entity.Anho, 1, 1) &&
+            entity.FechaFin == new DateOnly(entity.Anho, 12, 31);
+
+        var isMonthlyPeriodo =
+            entity.FechaInicio.Year == entity.Anho &&
+            entity.FechaFin.Year == entity.Anho &&
+            entity.FechaInicio.Month == entity.Mes &&
+            entity.FechaFin.Month == entity.Mes;
+
+        if (!isAnnualPeriodo && !isMonthlyPeriodo)
         {
-            throw new InvalidOperationException("Las fechas del periodo deben corresponder al mes y año indicados.");
+            throw new InvalidOperationException("Las fechas del periodo deben corresponder al año del proceso contable.");
         }
 
         var duplicateExists = await _context.PeriodosContables
             .AnyAsync(item =>
                 item.IdProcesoContable == entity.IdProcesoContable &&
                 item.Anho == entity.Anho &&
-                item.Mes == entity.Mes &&
+                (isAnnualPeriodo || item.Mes == entity.Mes) &&
                 (!existingId.HasValue || item.IdPeriodoContable != existingId.Value));
 
         if (duplicateExists)
         {
-            throw new InvalidOperationException("Ya existe un periodo contable para ese proceso, año y mes.");
+            throw new InvalidOperationException("Ya existe un periodo contable para ese proceso y año.");
         }
     }
 }

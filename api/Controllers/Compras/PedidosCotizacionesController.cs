@@ -10,9 +10,28 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class PedidosCotizacionesController : CrudControllerBase<PedidosCotizaciones, PedidosCotizacionesDto, PedidosCotizacionesUpsertDto, int>
 {
-    public PedidosCotizacionesController(ICrudService<PedidosCotizaciones, int> pedidoscotizacionesService)
+    private readonly ComprasCompletasService _comprasCompletasService;
+
+    public PedidosCotizacionesController(
+        ICrudService<PedidosCotizaciones, int> pedidoscotizacionesService,
+        ComprasCompletasService comprasCompletasService)
         : base(pedidoscotizacionesService)
     {
+        _comprasCompletasService = comprasCompletasService;
+    }
+
+    [HttpPost("completo")]
+    public async Task<ActionResult<PedidosCotizacionesDto>> CreateCompleto(PedidosCotizacionesCompletoCreateDto dto)
+    {
+        try
+        {
+            var createdEntity = await _comprasCompletasService.CreatePedidoCotizacionAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = createdEntity.IdPedidoCotizacion }, ToReadDto(createdEntity));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     protected override PedidosCotizacionesDto ToReadDto(PedidosCotizaciones entity)

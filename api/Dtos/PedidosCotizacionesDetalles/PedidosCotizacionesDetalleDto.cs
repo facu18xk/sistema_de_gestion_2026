@@ -42,3 +42,18 @@ public class PedidosCotizacionesDetalleUpsertDto
 
     public decimal Descuento { get; set; }
 }
+
+public class PedidosCotizacionesDetalleCompletoCreateDto
+{
+    public int IdProducto { get; set; }
+
+    public int IdCategoria { get; set; }
+
+    public string Descripcion { get; set; } = string.Empty;
+
+    public int Cantidad { get; set; }
+
+    public decimal PrecioProducto { get; set; }
+
+    public decimal Descuento { get; set; }
+}

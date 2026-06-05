@@ -42,6 +42,7 @@ builder.Services.AddScoped<PreciosVentasService>();
 builder.Services.AddScoped<SalesPriceResolver>();
 builder.Services.AddScoped<TimbradoNumberingService>();
 builder.Services.AddScoped<VentasCompletasService>();
+builder.Services.AddScoped<ComprasCompletasService>();
 builder.Services.AddScoped<MovimientoBancarioService>();
 builder.Services.AddScoped<ChequeEmitidoService>();
  builder.Services.AddScoped<DepositoBancarioService>();
