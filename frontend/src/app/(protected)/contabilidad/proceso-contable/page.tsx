@@ -55,10 +55,7 @@ export default function ProcesosContablesPage() {
 
                 periodosContablesAPI.getAll(1, 9999),
             ]);
-            console.log("PERIODOS:", periodos);
-            console.log("ITEMS:", periodos.items);
-            console.log(Array.isArray(periodos));
-            console.log(Array.isArray(periodos.items));
+
             const procesosConPeriodos = resPaginada.items.map(
                 (proceso: ProcesoContableDTO) => ({
                     ...proceso,

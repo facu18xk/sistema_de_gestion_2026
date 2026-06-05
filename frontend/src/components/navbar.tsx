@@ -61,11 +61,8 @@ const modulos = [
         href: "/banco-tesoreria/movimientos",
       },
       { title: "Cheques", href: "/banco-tesoreria/cheques" },
-      { title: "Transferencias", href: "/banco-tesoreria/transferencias" },
       { title: "Depósitos bancarios", href: "/banco-tesoreria/depositos" },
       { title: "Conciliación bancaria", href: "/banco-tesoreria/conciliacion" },
-      { title: "Órdenes de pago", href: "/banco-tesoreria/ordenes-pago" },
-      { title: "Reportes", href: "/banco-tesoreria/reportes" },
     ],
   },
   {

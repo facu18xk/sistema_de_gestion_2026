@@ -6,17 +6,11 @@ import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { DataTable } from "@/components/shared/data-table";
 import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
+import { CuentaBancariaFilterCombobox } from "@/components/banco-tesoreria/cuenta-bancaria-filter-combobox";
 import { chequesEmitidosAPI } from "@/services/chequesEmitidosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { formatMoney } from "@/lib/format-currency";
@@ -121,22 +115,11 @@ export default function ChequesPage() {
       >
         <div className="grid gap-1 min-w-[200px]">
           <Label className="text-xs text-muted-foreground">Cuenta</Label>
-          <Select value={idCuentaFiltro} onValueChange={setIdCuentaFiltro}>
-            <SelectTrigger className="h-9 bg-white">
-              <SelectValue placeholder="Todas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las cuentas</SelectItem>
-              {cuentas.map((c) => (
-                <SelectItem
-                  key={c.idCuentaBancaria}
-                  value={String(c.idCuentaBancaria)}
-                >
-                  {c.banco} — {c.numeroCuenta}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CuentaBancariaFilterCombobox
+            cuentas={cuentas}
+            value={idCuentaFiltro}
+            onValueChange={setIdCuentaFiltro}
+          />
         </div>
       </TesoreriaFiltrosListado>
 

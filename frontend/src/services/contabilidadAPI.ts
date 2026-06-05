@@ -3,6 +3,7 @@ import { API_CONFIG } from "@/config/api";
 import {
   AsientoCompletoDTO,
   AsientoCompletoPayloadDTO,
+  AsientoDetalleDTO,
   AsientoDTO,
   BalanceGeneralReporteDTO,
   BalanceResultadosReporteDTO,
@@ -168,6 +169,39 @@ export const asientosAPI = {
       data,
     );
     return response.data;
+  },
+
+  getById: async (id: number): Promise<AsientoDTO> => {
+    const response = await api.get(`${API_CONFIG.ENDPOINTS.ASIENTOS}/${id}`);
+    return response.data;
+  },
+
+  updateCompleto: async (
+    id: number,
+    data: AsientoCompletoPayloadDTO,
+  ): Promise<AsientoCompletoDTO> => {
+    const response = await api.put(
+      `${API_CONFIG.ENDPOINTS.ASIENTOS_COMPLETO}/${id}`,
+      data,
+    );
+    return response.data;
+  },
+
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`${API_CONFIG.ENDPOINTS.ASIENTOS}/${id}`);
+  },
+};
+
+export const asientosDetallesAPI = {
+  getAll: async (
+    page: number = 1,
+    pageSize: number = 100,
+  ): Promise<PaginatedResponse<AsientoDetalleDTO>> => {
+    const response = await api.get<MaybePaginated<AsientoDetalleDTO>>(
+      API_CONFIG.ENDPOINTS.ASIENTOS_DETALLES,
+      { params: paginatedParams(page, pageSize) },
+    );
+    return normalizePaginated(response.data, page, pageSize);
   },
 };
 

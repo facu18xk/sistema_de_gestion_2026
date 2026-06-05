@@ -42,6 +42,7 @@ export const API_CONFIG = {
     CUENTAS_CONTABLES: "/api/CuentasContables",
     ASIENTOS: "/api/Asientos",
     ASIENTOS_COMPLETO: "/api/Asientos/completo",
+    ASIENTOS_DETALLES: "/api/AsientosDetalles",
     REPORTES_CONTABLES: "/api/contabilidad/reportes",
     INVOICES: "/api/FacturasVentas",
     TIMBRADO: "/api/Timbrados",

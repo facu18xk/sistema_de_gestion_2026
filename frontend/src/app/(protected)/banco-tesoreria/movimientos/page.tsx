@@ -5,13 +5,6 @@ import { Pencil, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
@@ -28,23 +21,21 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { FormSheet } from "@/components/shared/form-sheet";
 import { TesoreriaFiltrosListado } from "@/components/banco-tesoreria/tesoreria-filtros-listado";
+import { CuentaBancariaFilterCombobox } from "@/components/banco-tesoreria/cuenta-bancaria-filter-combobox";
 import { MovimientoBancarioForm } from "@/components/banco-tesoreria/movimiento-bancario-form";
 import { movimientosBancariosAPI } from "@/services/movimientosBancariosAPI";
 import { cuentasBancariasAPI } from "@/services/cuentasBancariasAPI";
 import { tiposMovimientosBancariosAPI } from "@/services/tiposMovimientosBancariosAPI";
-import { estadosAPI } from "@/services/estadosAPI";
 import { formatMoney } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { enRangoFecha, rangoFechaPorDefecto, textoCoincide } from "@/lib/list-filters";
 import { notify } from "@/lib/notifications";
 import type {
   CuentaBancaria,
-  Estado,
   MovimientoBancario,
   MovimientoBancarioSaveDTO,
   TipoMovimientoBancario,
 } from "@/types/types";
-import { Badge } from "@/components/ui/badge";
 
 const defaultRango = rangoFechaPorDefecto();
 
@@ -56,7 +47,6 @@ export default function MovimientosBancariosPage() {
   const [todosLosMovimientos, setTodosLosMovimientos] = useState<MovimientoBancario[]>([]);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [tiposMovimiento, setTiposMovimiento] = useState<TipoMovimientoBancario[]>([]);
-  const [estados, setEstados] = useState<Estado[]>([]);
 
   const [movimientoAEditar, setMovimientoAEditar] =
     useState<MovimientoBancario | null>(null);
@@ -73,14 +63,12 @@ export default function MovimientosBancariosPage() {
 
   const cargarCatalogos = async () => {
     try {
-      const [resCuentas, resTipos, resEstados] = await Promise.all([
+      const [resCuentas, resTipos] = await Promise.all([
         cuentasBancariasAPI.getAll(1, 200),
         tiposMovimientosBancariosAPI.getAll(1, 50),
-        estadosAPI.getAll(1, 100),
       ]);
       setCuentas(resCuentas.items);
       setTiposMovimiento(resTipos.items);
-      setEstados(resEstados.items);
     } catch (error) {
       console.error("Error al cargar catálogos:", error);
     }
@@ -123,7 +111,6 @@ export default function MovimientosBancariosPage() {
         m.referencia,
         m.cuentaBancaria,
         m.tipoMovimientoBancario,
-        m.estado,
       );
     });
   }, [todosLosMovimientos, searchTerm, fechaDesde, fechaHasta, idCuentaFiltro]);
@@ -137,17 +124,6 @@ export default function MovimientosBancariosPage() {
 
   const monedaPorCuenta = (idCuenta: number) =>
     cuentas.find((c) => c.idCuentaBancaria === idCuenta)?.moneda ?? "PYG";
-
-  const getEstadoLabel = (estado?: string | null) =>
-    estado?.trim() || "Sin estado";
-
-  const getEstadoBadgeVariant = (estado?: string | null) => {
-    const estadoLabel = estado?.trim();
-
-    if (estadoLabel === "Aprobado") return "activo";
-    if (estadoLabel === "Rechazado") return "destructive";
-    return "secondary";
-  };
 
   const handleCrearNuevo = () => {
     setMovimientoAEditar(null);
@@ -241,22 +217,11 @@ export default function MovimientosBancariosPage() {
       >
         <div className="grid gap-1 min-w-[200px]">
           <Label className="text-xs text-muted-foreground">Cuenta</Label>
-          <Select value={idCuentaFiltro} onValueChange={setIdCuentaFiltro}>
-            <SelectTrigger className="h-9 bg-white">
-              <SelectValue placeholder="Todas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las cuentas</SelectItem>
-              {cuentas.map((c) => (
-                <SelectItem
-                  key={c.idCuentaBancaria}
-                  value={String(c.idCuentaBancaria)}
-                >
-                  {c.banco} — {c.numeroCuenta}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CuentaBancariaFilterCombobox
+            cuentas={cuentas}
+            value={idCuentaFiltro}
+            onValueChange={setIdCuentaFiltro}
+          />
         </div>
       </TesoreriaFiltrosListado>
 
@@ -296,7 +261,6 @@ export default function MovimientosBancariosPage() {
               <TableHead>Concepto</TableHead>
               <TableHead>Referencia</TableHead>
               <TableHead className="text-right">Monto</TableHead>
-              <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           }
@@ -307,7 +271,7 @@ export default function MovimientosBancariosPage() {
           {movimientos.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={8}
+                colSpan={7}
                 className="h-24 text-center text-muted-foreground"
               >
                 No hay movimientos para mostrar.
@@ -327,13 +291,6 @@ export default function MovimientosBancariosPage() {
                 </TableCell>
                 <TableCell className="text-right font-medium">
                   {formatMoney(m.monto, monedaPorCuenta(m.idCuentaBancaria))}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={getEstadoBadgeVariant(m.estado)}
-                  >
-                    {getEstadoLabel(m.estado)}
-                  </Badge>
                 </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
@@ -377,7 +334,6 @@ export default function MovimientosBancariosPage() {
           movimientoEditado={movimientoAEditar}
           cuentas={cuentas}
           tiposMovimiento={tiposMovimiento}
-          estados={estados}
           onSubmit={handleFormSubmit}
           onCancel={() => setIsSheetOpen(false)}
         />

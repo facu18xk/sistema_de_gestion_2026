@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import type {
   CuentaBancaria,
-  Estado,
   MovimientoBancario,
   MovimientoBancarioSaveDTO,
   TipoMovimientoBancario,
@@ -27,26 +26,24 @@ interface MovimientoBancarioFormProps {
   movimientoEditado?: MovimientoBancario | null;
   cuentas: CuentaBancaria[];
   tiposMovimiento: TipoMovimientoBancario[];
-  estados: Estado[];
   onSubmit: (data: MovimientoBancarioSaveDTO) => Promise<void>;
   onCancel: () => void;
 }
 
-const ID_ESTADO_PENDIENTE = 1;
-const DEFAULT_ID_ESTADO = ID_ESTADO_PENDIENTE.toString();
+const ID_ESTADO_APROBADO = 2;
+const DEFAULT_ID_ESTADO = ID_ESTADO_APROBADO.toString();
 
 const parseIdEstado = (value: string) => {
   const idEstado = Number(value);
   return Number.isFinite(idEstado) && idEstado > 0
     ? idEstado
-    : ID_ESTADO_PENDIENTE;
+    : ID_ESTADO_APROBADO;
 };
 
 export function MovimientoBancarioForm({
   movimientoEditado,
   cuentas,
   tiposMovimiento,
-  estados,
   onSubmit,
   onCancel,
 }: MovimientoBancarioFormProps) {
@@ -149,26 +146,6 @@ export function MovimientoBancarioForm({
                 value={t.idTipoMovimientoBancario.toString()}
               >
                 {t.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid gap-2">
-        <Label>Estado</Label>
-        <Select
-          value={formData.idEstado}
-          onValueChange={(v) => setFormData((p) => ({ ...p, idEstado: v }))}
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            {estados.map((e) => (
-              <SelectItem key={e.idEstado} value={e.idEstado.toString()}>
-                {e.nombre}
               </SelectItem>
             ))}
           </SelectContent>

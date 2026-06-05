@@ -29,6 +29,8 @@ import { notify } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 import {
   AsientoCompletoPayloadDTO,
+  AsientoDetalleDTO,
+  AsientoDTO,
   CuentaContableDTO,
   PeriodoContableDTO,
   ProcesoContableDTO,
@@ -46,6 +48,12 @@ interface AsientoFormState {
   fecha: string;
   descripcion: string;
   estado: string;
+}
+
+interface AsientoFormProps {
+  asientoEditado?: AsientoDTO | null;
+  detallesEditados?: AsientoDetalleDTO[];
+  initialProcesoId?: number | null;
 }
 
 const MANUAL_ACCOUNTING_MODULE_ID = 3;
@@ -96,7 +104,28 @@ function nuevaLinea(): AsientoDetalleFormRow {
   };
 }
 
-export function AsientoForm() {
+function asientoDetalleToFormRow(
+  detalle: AsientoDetalleDTO,
+): AsientoDetalleFormRow {
+  const monto = String(detalle.monto ?? "");
+  return {
+    id: detalle.idAsientoDetalle ?? Date.now() + Math.random(),
+    idCuentaContable: String(detalle.idCuentaContable ?? ""),
+    descripcion: detalle.descripcionItem ?? "",
+    debe: detalle.tipoMovimiento === "Debe" ? monto : "",
+    haber: detalle.tipoMovimiento === "Haber" ? monto : "",
+  };
+}
+
+function fechaToInputValue(fecha: string) {
+  return fecha ? fecha.slice(0, 10) : todayISODate();
+}
+
+export function AsientoForm({
+  asientoEditado = null,
+  detallesEditados = [],
+  initialProcesoId = null,
+}: AsientoFormProps = {}) {
   const router = useRouter();
   const [proceso, setProceso] = useState<ProcesoContableDTO | null>(null);
   const [cuentas, setCuentas] = useState<CuentaContableDTO[]>([]);
@@ -104,14 +133,18 @@ export function AsientoForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recentAccountIds, setRecentAccountIds] = useState<string[]>([]);
   const [formData, setFormData] = useState<AsientoFormState>({
-    fecha: todayISODate(),
-    descripcion: "",
-    estado: "Registrado",
+    fecha: asientoEditado
+      ? fechaToInputValue(asientoEditado.fecha)
+      : todayISODate(),
+    descripcion: asientoEditado?.descripcion ?? "",
+    estado: asientoEditado?.estado ?? "Registrado",
   });
   const [detalles, setDetalles] = useState<AsientoDetalleFormRow[]>([
-    nuevaLinea(),
-    nuevaLinea(),
+    ...(detallesEditados.length
+      ? detallesEditados.map(asientoDetalleToFormRow)
+      : [nuevaLinea(), nuevaLinea()]),
   ]);
+  const isEditing = !!asientoEditado;
   const procesoHabilitado = isProcesoContableHabilitado(proceso);
   const procesoId = proceso?.idProcesoContable;
 
@@ -233,15 +266,16 @@ export function AsientoForm() {
     setIsSubmitting(true);
     try {
       const payload: AsientoCompletoPayloadDTO = {
-        idModulo: MANUAL_ACCOUNTING_MODULE_ID,
+        idModulo: asientoEditado?.idModulo ?? MANUAL_ACCOUNTING_MODULE_ID,
         fecha: formData.fecha,
         descripcion: formData.descripcion.trim(),
-        automatico: false,
-        estado: "Registrado",
-        referenciaOrigen: `MANUAL-${Date.now()}`,
-        idOrigen: null,
-        createdAt: null,
-        fechaMayorizacion: null,
+        automatico: asientoEditado?.automatico ?? false,
+        estado: formData.estado || "Registrado",
+        referenciaOrigen:
+          asientoEditado?.referenciaOrigen ?? `MANUAL-${Date.now()}`,
+        idOrigen: asientoEditado?.idOrigen ?? null,
+        createdAt: asientoEditado?.createdAt ?? null,
+        fechaMayorizacion: asientoEditado?.fechaMayorizacion ?? null,
         detalles: detalles.map((detalle, index) => {
           const debe = Number(detalle.debe) || 0;
           const haber = Number(detalle.haber) || 0;
@@ -256,10 +290,16 @@ export function AsientoForm() {
         }),
       };
 
-      await asientosAPI.createCompleto(payload);
+      if (asientoEditado) {
+        await asientosAPI.updateCompleto(asientoEditado.idAsiento, payload);
+      } else {
+        await asientosAPI.createCompleto(payload);
+      }
       notify.success(
-        "Asiento registrado",
-        "El asiento contable fue guardado correctamente.",
+        asientoEditado ? "Asiento actualizado" : "Asiento registrado",
+        asientoEditado
+          ? "El asiento contable fue actualizado correctamente."
+          : "El asiento contable fue guardado correctamente.",
       );
       router.push("/contabilidad/asientos");
       router.refresh();
@@ -274,7 +314,7 @@ export function AsientoForm() {
   return (
     <div className="space-y-4">
       <ContabilidadProcessSelector
-        value={proceso?.idProcesoContable}
+        value={proceso?.idProcesoContable ?? initialProcesoId}
         onChange={(selected) => setProceso(selected)}
       />
 
@@ -291,7 +331,7 @@ export function AsientoForm() {
           handleSubmit();
         }}
         onCancel={() => router.push("/contabilidad/asientos")}
-        isEditing={false}
+        isEditing={isEditing}
         submitText={{ save: "Guardar Asiento", update: "Actualizar" }}
         submitDisabled={isSubmitting || !proceso || !procesoHabilitado}
       >
@@ -336,7 +376,11 @@ export function AsientoForm() {
             <FieldWrapper id="numeroAsiento" label="Nº Asiento">
               <Input
                 id="numeroAsiento"
-                value="Automático"
+                value={
+                  asientoEditado
+                    ? String(asientoEditado.numeroAsiento)
+                    : "Automático"
+                }
                 readOnly
                 className="h-8 rounded-md bg-gray-100"
               />
