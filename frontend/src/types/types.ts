@@ -25,7 +25,6 @@ export interface LoginCredentials {
     password: string;
 }
 
-
 // Lo que RECIBES del Backend (Lectura)
 export interface ProductoDTO {
     idProducto: number;
@@ -42,7 +41,10 @@ export interface ProductoDTO {
 
 // Lo que ENVÍAS al Backend (Escritura - Crear/Editar)
 // Usamos Omit para quitar lo que el backend genera solo o lo que no se envía al insertar
-export type ProductoSaveDTO = Omit<ProductoDTO, 'idProducto' | 'marca' | 'categoria' | 'cantidadTotal'>;
+export type ProductoSaveDTO = Omit<
+    ProductoDTO,
+    "idProducto" | "marca" | "categoria" | "cantidadTotal"
+>;
 
 //Formato de aquellos endpoints tipo GET, donde <T> es el objeto.
 export interface PaginatedResponse<T> {
@@ -57,7 +59,7 @@ export interface PaginatedResponse<T> {
 
 export interface Marca {
     idMarca: number;
-    nombre: string
+    nombre: string;
 }
 
 export interface MarcaDTO {
@@ -66,11 +68,11 @@ export interface MarcaDTO {
 
 export interface Categoria {
     idCategoria: number;
-    nombre: string
+    nombre: string;
 }
 
 export interface CategoriaDTO {
-    nombre: string
+    nombre: string;
 }
 
 export interface ProductoFormState {
@@ -440,7 +442,6 @@ export interface ProveedorSaveDTO {
         calle2: string | null;
         descripcion: string | null;
         idCiudad: number;
-
     };
     nombres: string | null;
     apellidos: string | null;
@@ -450,30 +451,30 @@ export interface ProveedorSaveDTO {
 }
 
 export interface PedidoItem {
-    idPedidoCompraDetalle?: number
-    idPedidoCompra?: number
-    idProducto: number
-    producto?: string
-    categoria: string
-    descripcion: string
-    cantidad: number
-    ultimoPrecio: number
+    idPedidoCompraDetalle?: number;
+    idPedidoCompra?: number;
+    idProducto: number;
+    producto?: string;
+    categoria: string;
+    descripcion: string;
+    cantidad: number;
+    ultimoPrecio: number;
 }
 
 export interface Pedido {
-    id?: string
-    nroPedido: string
-    fecha: string
-    estado: string
-    items: PedidoItem[]
+    id?: string;
+    nroPedido: string;
+    fecha: string;
+    estado: string;
+    items: PedidoItem[];
 }
 
 export interface PedidoDTO {
-    idPedidoCompra: number
-    idEstado: number
-    estado: string
-    numeroPedido: number
-    fecha: string
+    idPedidoCompra: number;
+    idEstado: number;
+    estado: string;
+    numeroPedido: number;
+    fecha: string;
 }
 
 export interface PedidoDetalleDTO {
@@ -485,7 +486,6 @@ export interface PedidoDetalleDTO {
     categoria: string;
     descripcion: string;
     cantidad: number;
-
 }
 export interface PedidoSaveDTO {
     idEstado: number;
@@ -519,46 +519,46 @@ export type EstadoProcesoContable =
     | "Activa"
     | "Registrado"
     | "Registrada"
-    | string
+    | string;
 
 export interface ProcesoContableDTO {
-    idProcesoContable: number
-    periodoAnho: number
-    descripcion: string
-    cantNiveles: number
-    cantDigitosNivel: number
-    moneda: string
-    estado: EstadoProcesoContable
+    idProcesoContable: number;
+    periodoAnho: number;
+    descripcion: string;
+    cantNiveles: number;
+    cantDigitosNivel: number;
+    moneda: string;
+    estado: EstadoProcesoContable;
 
     tienePeriodos?: boolean;
 }
 
 export interface ProcesoContableSaveDTO {
-    periodoAnho: number
-    descripcion: string
-    cantNiveles: number
-    cantDigitosNivel: number
-    moneda: string
+    periodoAnho: number;
+    descripcion: string;
+    cantNiveles: number;
+    cantDigitosNivel: number;
+    moneda: string;
 }
 
 export interface PeriodoContableDTO {
-    idPeriodoContable: number
-    idProcesoContable: number
-    procesoContable: string
-    anho: number
-    mes: number
-    fechaInicio: string
-    fechaFin: string
-    estado: string
+    idPeriodoContable: number;
+    idProcesoContable: number;
+    procesoContable: string;
+    anho: number;
+    mes: number;
+    fechaInicio: string;
+    fechaFin: string;
+    estado: string;
 }
 
 export interface PeriodoContableSaveDTO {
-    idProcesoContable: number
-    anho: number
-    mes: number
-    fechaInicio: string
-    fechaFin: string
-    estado: string
+    idProcesoContable: number;
+    anho: number;
+    mes: number;
+    fechaInicio: string;
+    fechaFin: string;
+    estado: string;
 }
 
 export type TipoCuentaContable =
@@ -566,542 +566,553 @@ export type TipoCuentaContable =
     | "Pasivo"
     | "Patrimonio"
     | "Ingreso"
-    | "Gasto"
+    | "Gasto";
 
-export type TipoMovimientoAsiento = "Debe" | "Haber"
+export type TipoMovimientoAsiento = "Debe" | "Haber";
 
 export interface CuentaContableDTO {
-    idCuentaContable: number
-    idProcesoContable: number
-    idCuentaPadre?: number | null
-    numeroCuenta?: string
-    codigo?: string
-    nombre: string
-    tipoCuenta: TipoCuentaContable | string
-    esAsentable: boolean
-    activa: boolean
-    cuentaPadre?: string | null
+    idCuentaContable: number;
+    idProcesoContable: number;
+    idCuentaPadre?: number | null;
+    numeroCuenta?: string;
+    codigo?: string;
+    nombre: string;
+    tipoCuenta: TipoCuentaContable | string;
+    esAsentable: boolean;
+    activa: boolean;
+    cuentaPadre?: string | null;
 }
 
 export interface AsientoDetalleDTO {
-    idAsientoDetalle?: number
-    idAsiento?: number
-    item: number
-    idCuentaContable: number
-    cuentaContable?: string
-    numeroAsiento?: number
-    descripcionItem?: string | null
-    tipoMovimiento: TipoMovimientoAsiento
-    monto: number
+    idAsientoDetalle?: number;
+    idAsiento?: number;
+    item: number;
+    idCuentaContable: number;
+    cuentaContable?: string;
+    numeroAsiento?: number;
+    descripcionItem?: string | null;
+    tipoMovimiento: TipoMovimientoAsiento;
+    monto: number;
 }
 
 export interface AsientoDTO {
-    idAsiento: number
-    idPeriodoContable?: number | null
-    periodoContable?: string | null
-    idModulo?: number | null
-    modulo?: string | null
-    numeroAsiento: number
-    fecha: string
-    descripcion?: string | null
-    estado: string
-    automatico: boolean
-    referenciaOrigen?: string | null
-    idOrigen?: number | null
-    createdAt?: string | null
-    fechaMayorizacion?: string | null
+    idAsiento: number;
+    idPeriodoContable?: number | null;
+    periodoContable?: string | null;
+    idModulo?: number | null;
+    modulo?: string | null;
+    numeroAsiento: number;
+    fecha: string;
+    descripcion?: string | null;
+    estado: string;
+    automatico: boolean;
+    referenciaOrigen?: string | null;
+    idOrigen?: number | null;
+    createdAt?: string | null;
+    fechaMayorizacion?: string | null;
 }
 
 export interface AsientoCompletoPayloadDTO {
-    idModulo: number | null
-    fecha: string
-    descripcion?: string | null
-    automatico: boolean
-    estado: string
-    referenciaOrigen?: string | null
-    idOrigen?: number | null
-    createdAt?: string | null
-    fechaMayorizacion?: string | null
-    detalles: AsientoDetalleDTO[]
+    idModulo: number | null;
+    fecha: string;
+    descripcion?: string | null;
+    automatico: boolean;
+    estado: string;
+    referenciaOrigen?: string | null;
+    idOrigen?: number | null;
+    createdAt?: string | null;
+    fechaMayorizacion?: string | null;
+    detalles: AsientoDetalleDTO[];
 }
 
 export interface AsientoCompletoDTO {
-    asiento: AsientoDTO
-    detalles: AsientoDetalleDTO[]
+    asiento: AsientoDTO;
+    detalles: AsientoDetalleDTO[];
 }
 
 export interface ReportePeriodoContableDTO {
-    idPeriodoContable?: number
-    idProcesoContable?: number
-    procesoContable?: string | null
-    anho?: number
-    mes?: number
-    fechaInicio?: string | null
-    fechaFin?: string | null
-    estado?: string | null
+    idPeriodoContable?: number;
+    idProcesoContable?: number;
+    procesoContable?: string | null;
+    anho?: number;
+    mes?: number;
+    fechaInicio?: string | null;
+    fechaFin?: string | null;
+    estado?: string | null;
 }
 
 export interface ReporteCuentaContableDTO {
-    idCuentaContable?: number
-    codigo?: string | null
-    numeroCuenta?: string | null
-    nombre?: string | null
-    tipoCuenta?: TipoCuentaContable | string | null
+    idCuentaContable?: number;
+    codigo?: string | null;
+    numeroCuenta?: string | null;
+    nombre?: string | null;
+    tipoCuenta?: TipoCuentaContable | string | null;
 }
 
 export interface ReporteContableBaseDTO {
-    periodo?: ReportePeriodoContableDTO | null
-    idPeriodoContable?: number
-    moneda?: string | null
-    generadoEn?: string | null
+    periodo?: ReportePeriodoContableDTO | null;
+    idPeriodoContable?: number;
+    moneda?: string | null;
+    generadoEn?: string | null;
 }
 
 export interface LibroDiarioLineaDTO {
-    idAsiento?: number
-    numeroAsiento?: number
-    fecha?: string | null
-    descripcion?: string | null
-    item?: number
-    idCuentaContable?: number
-    codigoCuenta?: string | null
-    numeroCuenta?: string | null
-    cuenta?: string | null
-    cuentaContable?: string | null
-    descripcionItem?: string | null
-    tipoMovimiento?: TipoMovimientoAsiento | string | null
-    debe?: number
-    haber?: number
-    monto?: number
+    idAsiento?: number;
+    numeroAsiento?: number;
+    fecha?: string | null;
+    descripcion?: string | null;
+    item?: number;
+    idCuentaContable?: number;
+    codigoCuenta?: string | null;
+    numeroCuenta?: string | null;
+    cuenta?: string | null;
+    cuentaContable?: string | null;
+    descripcionItem?: string | null;
+    tipoMovimiento?: TipoMovimientoAsiento | string | null;
+    debe?: number;
+    haber?: number;
+    monto?: number;
 }
 
 export interface LibroDiarioAsientoDTO {
-    idAsiento?: number
-    numeroAsiento?: number
-    fecha?: string | null
-    descripcion?: string | null
-    referenciaOrigen?: string | null
-    balanceado?: boolean
-    totalDebe?: number
-    totalHaber?: number
-    diferencia?: number
-    lineas?: LibroDiarioLineaDTO[]
-    detalles?: LibroDiarioLineaDTO[]
+    idAsiento?: number;
+    numeroAsiento?: number;
+    fecha?: string | null;
+    descripcion?: string | null;
+    referenciaOrigen?: string | null;
+    balanceado?: boolean;
+    totalDebe?: number;
+    totalHaber?: number;
+    diferencia?: number;
+    lineas?: LibroDiarioLineaDTO[];
+    detalles?: LibroDiarioLineaDTO[];
 }
 
 export interface LibroDiarioReporteDTO extends ReporteContableBaseDTO {
-    asientos?: LibroDiarioAsientoDTO[]
-    items?: LibroDiarioAsientoDTO[]
-    totalDebe?: number
-    totalHaber?: number
-    diferencia?: number
+    asientos?: LibroDiarioAsientoDTO[];
+    items?: LibroDiarioAsientoDTO[];
+    totalDebe?: number;
+    totalHaber?: number;
+    diferencia?: number;
 }
 
 export interface LibroMayorMovimientoDTO {
-    fecha?: string | null
-    idAsiento?: number
-    numeroAsiento?: number
-    descripcion?: string | null
-    referenciaOrigen?: string | null
-    debe?: number
-    haber?: number
-    saldo?: number
+    fecha?: string | null;
+    idAsiento?: number;
+    numeroAsiento?: number;
+    descripcion?: string | null;
+    referenciaOrigen?: string | null;
+    debe?: number;
+    haber?: number;
+    saldo?: number;
 }
 
 export interface LibroMayorCuentaDTO {
-    cuenta?: ReporteCuentaContableDTO | null
-    idCuentaContable?: number
-    codigoCuenta?: string | null
-    numeroCuenta?: string | null
-    cuentaNombre?: string | null
-    nombreCuenta?: string | null
-    cuentaContable?: string | null
-    saldoAnterior?: number
-    totalDebe?: number
-    totalHaber?: number
-    saldoDeudor?: number
-    saldoAcreedor?: number
-    saldoFinal?: number
-    movimientos?: LibroMayorMovimientoDTO[]
+    cuenta?: ReporteCuentaContableDTO | null;
+    idCuentaContable?: number;
+    codigoCuenta?: string | null;
+    numeroCuenta?: string | null;
+    cuentaNombre?: string | null;
+    nombreCuenta?: string | null;
+    cuentaContable?: string | null;
+    saldoAnterior?: number;
+    totalDebe?: number;
+    totalHaber?: number;
+    saldoDeudor?: number;
+    saldoAcreedor?: number;
+    saldoFinal?: number;
+    movimientos?: LibroMayorMovimientoDTO[];
 }
 
 export interface LibroMayorReporteDTO extends ReporteContableBaseDTO {
-    cuentas?: LibroMayorCuentaDTO[]
-    items?: LibroMayorCuentaDTO[]
+    cuentas?: LibroMayorCuentaDTO[];
+    items?: LibroMayorCuentaDTO[];
 }
 
 export interface BalanceSumasYSaldosLineaDTO {
-    cuenta?: ReporteCuentaContableDTO | null
-    idCuentaContable?: number
-    codigoCuenta?: string | null
-    numeroCuenta?: string | null
-    cuentaNombre?: string | null
-    nombreCuenta?: string | null
-    cuentaContable?: string | null
-    saldoAnterior?: number
-    debe?: number
-    haber?: number
-    totalDebe?: number
-    totalHaber?: number
-    saldoDeudor?: number
-    saldoAcreedor?: number
-    saldo?: number
+    cuenta?: ReporteCuentaContableDTO | null;
+    idCuentaContable?: number;
+    codigoCuenta?: string | null;
+    numeroCuenta?: string | null;
+    cuentaNombre?: string | null;
+    nombreCuenta?: string | null;
+    cuentaContable?: string | null;
+    saldoAnterior?: number;
+    debe?: number;
+    haber?: number;
+    totalDebe?: number;
+    totalHaber?: number;
+    saldoDeudor?: number;
+    saldoAcreedor?: number;
+    saldo?: number;
 }
 
 export interface BalanceSumasYSaldosReporteDTO extends ReporteContableBaseDTO {
-    lineas?: BalanceSumasYSaldosLineaDTO[]
-    items?: BalanceSumasYSaldosLineaDTO[]
-    totalDebe?: number
-    totalHaber?: number
-    totalSaldoDeudor?: number
-    totalSaldoAcreedor?: number
-    diferencia?: number
-    cuadrado?: boolean
+    lineas?: BalanceSumasYSaldosLineaDTO[];
+    items?: BalanceSumasYSaldosLineaDTO[];
+    totalDebe?: number;
+    totalHaber?: number;
+    totalSaldoDeudor?: number;
+    totalSaldoAcreedor?: number;
+    diferencia?: number;
+    cuadrado?: boolean;
 }
 
 export interface BalanceGeneralLineaDTO {
-    cuenta?: ReporteCuentaContableDTO | null
-    idCuentaContable?: number
-    codigoCuenta?: string | null
-    numeroCuenta?: string | null
-    cuentaNombre?: string | null
-    nombreCuenta?: string | null
-    cuentaContable?: string | null
-    tipoCuenta?: TipoCuentaContable | string | null
-    grupo?: string | null
-    importe?: number
-    saldo?: number
-    saldoDeudor?: number
-    saldoAcreedor?: number
+    cuenta?: ReporteCuentaContableDTO | null;
+    idCuentaContable?: number;
+    codigoCuenta?: string | null;
+    numeroCuenta?: string | null;
+    cuentaNombre?: string | null;
+    nombreCuenta?: string | null;
+    cuentaContable?: string | null;
+    tipoCuenta?: TipoCuentaContable | string | null;
+    grupo?: string | null;
+    importe?: number;
+    saldo?: number;
+    saldoDeudor?: number;
+    saldoAcreedor?: number;
 }
 
 export interface BalanceGeneralReporteDTO extends ReporteContableBaseDTO {
-    lineas?: BalanceGeneralLineaDTO[]
-    items?: BalanceGeneralLineaDTO[]
-    activo?: BalanceGeneralLineaDTO[]
-    pasivo?: BalanceGeneralLineaDTO[]
-    patrimonio?: BalanceGeneralLineaDTO[]
-    totalActivo?: number
-    totalPasivo?: number
-    totalPatrimonio?: number
-    diferencia?: number
-    cuadrado?: boolean
+    lineas?: BalanceGeneralLineaDTO[];
+    items?: BalanceGeneralLineaDTO[];
+    activo?: BalanceGeneralLineaDTO[];
+    pasivo?: BalanceGeneralLineaDTO[];
+    patrimonio?: BalanceGeneralLineaDTO[];
+    totalActivo?: number;
+    totalPasivo?: number;
+    totalPatrimonio?: number;
+    diferencia?: number;
+    cuadrado?: boolean;
 }
 
 export interface BalanceResultadosLineaDTO {
-    cuenta?: ReporteCuentaContableDTO | null
-    idCuentaContable?: number
-    codigoCuenta?: string | null
-    numeroCuenta?: string | null
-    cuentaNombre?: string | null
-    nombreCuenta?: string | null
-    cuentaContable?: string | null
-    tipoCuenta?: TipoCuentaContable | string | null
-    grupo?: string | null
-    importe?: number
-    saldo?: number
-    saldoDeudor?: number
-    saldoAcreedor?: number
+    cuenta?: ReporteCuentaContableDTO | null;
+    idCuentaContable?: number;
+    codigoCuenta?: string | null;
+    numeroCuenta?: string | null;
+    cuentaNombre?: string | null;
+    nombreCuenta?: string | null;
+    cuentaContable?: string | null;
+    tipoCuenta?: TipoCuentaContable | string | null;
+    grupo?: string | null;
+    importe?: number;
+    saldo?: number;
+    saldoDeudor?: number;
+    saldoAcreedor?: number;
 }
 
 export interface BalanceResultadosReporteDTO extends ReporteContableBaseDTO {
-    lineas?: BalanceResultadosLineaDTO[]
-    items?: BalanceResultadosLineaDTO[]
-    ingresos?: BalanceResultadosLineaDTO[]
-    costosGastos?: BalanceResultadosLineaDTO[]
-    gastos?: BalanceResultadosLineaDTO[]
-    totalIngresos?: number
-    totalCostosGastos?: number
-    totalGastos?: number
-    resultadoNeto?: number
+    lineas?: BalanceResultadosLineaDTO[];
+    items?: BalanceResultadosLineaDTO[];
+    ingresos?: BalanceResultadosLineaDTO[];
+    costosGastos?: BalanceResultadosLineaDTO[];
+    gastos?: BalanceResultadosLineaDTO[];
+    totalIngresos?: number;
+    totalCostosGastos?: number;
+    totalGastos?: number;
+    resultadoNeto?: number;
 }
 
 export interface Empleado {
-    idEmpleado: number
-    ci: string
-    ruc: string
-    fechaIngreso: string
-    idDireccion: number
-    direccion: Direccion
-    nombres: string
-    apellidos: string
-    correo: string
-    telefono: string
+    idEmpleado: number;
+    ci: string;
+    ruc: string;
+    fechaIngreso: string;
+    idDireccion: number;
+    direccion: Direccion;
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
 }
 
 export interface EmpleadoSaveDTO {
-    ci: string
-    ruc: string
-    fechaIngreso: string
+    ci: string;
+    ruc: string;
+    fechaIngreso: string;
     direccion: {
-        calle1: string
-        calle2: string | null
-        descripcion: string | null
-        idPais: number
-        idCiudad: number
-    }
-    nombres: string
-    apellidos: string
-    correo: string
-    telefono: string
+        calle1: string;
+        calle2: string | null;
+        descripcion: string | null;
+        idPais: number;
+        idCiudad: number;
+    };
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
 }
 
 export interface EmpleadoFormState {
-    ci: string
-    ruc: string
-    fechaIngreso: string
-    nombres: string
-    apellidos: string
-    correo: string
-    telefono: string
+    ci: string;
+    ruc: string;
+    fechaIngreso: string;
+    nombres: string;
+    apellidos: string;
+    correo: string;
+    telefono: string;
 
-    idPais: string
-    idCiudad: string
+    idPais: string;
+    idCiudad: string;
 
-    calle1: string
-    calle2: string
-    descripcionDireccion: string
+    calle1: string;
+    calle2: string;
+    descripcionDireccion: string;
 }
-
 export interface Pariente {
-    idPariente: number
-    idEmpleado: number
-    tipoRelacion: string
-    edad: number
-    fechaNacimiento: string
+    idPariente: number;
+    idEmpleado: number;
+    nombre: string;
+    apellido: string;
+    ci: string;
+    tipoRelacion: string;
+    edad: number;
+    fechaNacimiento: string;
 
     empleado: {
-        idEmpleado: number
-        nombres: string
-        apellidos: string
-    }
+        idEmpleado: number;
+        nombres: string;
+        apellidos: string;
+    };
 }
 
 export interface ParienteSaveDTO {
-    idEmpleado: number
-    tipoRelacion: string
-    edad: number
-    fechaNacimiento: string
+    idEmpleado: number;
+    nombre: string;
+    apellido: string;
+    ci: string;
+    tipoRelacion: string;
+    edad: number;
+    fechaNacimiento: string;
 }
 
 export interface ParienteFormState {
-    idEmpleado: string
-    tipoRelacion: string
-    edad: string
-    fechaNacimiento: string
+    idEmpleado: string;
+    nombre: string;
+    apellido: string;
+    ci: string;
+    tipoRelacion: string;
+    edad: string;
+    fechaNacimiento: string;
 }
 
 export interface Cargo {
-    idCargo: number
-    nombre: string
-    descripcion: string | null
-    activo: boolean
+    idCargo: number;
+    nombre: string;
+    descripcion: string | null;
+    activo: boolean;
 }
 
 export interface CargoSaveDTO {
-    idCargo?: number
-    nombre: string
-    descripcion: string | null
-    activo: boolean
+    idCargo?: number;
+    nombre: string;
+    descripcion: string | null;
+    activo: boolean;
 }
 
 export interface ConceptoSalario {
-    idConceptoSalario: number
-    codigo: string
-    descripcion: string
-    tipo: string
-    deducibleIps: boolean
-    esSalarioBase: boolean
-    esIps: boolean
-    esBonificacionFamiliar: boolean
-    activo: boolean
+    idConceptoSalario: number;
+    codigo: string;
+    descripcion: string;
+    tipo: string;
+    deducibleIps: boolean;
+    esSalarioBase: boolean;
+    esIps: boolean;
+    esBonificacionFamiliar: boolean;
+    activo: boolean;
 }
 
 export interface ConceptoSalarioSaveDTO {
-    idConceptoSalario?: number
-    codigo: string
-    descripcion: string
-    tipo: string
-    deducibleIps: boolean
-    esSalarioBase: boolean
-    esIps: boolean
-    esBonificacionFamiliar: boolean
-    activo: boolean
+    idConceptoSalario?: number;
+    codigo: string;
+    descripcion: string;
+    tipo: string;
+    deducibleIps: boolean;
+    esSalarioBase: boolean;
+    esIps: boolean;
+    esBonificacionFamiliar: boolean;
+    activo: boolean;
 }
 
 export interface ParametroSalario {
-    idParametroSalario: number
-    fechaDesde: string
-    fechaHasta: string | null
-    salarioMinimo: number
-    porcentajeIpsEmpleado: number
-    porcentajeBonificacionFamiliar: number
-    activo: boolean
+    idParametroSalario: number;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    salarioMinimo: number;
+    porcentajeIpsEmpleado: number;
+    porcentajeBonificacionFamiliar: number;
+    activo: boolean;
 }
 
 export interface ParametroSalarioSaveDTO {
-    idParametroSalario?: number
-    fechaDesde: string
-    fechaHasta: string | null
-    salarioMinimo: number
-    porcentajeIpsEmpleado: number
-    porcentajeBonificacionFamiliar: number
-    activo: boolean
+    idParametroSalario?: number;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    salarioMinimo: number;
+    porcentajeIpsEmpleado: number;
+    porcentajeBonificacionFamiliar: number;
+    activo: boolean;
 }
 
 export interface EmpleadoCargo {
-    idEmpleadoCargo: number
-    idEmpleado: number
-    empleado: string
-    idCargo: number
-    cargo: string
-    fechaDesde: string
-    fechaHasta: string | null
-    activo: boolean
+    idEmpleadoCargo: number;
+    idEmpleado: number;
+    empleado: string;
+    idCargo: number;
+    cargo: string;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    activo: boolean;
 }
 
 export interface EmpleadoCargoSaveDTO {
-    idEmpleadoCargo?: number
-    idEmpleado: number
-    idCargo: number
-    fechaDesde: string
-    fechaHasta: string | null
-    activo: boolean
+    idEmpleadoCargo?: number;
+    idEmpleado: number;
+    idCargo: number;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    activo: boolean;
 }
 
 export interface EmpleadoConceptoMensual {
-    idEmpleadoConceptoMensual: number
-    idEmpleado: number
-    empleado: string
-    idConceptoSalario: number
-    conceptoSalario: string
-    monto: number
-    fechaDesde: string
-    fechaHasta: string | null
-    activo: boolean
+    idEmpleadoConceptoMensual: number;
+    idEmpleado: number;
+    empleado: string;
+    idConceptoSalario: number;
+    conceptoSalario: string;
+    monto: number;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    activo: boolean;
 }
 
 export interface EmpleadoConceptoMensualSaveDTO {
-    idEmpleadoConceptoMensual?: number
-    idEmpleado: number
-    idConceptoSalario: number
-    monto: number
-    fechaDesde: string
-    fechaHasta: string | null
-    activo: boolean
+    idEmpleadoConceptoMensual?: number;
+    idEmpleado: number;
+    idConceptoSalario: number;
+    monto: number;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    activo: boolean;
 }
 
 export interface ProcesoPagoSalario {
-    idProcesoPagoSalario: number
-    periodoAnho: number
-    periodoMes: number
-    fechaPago: string
-    estado: string
-    idAsiento: number | null
-    totalIngresos: number
-    totalEgresos: number
-    totalNeto: number
-    createdAt: string
-    cerradoAt: string | null
+    idProcesoPagoSalario: number;
+    periodoAnho: number;
+    periodoMes: number;
+    fechaPago: string;
+    estado: string;
+    idAsiento: number | null;
+    totalIngresos: number;
+    totalEgresos: number;
+    totalNeto: number;
+    createdAt: string;
+    cerradoAt: string | null;
 }
 
 export interface ProcesoPagoSalarioSaveDTO {
-    periodoAnho: number
-    periodoMes: number
-    fechaPago: string
+    periodoAnho: number;
+    periodoMes: number;
+    fechaPago: string;
 }
 
 export interface PagoSalarioDetalle {
-    idPagoSalarioDetalle: number
-    idProcesoPagoSalario: number
-    idEmpleado: number
-    empleado: string
-    idConceptoSalario: number
-    conceptoSalario: string
-    tipo: string
-    monto: number
-    deducibleIps: boolean
-    esAutomatico: boolean
-    observacion: string | null
+    idPagoSalarioDetalle: number;
+    idProcesoPagoSalario: number;
+    idEmpleado: number;
+    empleado: string;
+    idConceptoSalario: number;
+    conceptoSalario: string;
+    tipo: string;
+    monto: number;
+    deducibleIps: boolean;
+    esAutomatico: boolean;
+    observacion: string | null;
 }
 
 export interface PagoSalarioDetalleSaveDTO {
-    idEmpleado: number
-    idConceptoSalario: number
-    monto: number
-    observacion: string | null
+    idEmpleado: number;
+    idConceptoSalario: number;
+    monto: number;
+    observacion: string | null;
 }
 
 export interface CerrarProcesoPagoSalarioDTO {
-    idModulo: number
-    idCuentaGastoSalarios: number
-    idCuentaPago: number
-    idCuentaIpsPagar: number | null
-    idCuentaOtrosEgresosPagar: number | null
-    descripcionAsiento: string | null
+    idModulo: number;
+    idCuentaGastoSalarios: number;
+    idCuentaPago: number;
+    idCuentaIpsPagar: number | null;
+    idCuentaOtrosEgresosPagar: number | null;
+    descripcionAsiento: string | null;
 }
 
 export interface ReciboPagoSalario {
-    copia: string
-    idProcesoPagoSalario: number
-    idEmpleado: number
-    empleado: string
-    ci: string
-    ruc: string
-    periodoAnho: number
-    periodoMes: number
-    fechaPago: string
-    ingresos: PagoSalarioDetalle[]
-    egresos: PagoSalarioDetalle[]
-    totalIngresos: number
-    totalEgresos: number
-    netoPagar: number
+    copia: string;
+    idProcesoPagoSalario: number;
+    idEmpleado: number;
+    empleado: string;
+    ci: string;
+    ruc: string;
+    periodoAnho: number;
+    periodoMes: number;
+    fechaPago: string;
+    ingresos: PagoSalarioDetalle[];
+    egresos: PagoSalarioDetalle[];
+    totalIngresos: number;
+    totalEgresos: number;
+    netoPagar: number;
 }
 
 export interface CotizacionDTO {
-    idPedidoCotizacion: number
-    idPedidoCompra: number
-    idEstado: number
-    idProveedor: number
-    numeroPedido: number
-    fecha: string
-    validaHasta?: string | null
-    estado?: string
-    proveedor?: Proveedor
+    idPedidoCotizacion: number;
+    idPedidoCompra: number;
+    idEstado: number;
+    idProveedor: number;
+    numeroPedido: number;
+    fecha: string;
+    validaHasta?: string | null;
+    estado?: string;
+    proveedor?: Proveedor;
 }
 
 export interface CotizacionSaveDTO {
-    idPedidoCompra: number
-    idEstado: number
-    idProveedor: number
-    numeroPedido: number
-    fecha: string
+    idPedidoCompra: number;
+    idEstado: number;
+    idProveedor: number;
+    numeroPedido: number;
+    fecha: string;
 }
 
 export interface CotizacionDetalleDTO {
-    idPedidoCotizacionDetalle: number
-    idPedidoCotizacion: number
-    idProducto: number
-    idCategoria: number
-    descripcion: string
-    cantidad: number
-    precioProducto: number
-    descuento: number
+    idPedidoCotizacionDetalle: number;
+    idPedidoCotizacion: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+    precioProducto: number;
+    descuento: number;
 }
 
 export interface CotizacionDetalleSaveDTO {
-    idPedidoCotizacion: number
-    idProducto: number
-    idCategoria: number
-    descripcion: string
-    cantidad: number
-    precioProducto: number
-    descuento: number
+    idPedidoCotizacion: number;
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+    precioProducto: number;
+    descuento: number;
 }
 
-export type CotizacionDetalleCompletoSaveDTO = Omit<CotizacionDetalleSaveDTO, "idPedidoCotizacion">
+export type CotizacionDetalleCompletoSaveDTO = Omit<
+    CotizacionDetalleSaveDTO,
+    "idPedidoCotizacion"
+>;
 
 export interface CotizacionCompletaSaveDTO extends CotizacionSaveDTO {
-    detalles: CotizacionDetalleCompletoSaveDTO[]
+    detalles: CotizacionDetalleCompletoSaveDTO[];
 }
 
 export interface CotizacionItemForm {
@@ -1231,7 +1242,8 @@ export interface OrdenPagoCompraDetalle {
     medioPago?: string;
 }
 
-export interface FacturaCompraDetalleBulkDTO extends FacturaCompraDetalleSaveDTO {}
+export interface FacturaCompraDetalleBulkDTO
+    extends FacturaCompraDetalleSaveDTO { }
 
 export interface OrdenPagoCompra {
     idOrdenPagoCompra: number;

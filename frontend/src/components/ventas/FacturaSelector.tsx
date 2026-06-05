@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { FacturaVentaCabecera } from "@/types/types";
-import { formatearNumeroFactura } from "@/utils/factura-format"; 
+import { formatearNumeroFactura } from "@/utils/factura-format";
 
 interface FacturaSelectorProps {
   facturas: FacturaVentaCabecera[];
@@ -26,10 +26,10 @@ interface FacturaSelectorProps {
   selectedFacturaId?: number | null;
 }
 
-export function FacturaSelector({ 
-  facturas, 
-  onSelectFactura, 
-  selectedFacturaId 
+export function FacturaSelector({
+  facturas,
+  onSelectFactura,
+  selectedFacturaId,
 }: FacturaSelectorProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -41,20 +41,24 @@ export function FacturaSelector({
 
     const lowerSearch = search.toLowerCase();
     return facturas.filter((f) => {
-      const nroFormateado = formatearNumeroFactura(f.idFacturaVenta).toLowerCase();
+      const nroComp = f.nroComprobante.toString();
+      const nroFormateado = formatearNumeroFactura(
+        f.idFacturaVenta,
+      ).toLowerCase();
       const idStr = f.idFacturaVenta.toString();
-      const infoCliente = f.cliente ? f.cliente.toLowerCase() : ""; 
+      const infoCliente = f.cliente ? f.cliente.toLowerCase() : "";
 
       return (
-        nroFormateado.includes(lowerSearch) || 
-        idStr.includes(lowerSearch) || 
+        nroComp.includes(lowerSearch) ||
+        nroFormateado.includes(lowerSearch) ||
+        idStr.includes(lowerSearch) ||
         infoCliente.includes(lowerSearch)
       );
     });
   }, [search, facturas]);
 
   const facturaSeleccionada = facturas.find(
-    (f) => f.idFacturaVenta === selectedFacturaId
+    (f) => f.idFacturaVenta === selectedFacturaId,
   );
 
   return (
@@ -73,13 +77,13 @@ export function FacturaSelector({
           >
             <span className="truncate font-medium text-slate-700">
               {facturaSeleccionada
-                ? formatearNumeroFactura(facturaSeleccionada.idFacturaVenta)
+                ? `Fact. ${facturaSeleccionada.nroComprobante}`
                 : "Buscar factura..."}
             </span>
             <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        
+
         <PopoverContent className="w-[350px] p-0" align="start">
           <Command>
             <CommandInput
@@ -93,16 +97,18 @@ export function FacturaSelector({
               </CommandEmpty>
               <CommandGroup>
                 {facturasFiltradas.slice(0, 20).map((fact) => {
-                  const nroFormateado = formatearNumeroFactura(fact.idFacturaVenta);
-                  
+                  const nroFormateado = formatearNumeroFactura(
+                    fact.idFacturaVenta,
+                  );
+
                   return (
                     <CommandItem
                       key={fact.idFacturaVenta}
-                      value={`${nroFormateado} ${fact.idFacturaVenta} ${fact.cliente}`}
+                      value={`${fact.nroComprobante} ${nroFormateado} ${fact.idFacturaVenta} ${fact.cliente}`}
                       onSelect={() => {
                         onSelectFactura(fact.idFacturaVenta);
                         setOpen(false); // Cierra el popover limpiamente
-                        setSearch("");  // Resetea el filtro de búsqueda
+                        setSearch(""); // Resetea el filtro de búsqueda
                       }}
                       className="text-xs flex items-center justify-between cursor-pointer py-2 px-2.5"
                     >
@@ -112,17 +118,17 @@ export function FacturaSelector({
                             "h-3.5 w-3.5 text-amber-600",
                             selectedFacturaId === fact.idFacturaVenta
                               ? "opacity-100"
-                              : "opacity-0"
+                              : "opacity-0",
                           )}
                         />
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900">{nroFormateado}</span>
+                          <span className="font-bold text-slate-900">{`Fact. ${fact.nroComprobante}`}</span>
                           <span className="text-[11px] text-muted-foreground">
                             Cliente: {fact.cliente || `ID: ${fact.idCliente}`}
                           </span>
                         </div>
                       </div>
-                      
+
                       {/*<span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-medium border border-green-200 shrink-0">
                         Emitido
                       </span>*/}

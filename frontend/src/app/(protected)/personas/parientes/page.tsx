@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Pencil, Search, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +22,6 @@ import { FormSheet } from "@/components/shared/form-sheet";
 import { ParienteForm } from "@/components/personas/parientes-form";
 import { empleadosAPI } from "@/services/empleadosAPI";
 import { parientesAPI } from "@/services/parientesAPI";
-import { formatearFecha } from "@/utils/date-utils";
 import { Empleado, Pariente, ParienteSaveDTO } from "@/types/types";
 import { notify } from "@/lib/notifications";
 
@@ -32,14 +30,14 @@ export default function ParientesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
-  const [todosLosParientes, setTodosLosParientes] = useState<Pariente[]>([]);
+  const [parientes, setParientes] = useState<Pariente[]>([]);
   const [parienteAEditar, setParienteAEditar] = useState<Pariente | null>(null);
   const [parienteAEliminar, setParienteAEliminar] = useState<Pariente | null>(
     null,
   );
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
 
   const cargarPagina = async () => {
@@ -47,12 +45,13 @@ export default function ParientesPage() {
 
     try {
       const [resParientes, resEmpleados] = await Promise.all([
-        parientesAPI.getAll(1, 300),
+        parientesAPI.getAll(currentPage, itemsPerPage),
 
         empleadosAPI.getAll(1, 999),
       ]);
 
-      setTodosLosParientes(resParientes.items);
+      setParientes(resParientes.items);
+      setTotalPages(resParientes.totalPages);
       setEmpleados(resEmpleados.items);
     } catch (error) {
       console.error("Error al cargar parientes:", error);
@@ -65,40 +64,7 @@ export default function ParientesPage() {
 
   useEffect(() => {
     cargarPagina();
-  }, []);
-
-  const parientesFiltrados = useMemo(() => {
-    if (!searchTerm.trim()) return todosLosParientes;
-
-    const query = searchTerm.toLowerCase().trim();
-    return todosLosParientes.filter((p) => {
-      const empleado =
-        `${p.empleado?.nombres ?? ""} ${p.empleado?.apellidos ?? ""}`
-          .toLowerCase()
-          .trim();
-      const tipo = (p.tipoRelacion ?? "").toLowerCase();
-      const edad = String(p.edad ?? "").toLowerCase();
-      const fecha = (p.fechaNacimiento ?? "").toLowerCase();
-      return (
-        empleado.includes(query) ||
-        tipo.includes(query) ||
-        edad.includes(query) ||
-        fecha.includes(query)
-      );
-    });
-  }, [searchTerm, todosLosParientes]);
-
-  const totalPages = Math.ceil(parientesFiltrados.length / itemsPerPage) || 1;
-
-  const parientesVisiblesEnPagina = useMemo(() => {
-    const primerItemIndex = (currentPage - 1) * itemsPerPage;
-    const ultimoItemIndex = primerItemIndex + itemsPerPage;
-    return parientesFiltrados.slice(primerItemIndex, ultimoItemIndex);
-  }, [currentPage, itemsPerPage, parientesFiltrados]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  }, [currentPage]);
 
   const handleCrearNuevo = () => {
     setParienteAEditar(null);
@@ -156,9 +122,10 @@ export default function ParientesPage() {
       <PageBreadcrumb
         steps={[
           {
-            label: "RRHH",
-            href: "/personas/empleados",
+            label: "Personas",
+            href: "#",
           },
+
           {
             label: "Parientes",
           },
@@ -170,28 +137,6 @@ export default function ParientesPage() {
         buttonLabel="Nuevo Pariente"
         onButtonClick={handleCrearNuevo}
       />
-
-      <div className="my-4 flex items-center max-w-md relative">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por empleado, relación, edad o fecha..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
-          />
-          {searchTerm && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchTerm("")}
-              className="absolute right-1 top-1 h-7 w-7 hover:bg-transparent text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
@@ -228,68 +173,66 @@ export default function ParientesPage() {
           onPageChange={(page) => setCurrentPage(page)}
           headerRow={
             <TableRow>
-              <TableHead>Nombre</TableHead>
-
-              <TableHead>Apellido</TableHead>
-
+              <TableHead>Nombre Completo</TableHead>
+              <TableHead>CI</TableHead>
+              <TableHead>Empleado</TableHead>
               <TableHead>Tipo Relación</TableHead>
-
               <TableHead>Edad</TableHead>
-
               <TableHead>Fecha Nacimiento</TableHead>
-
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           }
         >
-          {parientesVisiblesEnPagina.map((p) => (
-            <TableRow key={p.idPariente}>
-              <TableCell>{p.empleado.nombres}</TableCell>
-              <TableCell> {p.empleado.apellidos}</TableCell>
-
-              <TableCell>{p.tipoRelacion}</TableCell>
-
-              <TableCell>{p.edad}</TableCell>
-
-              <TableCell>{formatearFecha(p.fechaNacimiento)}</TableCell>
-
-              <TableCell className="text-right space-x-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="cursor-pointer"
-                  onClick={() => handleEditar(p)}
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setParienteAEliminar(p);
-
-                    setIsAlertOpen(true);
-                  }}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-
-          {parientesVisiblesEnPagina.length === 0 && (
+          {parientes.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={5}
-                className="py-10 text-center text-muted-foreground text-sm"
+                colSpan={8}
+                className="h-24 text-center text-muted-foreground"
               >
-                {searchTerm.trim()
-                  ? "No hay parientes que coincidan con la búsqueda."
-                  : "No hay parientes registrados."}
+                No hay parientes registrados.
               </TableCell>
             </TableRow>
+          ) : (
+            parientes.map((p) => (
+              <TableRow key={p.idPariente}>
+                <TableCell>
+                  {p.nombre} {p.apellido}
+                </TableCell>
+                <TableCell>{p.ci}</TableCell>
+                <TableCell>
+                  {p.empleado.nombres} {p.empleado.apellidos}
+                </TableCell>
+                <TableCell>{p.tipoRelacion}</TableCell>
+
+                <TableCell>{p.edad}</TableCell>
+
+                <TableCell>{p.fechaNacimiento}</TableCell>
+
+                <TableCell className="text-right space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer"
+                    onClick={() => handleEditar(p)}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setParienteAEliminar(p);
+
+                      setIsAlertOpen(true);
+                    }}
+                  >
+                    <Trash2 className="size-3.5 text-destructive" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
           )}
         </DataTable>
       )}

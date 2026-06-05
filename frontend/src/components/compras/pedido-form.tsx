@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { FormContainer } from "@/components/FormContainer"
-import { FieldWrapper } from "@/components/FieldWrapper"
-import { PedidoItemsTable } from "@/components/compras/pedido-item-table"
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { FormContainer } from "@/components/FormContainer";
+import { FieldWrapper } from "@/components/FieldWrapper";
+import { PedidoItemsTable } from "@/components/compras/pedido-item-table";
 import {
   AgregarProductosModal,
   ProductoSeleccionable,
   ProductoSeleccionadoParaPedido,
-} from "@/components/compras/agregar-producto-view"
-import { productosAPI } from "@/services/productosAPI"
-import { FormSheet } from "@/components/shared/form-sheet"
-import { ProductoForm } from "@/components/stock/producto-form"
+} from "@/components/compras/agregar-producto-view";
+import { productosAPI } from "@/services/productosAPI";
+import { FormSheet } from "@/components/shared/form-sheet";
+import { ProductoForm } from "@/components/stock/producto-form";
 
 export interface PedidoItem {
   id: number | string;
@@ -51,28 +51,28 @@ export function PedidoForm({
     fecha: new Date().toISOString().split("T")[0],
     estado: "Pendiente",
     items: [],
-  })
+  });
 
-  const [productos, setProductos] = useState<ProductoSeleccionable[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [itemsPerPage] = useState(10)
+  const [productos, setProductos] = useState<ProductoSeleccionable[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10);
 
-  const [isModalProductosOpen, setIsModalProductosOpen] = useState(false)
-  const [sheetProductoOpen, setSheetProductoOpen] = useState(false)
+  const [isModalProductosOpen, setIsModalProductosOpen] = useState(false);
+  const [sheetProductoOpen, setSheetProductoOpen] = useState(false);
 
   // Si está en modo lectura (parámetro en URL), bloqueamos la edición por completo
-  const esEditable = readOnly ? false : formData.estado === "Pendiente"
+  const esEditable = readOnly ? false : formData.estado === "Pendiente";
 
   useEffect(() => {
     if (pedidoEditado) {
-      setFormData(pedidoEditado)
+      setFormData(pedidoEditado);
     }
-  }, [pedidoEditado])
+  }, [pedidoEditado]);
 
   const cargarProductos = async () => {
     try {
-      const res = await productosAPI.getAll(currentPage, itemsPerPage)
+      const res = await productosAPI.getAll(currentPage, itemsPerPage);
 
       const mapeados: ProductoSeleccionable[] = res.items.map((p) => ({
         id: p.idProducto,
@@ -82,63 +82,63 @@ export function PedidoForm({
         categoria: p.categoria,
         precio: p.precioUnitario,
         disponible: p.cantidadTotal,
-      }))
+      }));
 
-      setProductos(mapeados)
-      setTotalPages(res.totalPages)
+      setProductos(mapeados);
+      setTotalPages(res.totalPages);
     } catch (error) {
-      console.error("Error al cargar productos:", error)
+      console.error("Error al cargar productos:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    cargarProductos()
-  }, [currentPage])
+    cargarProductos();
+  }, [currentPage]);
 
   const updateField = (field: keyof Pedido, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const updateItem = (
     index: number,
     field: keyof PedidoItem,
     value: string | number,
   ) => {
-    const items = [...formData.items]
-    items[index] = { ...items[index], [field]: value } as PedidoItem
-    setFormData((prev) => ({ ...prev, items }))
-  }
+    const items = [...formData.items];
+    items[index] = { ...items[index], [field]: value } as PedidoItem;
+    setFormData((prev) => ({ ...prev, items }));
+  };
 
   const handleDeleteItem = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.filter((_, i) => i !== index),
-    }))
-  }
+    }));
+  };
 
   const handleAgregarProductos = (
     productosSeleccionados: ProductoSeleccionadoParaPedido[],
   ) => {
     setFormData((prev) => {
       const nuevosItems: PedidoItem[] = productosSeleccionados.map((nuevo) => {
-        const itemAnterior = prev.items.find(i => i.idProducto === nuevo.id)
+        const itemAnterior = prev.items.find((i) => i.idProducto === nuevo.id);
 
         return {
-          id: itemAnterior ? itemAnterior.id : (Date.now() + nuevo.id),
+          id: itemAnterior ? itemAnterior.id : Date.now() + nuevo.id,
           idProducto: nuevo.id,
           idCategoria: nuevo.idCategoria,
           cantidad: nuevo.cantidad,
           descripcion: nuevo.descripcion,
           categoria: nuevo.categoria,
           esNuevo: !itemAnterior,
-        }
-      })
+        };
+      });
 
-      return { ...prev, items: nuevosItems }
-    })
+      return { ...prev, items: nuevosItems };
+    });
 
-    setIsModalProductosOpen(false)
-  }
+    setIsModalProductosOpen(false);
+  };
 
   // Almacenamos el contenido visual común para no duplicar código JSX
   const renderFormFields = () => (
@@ -171,8 +171,9 @@ export function PedidoForm({
             value={formData.estado}
             onChange={(e) => updateField("estado", e.target.value)}
             disabled={!esEditable}
-            className={`w-full h-9 rounded-md border px-3 text-sm ${!esEditable ? "bg-gray-100 cursor-not-allowed" : ""
-              }`}
+            className={`w-full h-9 rounded-md border px-3 text-sm ${
+              !esEditable ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
           >
             <option value="Pendiente">Pendiente</option>
             <option value="Aprobado">Aprobado</option>
@@ -184,7 +185,9 @@ export function PedidoForm({
 
       {/* MODIFICACIÓN: Título y Botón alineados en la misma fila para ahorrar espacio vertical */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">Productos del Pedido</span>
+        <span className="text-sm font-medium text-muted-foreground">
+          Productos del Pedido
+        </span>
         {esEditable && (
           <Button
             type="button"
@@ -229,14 +232,14 @@ export function PedidoForm({
           categorias={[]}
           marcas={[]}
           onSubmit={() => {
-            setSheetProductoOpen(false)
-            cargarProductos()
+            setSheetProductoOpen(false);
+            cargarProductos();
           }}
           onCancel={() => setSheetProductoOpen(false)}
         />
       </FormSheet>
     </>
-  )
+  );
 
   // SI ES READONLY: Retornamos usando una estructura regular de HTML para no alterar el FormContainer global
   if (readOnly) {
@@ -254,15 +257,15 @@ export function PedidoForm({
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   // SI ES EDICIÓN / ALTA NORMAL: Retorna usando tu FormContainer de siempre
   return (
     <FormContainer
       onSubmit={(e) => {
-        e.preventDefault()
-        onSubmit(formData)
+        e.preventDefault();
+        onSubmit(formData);
       }}
       onCancel={onCancel}
       isEditing={!!pedidoEditado}
@@ -270,5 +273,5 @@ export function PedidoForm({
     >
       {renderFormFields()}
     </FormContainer>
-  )
+  );
 }
