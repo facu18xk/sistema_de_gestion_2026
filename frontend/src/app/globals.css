@@ -128,3 +128,39 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .payroll-receipt-dialog,
+  .payroll-receipt-dialog *,
+  .payroll-receipts,
+  .payroll-receipts * {
+    visibility: visible;
+  }
+
+  .payroll-receipt-dialog {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  .payroll-receipts {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .payroll-receipt {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 0 0 16px !important;
+    border: 1px solid #111 !important;
+  }
+}

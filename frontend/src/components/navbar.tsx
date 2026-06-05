@@ -81,6 +81,12 @@ const modulos = [
         items: [
             { title: "Empleados", href: "/personas/empleados" },
             { title: "Parientes", href: "/personas/parientes" },
+            { title: "Cargos", href: "/personas/cargos" },
+            { title: "Cargos de empleados", href: "/personas/empleados-cargos" },
+            { title: "Conceptos salariales", href: "/personas/conceptos-salariales" },
+            { title: "Parámetros salariales", href: "/personas/parametros-salariales" },
+            { title: "Conceptos mensuales", href: "/personas/conceptos-mensuales" },
+            { title: "Nómina", href: "/personas/nomina" },
         ],
     },
     {

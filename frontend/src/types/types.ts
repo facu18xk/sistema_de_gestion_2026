@@ -879,6 +879,173 @@ export interface ParienteFormState {
     fechaNacimiento: string
 }
 
+export interface Cargo {
+    idCargo: number
+    nombre: string
+    descripcion: string | null
+    activo: boolean
+}
+
+export interface CargoSaveDTO {
+    idCargo?: number
+    nombre: string
+    descripcion: string | null
+    activo: boolean
+}
+
+export interface ConceptoSalario {
+    idConceptoSalario: number
+    codigo: string
+    descripcion: string
+    tipo: string
+    deducibleIps: boolean
+    esSalarioBase: boolean
+    esIps: boolean
+    esBonificacionFamiliar: boolean
+    activo: boolean
+}
+
+export interface ConceptoSalarioSaveDTO {
+    idConceptoSalario?: number
+    codigo: string
+    descripcion: string
+    tipo: string
+    deducibleIps: boolean
+    esSalarioBase: boolean
+    esIps: boolean
+    esBonificacionFamiliar: boolean
+    activo: boolean
+}
+
+export interface ParametroSalario {
+    idParametroSalario: number
+    fechaDesde: string
+    fechaHasta: string | null
+    salarioMinimo: number
+    porcentajeIpsEmpleado: number
+    porcentajeBonificacionFamiliar: number
+    activo: boolean
+}
+
+export interface ParametroSalarioSaveDTO {
+    idParametroSalario?: number
+    fechaDesde: string
+    fechaHasta: string | null
+    salarioMinimo: number
+    porcentajeIpsEmpleado: number
+    porcentajeBonificacionFamiliar: number
+    activo: boolean
+}
+
+export interface EmpleadoCargo {
+    idEmpleadoCargo: number
+    idEmpleado: number
+    empleado: string
+    idCargo: number
+    cargo: string
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+}
+
+export interface EmpleadoCargoSaveDTO {
+    idEmpleadoCargo?: number
+    idEmpleado: number
+    idCargo: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+}
+
+export interface EmpleadoConceptoMensual {
+    idEmpleadoConceptoMensual: number
+    idEmpleado: number
+    empleado: string
+    idConceptoSalario: number
+    conceptoSalario: string
+    monto: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+}
+
+export interface EmpleadoConceptoMensualSaveDTO {
+    idEmpleadoConceptoMensual?: number
+    idEmpleado: number
+    idConceptoSalario: number
+    monto: number
+    fechaDesde: string
+    fechaHasta: string | null
+    activo: boolean
+}
+
+export interface ProcesoPagoSalario {
+    idProcesoPagoSalario: number
+    periodoAnho: number
+    periodoMes: number
+    fechaPago: string
+    estado: string
+    idAsiento: number | null
+    totalIngresos: number
+    totalEgresos: number
+    totalNeto: number
+    createdAt: string
+    cerradoAt: string | null
+}
+
+export interface ProcesoPagoSalarioSaveDTO {
+    periodoAnho: number
+    periodoMes: number
+    fechaPago: string
+}
+
+export interface PagoSalarioDetalle {
+    idPagoSalarioDetalle: number
+    idProcesoPagoSalario: number
+    idEmpleado: number
+    empleado: string
+    idConceptoSalario: number
+    conceptoSalario: string
+    tipo: string
+    monto: number
+    deducibleIps: boolean
+    esAutomatico: boolean
+    observacion: string | null
+}
+
+export interface PagoSalarioDetalleSaveDTO {
+    idEmpleado: number
+    idConceptoSalario: number
+    monto: number
+    observacion: string | null
+}
+
+export interface CerrarProcesoPagoSalarioDTO {
+    idModulo: number
+    idCuentaGastoSalarios: number
+    idCuentaPago: number
+    idCuentaIpsPagar: number | null
+    idCuentaOtrosEgresosPagar: number | null
+    descripcionAsiento: string | null
+}
+
+export interface ReciboPagoSalario {
+    copia: string
+    idProcesoPagoSalario: number
+    idEmpleado: number
+    empleado: string
+    ci: string
+    ruc: string
+    periodoAnho: number
+    periodoMes: number
+    fechaPago: string
+    ingresos: PagoSalarioDetalle[]
+    egresos: PagoSalarioDetalle[]
+    totalIngresos: number
+    totalEgresos: number
+    netoPagar: number
+}
+
 export interface CotizacionDTO {
     idPedidoCotizacion: number
     idPedidoCompra: number
