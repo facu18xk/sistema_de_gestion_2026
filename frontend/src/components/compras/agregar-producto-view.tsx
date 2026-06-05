@@ -57,6 +57,13 @@ interface AgregarProductosModalProps {
   onNuevoProducto: () => void;
 }
 
+type AgregarProductosViewProps = Omit<
+  AgregarProductosModalProps,
+  "isOpen" | "onClose"
+> & {
+  onCancel: () => void;
+};
+
 export function AgregarProductosModal({
   isOpen,
   onClose,
@@ -75,6 +82,7 @@ export function AgregarProductosModal({
     useState<ProductoConSeleccion | null>(null);
   const [sheetDetalleOpen, setSheetDetalleOpen] = useState(false);
 
+  // Memoria de seleccionados entre páginas
   const [memoriaSeleccionados, setMemoriaSeleccionados] = useState<
     Map<number, ProductoConSeleccion>
   >(new Map());
@@ -83,14 +91,6 @@ export function AgregarProductosModal({
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [filtroMarca, setFiltroMarca] = useState("");
   const [soloSeleccionados, setSoloSeleccionados] = useState(false);
-
-  const [pageSeleccionados, setPageSeleccionados] = useState(1);
-
-  const filasFijasObjetivo = 10;
-
-  useEffect(() => {
-    setPageSeleccionados(1);
-  }, [soloSeleccionados, filtroNombre, filtroCategoria, filtroMarca]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -166,6 +166,7 @@ export function AgregarProductosModal({
     );
   };
 
+  // FUNCIÓN DE FILTRADO REUTILIZABLE
   const cumpleFiltros = (p: ProductoConSeleccion) => {
     const coincideNombre = p.descripcion
       .toLowerCase()
@@ -179,46 +180,34 @@ export function AgregarProductosModal({
     return coincideNombre && coincideCategoria && coincideMarca;
   };
 
+  // NUEVA LÓGICA DE CONSTRUCCIÓN DE LA TABLA
   const obtenerProductosRenderizados = () => {
-    if (soloSeleccionados) {
-      const todosLosSeleccionados = Array.from(
-        memoriaSeleccionados.values(),
-      ).filter(cumpleFiltros);
-      todosLosSeleccionados.sort((a, b) => a.disponible - b.disponible);
+    const todosLosSeleccionados = Array.from(memoriaSeleccionados.values());
 
-      const inicio = (pageSeleccionados - 1) * filasFijasObjetivo;
-      return todosLosSeleccionados.slice(inicio, inicio + filasFijasObjetivo);
+    if (soloSeleccionados) {
+      return todosLosSeleccionados.filter(cumpleFiltros);
     }
 
-    return productosEstado
-      .filter(cumpleFiltros)
-      .sort((a, b) => a.disponible - b.disponible);
+    // 1. Siempre incluir TODOS los seleccionados que cumplan el filtro (independiente de la página)
+    const seleccionadosVisibles = todosLosSeleccionados.filter(cumpleFiltros);
+
+    // 2. Filtrar los productos de la página actual que cumplan con el filtro
+    const paginaActualFiltrada = productosEstado.filter(cumpleFiltros);
+
+    // 3. Unificar listas evitando duplicados (priorizando el estado de selección)
+    const mapaUnificados = new Map<number, ProductoConSeleccion>();
+
+    seleccionadosVisibles.forEach((p) => mapaUnificados.set(p.id, p));
+    paginaActualFiltrada.forEach((p) => {
+      if (!mapaUnificados.has(p.id)) {
+        mapaUnificados.set(p.id, p);
+      }
+    });
+
+    return Array.from(mapaUnificados.values());
   };
 
   const productosVisibles = obtenerProductosRenderizados();
-  const filasVaciasRestantes = Math.max(
-    0,
-    filasFijasObjetivo - productosVisibles.length,
-  );
-
-  const totalPagesSeleccionados =
-    Math.ceil(
-      Array.from(memoriaSeleccionados.values()).filter(cumpleFiltros).length /
-        filasFijasObjetivo,
-    ) || 1;
-
-  const activeCurrentPage = soloSeleccionados ? pageSeleccionados : currentPage;
-  const activeTotalPages = soloSeleccionados
-    ? totalPagesSeleccionados
-    : totalPages;
-
-  const handlePageChangeInternal = (newPage: number) => {
-    if (soloSeleccionados) {
-      setPageSeleccionados(newPage);
-    } else {
-      onPageChange(newPage);
-    }
-  };
 
   const cargarSeleccionados = () => {
     const seleccionados = Array.from(memoriaSeleccionados.values()).map(
@@ -228,7 +217,6 @@ export function AgregarProductosModal({
         categoria: p.categoria,
         idCategoria: p.idCategoria,
         precio: p.precio,
-        shadow: p.precio,
         cantidad: p.cantidadSeleccionada,
       }),
     );
@@ -239,7 +227,8 @@ export function AgregarProductosModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="!w-[90vw] md:!w-[85vw] md:!max-w-5xl h-[92vh] max-h-[92vh] flex flex-col p-5 overflow-hidden gap-0">
+        <DialogContent className="!w-[90vw] md:!w-[85vw] md:!max-w-5xl max-h-[92vh] flex flex-col p-5 overflow-hidden gap-0">
+          {/* Header del Modal */}
           <DialogHeader className="flex flex-row justify-between items-center space-y-0 pb-2">
             <DialogTitle className="text-lg font-bold tracking-tight">
               Agregar productos
@@ -255,8 +244,10 @@ export function AgregarProductosModal({
             </Button>
           </DialogHeader>
 
-          <div className="flex-1 flex flex-col min-h-0 space-y-2.5 py-1">
-            <div className="flex flex-col sm:flex-row items-center gap-2 bg-muted/40 p-1.5 rounded-lg border shrink-0">
+          {/* Cuerpo */}
+          <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 py-1">
+            {/* Filtros horizontales compactos */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 bg-muted/40 p-1.5 rounded-lg border">
               <div className="relative w-full sm:flex-1">
                 <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
                 <Input
@@ -281,6 +272,7 @@ export function AgregarProductosModal({
                 onChange={(e) => setFiltroMarca(e.target.value)}
               />
 
+              {/* Texto "Seleccionados" */}
               <div className="flex items-center gap-2 bg-background border px-2.5 h-8 rounded-md shadow-sm w-full sm:w-auto justify-center">
                 <input
                   type="checkbox"
@@ -298,161 +290,138 @@ export function AgregarProductosModal({
               </div>
             </div>
 
-            {/* Contenedor con altura estrictamente bloqueada para evitar saltos visuales */}
-            <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border shadow-sm bg-background">
-              <Table className="table-fixed w-full">
-                <TableHeader className="bg-muted/50 sticky top-0 z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)]">
-                  <TableRow className="h-9">
-                    <TableHead className="w-14 h-9 text-xs">ID</TableHead>
-                    <TableHead className="h-9 text-xs w-[240px]">
+            {/* Tabla de Productos */}
+            <div className="overflow-x-auto rounded-lg border shadow-sm bg-background">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="h-8">
+                    <TableHead className="w-14 h-8 py-0.5 text-xs">
+                      ID
+                    </TableHead>
+                    <TableHead className="h-8 py-0.5 text-xs w-[240px]">
                       Descripción
                     </TableHead>
-                    <TableHead className="h-9 text-xs">Marca</TableHead>
-                    <TableHead className="h-9 text-xs">Categoría</TableHead>
-                    <TableHead className="w-24 h-9 text-xs">Precio</TableHead>
-                    <TableHead className="w-14 text-center h-9 text-xs">
+                    <TableHead className="h-8 py-0.5 text-xs">Marca</TableHead>
+                    <TableHead className="h-8 py-0.5 text-xs">
+                      Categoría
+                    </TableHead>
+                    <TableHead className="w-24 h-8 py-0.5 text-xs">
+                      Precio
+                    </TableHead>
+                    <TableHead className="w-14 text-center h-8 py-0.5 text-xs">
                       Detalle
                     </TableHead>
-                    <TableHead className="w-16 text-center h-9 text-xs">
+                    <TableHead className="w-16 text-center h-8 py-0.5 text-xs">
                       Stock
                     </TableHead>
-                    <TableHead className="w-24 h-9 text-xs">Cantidad</TableHead>
-                    <TableHead className="w-20 text-center h-9 text-xs">
+                    <TableHead className="w-24 h-8 py-0.5 text-xs">
+                      Cantidad
+                    </TableHead>
+                    <TableHead className="w-20 text-center h-8 py-0.5 text-xs">
                       Seleccionar
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                {/* Forzamos al cuerpo a medir exactamente lo correspondiente a 10 filas de 44px */}
-                <TableBody className="min-h-[440px] max-h-[440px]">
+                <TableBody>
                   {productosVisibles.length === 0 ? (
-                    <TableRow className="h-[440px] hover:bg-transparent">
+                    <TableRow>
                       <TableCell
                         colSpan={9}
-                        className="text-center text-muted-foreground py-8 text-xs align-middle"
+                        className="text-center text-muted-foreground py-8 text-xs"
                       >
                         No se encontraron productos con los filtros aplicados.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    <>
-                      {productosVisibles.map((p) => {
-                        const bajoStock = p.disponible < 20;
-                        let rowClass = "hover:bg-muted/50";
-                        if (p.marcado) {
-                          rowClass =
-                            "bg-primary/10 hover:bg-primary/15 font-medium";
-                        } else if (bajoStock) {
-                          rowClass =
-                            "bg-amber-50/80 dark:bg-amber-950/20 hover:bg-amber-100/70 dark:hover:bg-amber-950/30 transition-colors";
-                        }
+                    productosVisibles.map((p) => (
+                      <TableRow
+                        key={p.id}
+                        className={`h-9 ${p.marcado ? "bg-primary/10 hover:bg-primary/15 transition-colors font-medium" : "hover:bg-muted/50"}`}
+                      >
+                        <TableCell className="font-mono text-[11px] text-muted-foreground py-0.5">
+                          #{p.id}
+                        </TableCell>
 
-                        return (
-                          <TableRow
-                            key={p.id}
-                            className={`h-[44px] max-h-[44px] transition-colors ${rowClass}`}
+                        <TableCell
+                          className="font-medium text-xs py-0.5 max-w-[240px] truncate"
+                          title={p.descripcion}
+                        >
+                          {p.descripcion}
+                        </TableCell>
+
+                        <TableCell className="text-xs text-muted-foreground py-0.5">
+                          {p.marca || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs py-0.5">
+                          {p.categoria}
+                        </TableCell>
+                        <TableCell className="font-semibold text-xs py-0.5">
+                          ${p.precio}
+                        </TableCell>
+                        <TableCell className="text-center py-0.5">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-6 rounded-md"
+                            onClick={() => {
+                              setProductoDetalle(p);
+                              setSheetDetalleOpen(true);
+                            }}
                           >
-                            <TableCell className="font-mono text-[11px] text-muted-foreground py-1">
-                              #{p.id}
-                            </TableCell>
-                            <TableCell
-                              className="font-medium text-xs py-1 max-w-[240px] truncate"
-                              title={p.descripcion}
-                            >
-                              {p.descripcion}
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground py-1 truncate">
-                              {p.marca || "—"}
-                            </TableCell>
-                            <TableCell className="text-xs py-1 truncate">
-                              {p.categoria}
-                            </TableCell>
-                            <TableCell className="font-semibold text-xs py-1">
-                              {new Intl.NumberFormat("es-PY", {
-                                style: "currency",
-                                currency: "PYG",
-                                maximumFractionDigits: 0,
-                              }).format(p.precio)}
-                            </TableCell>
-                            <TableCell className="text-center py-1">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-6 rounded-md"
-                                onClick={() => {
-                                  setProductoDetalle(p);
-                                  setSheetDetalleOpen(true);
-                                }}
-                              >
-                                <Menu className="size-3" />
-                              </Button>
-                            </TableCell>
-                            <TableCell
-                              className={`text-center font-medium text-xs py-1 ${bajoStock && !p.marcado ? "text-amber-700 dark:text-amber-400 font-bold" : ""}`}
-                            >
-                              {p.disponible}
-                            </TableCell>
-                            <TableCell className="py-1">
-                              <Input
-                                className="w-20 h-6 text-center font-medium text-xs px-1"
-                                type="number"
-                                min={0}
-                                placeholder="0"
-                                value={
-                                  p.cantidadSeleccionada === 0
-                                    ? ""
-                                    : p.cantidadSeleccionada
-                                }
-                                onChange={(e) => {
-                                  const val =
-                                    e.target.value === ""
-                                      ? 0
-                                      : Number(e.target.value);
-                                  actualizarProducto(p.id, {
-                                    cantidadSeleccionada: val,
-                                  });
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell className="text-center py-1">
-                              <input
-                                type="checkbox"
-                                className="size-3.5 accent-primary cursor-pointer"
-                                checked={p.marcado}
-                                onChange={(e) =>
-                                  actualizarProducto(p.id, {
-                                    marcado: e.target.checked,
-                                  })
-                                }
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                      {filasVaciasRestantes > 0 &&
-                        Array.from({ length: filasVaciasRestantes }).map(
-                          (_, index) => (
-                            <TableRow
-                              key={`empty-${index}`}
-                              className="h-[44px] max-h-[44px] border-transparent hover:bg-transparent"
-                            >
-                              <TableCell colSpan={9} className="py-1">
-                                &nbsp;
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        )}
-                    </>
+                            <Menu className="size-3" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="text-center font-medium text-xs py-0.5">
+                          {p.disponible}
+                        </TableCell>
+                        <TableCell className="py-0.5">
+                          <Input
+                            className="w-20 h-6 text-center font-medium text-xs px-1"
+                            type="number"
+                            min={0}
+                            placeholder="0"
+                            value={
+                              p.cantidadSeleccionada === 0
+                                ? ""
+                                : p.cantidadSeleccionada
+                            }
+                            onChange={(e) => {
+                              const val =
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value);
+                              actualizarProducto(p.id, {
+                                cantidadSeleccionada: val,
+                              });
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center py-0.5">
+                          <input
+                            type="checkbox"
+                            className="size-3.5 accent-primary cursor-pointer"
+                            checked={p.marcado}
+                            onChange={(e) =>
+                              actualizarProducto(p.id, {
+                                marcado: e.target.checked,
+                              })
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-between items-center pt-2 shrink-0">
+          {/* Footer del Modal */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-between items-center pt-2">
             <div className="flex items-center gap-2 bg-muted/60 px-2.5 py-1 rounded-lg border text-xs">
               <span className="font-medium text-muted-foreground">
-                Página {activeCurrentPage} de {activeTotalPages}
+                Página {currentPage} de {totalPages}
               </span>
               <div className="flex gap-1 ml-1">
                 <Button
@@ -460,10 +429,8 @@ export function AgregarProductosModal({
                   variant="outline"
                   size="sm"
                   className="h-6 px-2 text-xs"
-                  disabled={activeCurrentPage === 1}
-                  onClick={() =>
-                    handlePageChangeInternal(activeCurrentPage - 1)
-                  }
+                  disabled={currentPage === 1 || soloSeleccionados}
+                  onClick={() => onPageChange(currentPage - 1)}
                 >
                   Anterior
                 </Button>
@@ -472,10 +439,8 @@ export function AgregarProductosModal({
                   variant="outline"
                   size="sm"
                   className="h-6 px-2 text-xs"
-                  disabled={activeCurrentPage === activeTotalPages}
-                  onClick={() =>
-                    handlePageChangeInternal(activeCurrentPage + 1)
-                  }
+                  disabled={currentPage === totalPages || soloSeleccionados}
+                  onClick={() => onPageChange(currentPage + 1)}
                 >
                   Siguiente
                 </Button>
@@ -512,4 +477,11 @@ export function AgregarProductosModal({
       />
     </>
   );
+}
+
+export function AgregarProductosView({
+  onCancel,
+  ...props
+}: AgregarProductosViewProps) {
+  return <AgregarProductosModal {...props} isOpen={true} onClose={onCancel} />;
 }
