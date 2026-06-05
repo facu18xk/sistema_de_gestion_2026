@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, RefreshCw, FilePlusCorner } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -367,13 +367,23 @@ export default function NuevaFacturaPage() {
             <p className="text-xs text-muted-foreground">Generada a partir del Presupuesto {formatearNumeroPresupuesto(presupuestoSel.idPresupuesto)}</p>
         )}
         {!idPresupuesto && (
-          <div className="w-[350px] flex items-center gap-2 mt-2">
+          <div className="w-[350px] flex items-end gap-2">
             <PresupuestoSelector 
               presupuestos={listaPresupuestos} 
               onSelectPresupuesto={handleSeleccionarPresupuesto}
               selectedPresupuestoId={presupuestoSel?.idPresupuesto}
             />
             {isImporting && <RefreshCw className="h-4 w-4 text-amber-600 animate-spin" />}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              title="Nuevo presupuesto"
+              onClick={() => router.push("/ventas/presupuestos/nuevo")}
+              className="ml-2 h-9 w-9 bg-white shadow-sm border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-primary shrink-0 cursor-pointer"
+            >
+              <FilePlusCorner className="h-4 w-4" />
+            </Button>
           </div>
         )} 
         </div>
