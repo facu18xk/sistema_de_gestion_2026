@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,14 +33,6 @@ import {
 import { esVigenteParaNotaCredito } from "@/utils/date-utils";
 
 export default function NuevaDevolucionPage() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando devolución...</div>}>
-      <NuevaDevolucionContent />
-    </Suspense>
-  );
-}
-
-function NuevaDevolucionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idFacturaQuery = searchParams.get("facturaId");
@@ -143,13 +135,8 @@ function NuevaDevolucionContent() {
       idProducto: item.idProducto,
       descripcion: item.producto,
       precioUnitario: item.precioUnitario,
-      esServicio: false,
       porcentajeIva: 10, // Puedes estimarlo o mapearlo según tu lógica (ej: item.totalIva > 0 ? 10 : 0)
-      cantidadTotal: item.cantidad, // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
-      idMarca: 0,
-      marca: "",
-      idCategoria: 0,
-      categoria: "",
+      cantidadTotal: item.cantidad // Usamos "cantidadTotal" temporalmente para guardar el tope máximo facturado
     }));
   };
 
@@ -157,7 +144,7 @@ function NuevaDevolucionContent() {
     // Buscamos cuánto se compró originalmente en la factura
     const itemOriginal = facturaSeleccionada?.items.find(i => i.idProducto === prodMapeado.idProducto);
     const maxCantFacturada = itemOriginal ? itemOriginal.cantidad : 0;
-    const yaDevueltoPrevio = itemOriginal?.cantidadDevuelta ?? 0;
+    const yaDevueltoPrevio = itemOriginal ? itemOriginal.cantidadDevuelta : 0;
     const saldoDisponible = maxCantFacturada - yaDevueltoPrevio;
 
     if (saldoDisponible <= 0) {
@@ -362,17 +349,17 @@ function NuevaDevolucionContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* COLUMNA 1: CLIENTE */}
           <div>
-            <p className="text-[12px] font-bold uppercase text-muted-foreground mb-1.5">Datos del Cliente</p>
+            <p className="text-[12px] font-semibold uppercase text-muted-foreground mb-1.5">Datos del Cliente</p>
             <p className="text-slate-500 text-[13px]">Razón Social:</p>
-            <p className="font-bold text-slate-900 text-[13px] mb-1">{facturaSeleccionada?.cliente || "---"}</p>
+            <p className="font-semibold text-slate-900 text-[13px] mb-1">{facturaSeleccionada?.cliente || "---"}</p>
             <p className="text-slate-500 text-[13px]">CI/RUC:</p>
-            <p className="font-bold text-slate-900 text-[13px] mb-1">{cliente?.ruc ? `RUC: ${formatRUC(cliente?.ruc)}` : `CI: ${formatCI(cliente?.ci)}`}</p>
+            <p className="font-semibold text-slate-900 text-[13px] mb-1">{cliente?.ruc ? `RUC: ${formatRUC(cliente?.ruc)}` : `CI: ${formatCI(cliente?.ci)}`}</p>
           </div>
           {/* COLUMNA 2: FACTURA ORIGEN */}
           <div>
-            <p className="text-[12px] font-bold uppercase text-muted-foreground mb-1.5">Factura de Referencia</p>
+            <p className="text-[12px] font-semibold uppercase text-muted-foreground mb-1.5">Factura de Referencia</p>
             <p className="text-slate-500 text-[13px]">N° Comprobante:</p>
-            <p className="font-bold text-emerald-700 text-[13px] mb-1">
+            <p className="font-semibold text-emerald-700 text-[13px] mb-1">
               {facturaSeleccionada ? facturaSeleccionada.nroComprobante : "Seleccione una factura"}
             </p>
             {facturaSeleccionada && facturaSeleccionada.idPresupuesto > 0 && (

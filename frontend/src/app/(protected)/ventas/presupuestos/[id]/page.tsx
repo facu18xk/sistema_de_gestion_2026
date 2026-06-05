@@ -132,7 +132,7 @@ export default function VerPresupuestoPage() {
   };
 
   const updateCantidad = (index: number, nuevaCantidad: number) => {
-    if (nuevaCantidad < 1) return;
+    //if (nuevaCantidad < 1) return;
     setItemsCarrito(prev => {
       const nuevoCarrito = [...prev];
       nuevoCarrito[index] = { ...nuevoCarrito[index], cantidad: nuevaCantidad };
@@ -191,6 +191,17 @@ export default function VerPresupuestoPage() {
   if (!presupuesto) {
     return <div className="p-8 text-center text-destructive">No se encontró el presupuesto solicitado.</div>;
   }
+
+  const handleCantidad = async (index: number ,input: string) => {
+    if (input === "") {
+      updateCantidad(index, 0);
+      return;
+    }
+    const soloNumerosRegex = /^[0-9]+$/;
+    if (soloNumerosRegex.test(input)) {
+      updateCantidad(index, Number(input));
+    }
+}
 
   const totalGeneral = itemsCarrito.reduce(
     (acc, item) => acc + ((item.cantidad * item.precioUnitario) * ((item.iva/100) + 1)), 0
@@ -476,21 +487,21 @@ export default function VerPresupuestoPage() {
               </div>
               <div>
                 <p className="text-muted-foreground text-[13px]">Documento (CI/RUC)</p>
-                <p className="font-medium text-slate-800 text-[13px]">
+                <p className="font-semibold text-slate-800 text-[13px]">
                   {cliente ? (cliente.ruc ? `RUC: ${formatRUC(cliente.ruc)}` : `CI: ${formatCI(cliente.ci)}`) : "---"}
                 </p>
               </div>
               <div className="truncate">
                 <p className="text-muted-foreground text-[13px]">Email</p>
-                <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
+                <p className="font-semibold text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
               </div>
               <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
                 </div>
               {/*<div>
                 <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
-                <p className="font-medium text-slate-700 text-[13px]">
+                <p className="font-semibold text-slate-700 text-[13px]">
                   {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
                 </p>
               </div>*/}
@@ -600,7 +611,7 @@ export default function VerPresupuestoPage() {
                       </div>
                     </TableCell>
                     {/* CANTIDAD */}
-                    <TableCell className={columnWidths.cantidad}>
+                    {/*<TableCell className={columnWidths.cantidad}>
                       {esEditable ? (<Input 
                         type="number" 
                         min="1"
@@ -610,6 +621,21 @@ export default function VerPresupuestoPage() {
                       />) : (
                         <span className="font-semibold pl-2">{item.cantidad}</span>
                       )}
+                    </TableCell>*/}
+                    <TableCell className={columnWidths.cantidad}>
+                      {esEditable ? (<Input 
+                        type="text" 
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className="w-16 h-8 px-2 text-center"
+                        value={item.cantidad === 0 ? "" : item.cantidad}
+                        onChange={(e) => {handleCantidad(index, e.target.value)}}
+                        onBlur={() => {
+                          if (item.cantidad === 0) {
+                            updateCantidad(index, 1);
+                          }
+                        }} 
+                      />): (<span className="font-semibold pl-2">{item.cantidad}</span>)}
                     </TableCell>
                     {/* PRECIO UNITARIO */}
                     <TableCell className={columnWidths.precio}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table"
@@ -14,7 +14,8 @@ import { clientesAPI } from "@/services/clientesAPI";
 import { productosAPI } from "@/services/productosAPI";
 import { presupuestosAPI } from "@/services/presupuestosAPI";
 import { preciosVentasAPI } from "@/services/preciosVentasAPI";
-import { Cliente, ProductoDTO, PresupuestoCompletoSave, PreciosVentas } from "@/types/types";
+import { ubicacionesAPI } from "@/services/ubicacionesAPI";
+import { Cliente, ProductoDTO, PresupuestoCompletoSave, PreciosVentas, Pais, ClienteSaveDTO } from "@/types/types";
 import { formatGuaranies } from "@/utils/money-format";
 import { formatearNumeroProducto } from "@/utils/producto-format";
 import { formatPhone } from "@/utils/phone-format";
@@ -30,6 +31,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { sumarDiasHabiles } from "@/utils/date-utils";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ClienteForm } from "@/components/ventas/clientes-form";
 
 /*const resPaginada = {
   "items": [
@@ -114,6 +117,8 @@ export default function NuevoPresupuestoPage() {
   const [itemsCarrito, setItemsCarrito] = useState<ProductoDTO[]>([]);
   const [isProductoModalOpen, setIsProductoModalOpen] = useState(false);
   const [fechaEmision, setFechaEmision] = useState(new Date().toISOString().split('T')[0]);
+  const [isClienteSheetOpen, setIsClienteSheetOpen] = useState(false);
+  const [listaPaises, setListaPaises] = useState<Pais[]>([]);
   const router = useRouter();
 
   const columnWidths = {
@@ -142,6 +147,15 @@ export default function NuevoPresupuestoPage() {
     }
   }
 
+  const cargarPaisesExpress = async () => {
+    try {
+      const resPaises = await ubicacionesAPI.getPaises();
+      setListaPaises(resPaises.items);
+    } catch (error) {
+      console.error("Error al cargar los países:", error);
+    }
+  }
+
   const cargarProductos = async () => {
     try {
       const resProductos = await productosAPI.getAll(1, 300);
@@ -162,7 +176,51 @@ export default function NuevoPresupuestoPage() {
     }
   }
 
-  useEffect(() => { cargarClientes(); cargarProductos(); cargarPreciosVenta(); }, []);
+  useEffect(() => { cargarClientes(); cargarProductos(); cargarPreciosVenta(); cargarPaisesExpress(); }, []);
+
+  const cleanDataForSubmit = (formData: any) => {
+    return {
+      ...formData,
+      // Eliminamos todo lo que no sea dígito
+      ci: formData.ci.toString().replace(/\D/g, ""),
+      ruc: formData.ruc.toString().replace(/\D/g, ""),
+      telefono: formData.telefono.toString().replace(/\D/g, ""),
+    };
+  };
+
+  const handleCrearClienteExpress = async (formData: any) => {
+    try {
+      const dataToSave: ClienteSaveDTO = {
+        ci: formData.ci,
+        ruc: formData.ruc,
+        fechaNacimiento: formData.fechaNacimiento,
+        nombres: formData.nombres || null,
+        apellidos: formData.apellidos || null,
+        correo: formData.correo || null,
+        telefono: formData.telefono || null,
+        direccion: {
+          calle1: formData.calle1,
+          calle2: formData.calle2 || null,
+          descripcion: formData.descripcionDireccion || null,
+          idCiudad: Number(formData.idCiudad)
+        },
+      };
+      const cleanData = cleanDataForSubmit(dataToSave);
+      const clienteCreado: Cliente = await clientesAPI.create(cleanData);
+      notify.success("¡Cliente Creado!", `${clienteCreado.nombres} ${clienteCreado.apellidos} fue seleccionado.`);
+
+      setListaClientes(prev => {
+        const nuevaLista = [...prev, clienteCreado];
+        return nuevaLista.sort((a, b) => a.nombres.localeCompare(b.nombres, 'es-PY'));
+      });
+      setClienteSel(clienteCreado);
+      setIsClienteSheetOpen(false);
+    } catch (error) {
+      console.error("Error al registrar cliente express:", error);
+      notify.error("Error al registrar", "Revise los campos o identificaciones duplicadas.");
+      throw error;
+    }
+  }
 
   const handleGuardar = async () => {
     if (!clienteSel) {
@@ -296,12 +354,22 @@ export default function NuevoPresupuestoPage() {
       </AlertDialog>
       {/* SELECTOR CLIENTE */}
       <div className="flex justify-between">
-        <div>
+        <div className="flex flex-row items-center">
         <ClienteSelector 
           clientesIniciales={listaClientes} 
           onSelect={setClienteSel}
           selectedClienteId={clienteSel?.idCliente}
         />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          title="Registrar nuevo cliente"
+          onClick={() => setIsClienteSheetOpen(true)}
+          className="ml-2 h-9 w-9 bg-white shadow-sm border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-primary shrink-0 cursor-pointer"
+        >
+          <UserPlus className="h-4 w-4" />
+        </Button>
         </div>
         <div>
         <Button variant="outline" className="h-8 gap-2 cursor-pointer mr-2" onClick={() => router.push("/ventas/presupuestos")}>
@@ -332,21 +400,21 @@ export default function NuevoPresupuestoPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground text-[13px]">CI / RUC</p>
-                  <p className="font-medium text-slate-800 text-[13px]">
+                  <p className="font-semibold text-slate-800 text-[13px]">
                     {clienteSel.ruc ? `RUC: ${formatRUC(clienteSel.ruc)}` : `CI: ${formatCI(clienteSel.ci)}`}
                   </p>
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Email</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{clienteSel.correo || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{clienteSel.correo || "No registrado"}</p>
                 </div>
                 {/*<div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Fecha de Nacimiento</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{new Date(clienteSel.fechaNacimiento).toLocaleDateString()}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{new Date(clienteSel.fechaNacimiento).toLocaleDateString()}</p>
                 </div>*/}
                 <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(clienteSel.telefono) || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{formatPhone(clienteSel.telefono) || "No registrado"}</p>
                 </div>
               </div>
             ) : (
@@ -501,6 +569,22 @@ export default function NuevoPresupuestoPage() {
           </p>
         </div>
       </div>
+      <Sheet open={isClienteSheetOpen} onOpenChange={setIsClienteSheetOpen}>
+        <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
+          <SheetHeader className="border-b pt-4">
+            <SheetTitle>Nuevo Cliente Express</SheetTitle>
+            <SheetDescription>Información del cliente.</SheetDescription>
+          </SheetHeader>
+          <ClienteForm
+            key="express-nuevo"
+            clienteEditado={null} 
+            paises={listaPaises}
+            onSubmit={handleCrearClienteExpress} 
+            onCancel={() => setIsClienteSheetOpen(false)}
+            onRefreshPaises={cargarPaisesExpress}
+          />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

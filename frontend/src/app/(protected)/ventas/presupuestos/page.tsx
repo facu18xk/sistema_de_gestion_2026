@@ -24,7 +24,7 @@ import { presupuestosAPI } from "@/services/presupuestosAPI"
 import { estadosAPI } from "@/services/estadosAPI"
 import { Estado, PresupuestoCabecera, PresupuestoCompleto } from "@/types/types"
 import { notify } from "@/lib/notifications"
-import { esPresupuestoVigente } from "@/utils/date-utils"
+import { esPresupuestoVigente, formatearFecha } from "@/utils/date-utils"
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format"
 import { formatGuaranies } from "@/utils/money-format"
 
@@ -47,7 +47,7 @@ export default function PedidosPage() {
   const [presupuestoAEliminar, setPresupuestoAEliminar] = useState<PresupuestoCompleto | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(8);
   const [searchTerm, setSearchTerm] = useState("")
 
   //const now = new Date().toISOString().slice(0, 19);
@@ -239,7 +239,8 @@ export default function PedidosPage() {
     return todosLosPresupuestos.filter(p => 
       formatearNumeroPresupuesto(p.idPresupuesto).toLowerCase().toString().includes(query) ||
       p.cliente.toLowerCase().includes(query) ||
-      p.estado.toLowerCase().includes(query) 
+      p.estado.toLowerCase().includes(query) ||
+      formatearFecha(p.fechaVencimiento).toLowerCase().includes(query)
     );
   }, [searchTerm, todosLosPresupuestos]);
 
@@ -247,15 +248,22 @@ export default function PedidosPage() {
 
   const presupuestosVisiblesEnPagina = useMemo(() => {
     const presupuestosOrdenados = [...presupuestosFiltrados].sort((a, b) => {
+      // --- CRITERIO 1: PRIORIDAD DEL ESTADO ---
       const prioridadA = PRIORIDAD_ESTADOS[a.idEstado] ?? 99;
       const prioridadB = PRIORIDAD_ESTADOS[b.idEstado] ?? 99;
-      
-      return prioridadA - prioridadB;
+      const diferenciaEstado = prioridadA - prioridadB;
+      if (diferenciaEstado !== 0) {
+        return diferenciaEstado;
+      }
+      // --- CRITERIO 2: NÚMERO DE PRESUPUESTO (Descendente) ---
+      return b.idPresupuesto - a.idPresupuesto;
     });
+
+    // Paginación de los datos ya ordenados
     const primerItemIndex = (currentPage - 1) * itemsPerPage;
     const ultimoItemIndex = primerItemIndex + itemsPerPage;
     return presupuestosOrdenados.slice(primerItemIndex, ultimoItemIndex);
-  }, [currentPage, presupuestosFiltrados]);
+  }, [currentPage, presupuestosFiltrados, itemsPerPage]);
 
   useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
@@ -295,7 +303,7 @@ export default function PedidosPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por presupuesto, cliente o estado..."
+            placeholder="Buscar por presupuesto, cliente, vencimiento o estado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -372,7 +380,7 @@ export default function PedidosPage() {
             <TableRow key={p.idPresupuesto}>
               <TableCell className={`${columnWidths.presupuesto}`}>{formatearNumeroPresupuesto(p.idPresupuesto)}</TableCell>
               <TableCell className={`${columnWidths.cliente} font-medium`}>{nombreCliente}</TableCell>
-              <TableCell className={`${columnWidths.vencimiento}`}>{new Date(p.fechaVencimiento).toLocaleDateString()}</TableCell>
+              <TableCell className={`${columnWidths.vencimiento}`}>{formatearFecha(p.fechaVencimiento)}</TableCell>
               <TableCell className={`${columnWidths.estado}`}>{
                 estadoActual === 'Aprobado' ? <Badge variant="aprobado">{estadoActual}</Badge>
                 : estadoActual === 'Pendiente' ? <Badge variant="pendiente">{estadoActual}</Badge>

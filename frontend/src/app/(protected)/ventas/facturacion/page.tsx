@@ -24,7 +24,7 @@ import { facturasAPI } from "@/services/facturasAPI"
 import { estadosAPI } from "@/services/estadosAPI"
 import { Estado, FacturaVentaCabecera, PresupuestoCabecera, FacturaVentaCompleto } from "@/types/types"
 import { notify } from "@/lib/notifications"
-import { esPresupuestoVigente } from "@/utils/date-utils"
+import { esPresupuestoVigente, formatearFecha } from "@/utils/date-utils"
 import { formatearNumeroFactura } from "@/utils/factura-format"
 import { formatearNumeroPresupuesto } from "@/utils/presupuesto-format"
 import { formatGuaranies } from "@/utils/money-format"
@@ -49,7 +49,7 @@ export default function FacturasPage() {
   const [facturaAEliminar, setFacturaAEliminar] = useState<FacturaVentaCompleto | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(8);
   const [searchTerm, setSearchTerm] = useState("")
 
   //const now = new Date().toISOString().slice(0, 19);
@@ -122,7 +122,15 @@ export default function FacturasPage() {
     try {
       const resPaginada = await facturasAPI.getAllCompleto(currentPage, 200);
       //setFacturas(resPaginada.items);
-      setTodasLasFacturas(resPaginada.items);
+      const ordenados = [...resPaginada.items].sort((a, b) => {
+        // --- CRITERIO 1: ESTADO (Mandar 'Anulado' al final) ---
+        if (a.estado === 'Anulado' && b.estado !== 'Anulado') return 1;
+        if (a.estado !== 'Anulado' && b.estado === 'Anulado') return -1;
+
+        // --- CRITERIO 2: NRO COMPROBANTE (Descendente) ---
+        return b.nroComprobante.localeCompare(a.nroComprobante, 'es-PY');
+      });
+      setTodasLasFacturas(ordenados);
       //setTotalPages(resPaginada.totalPages);
     } catch (error) {
       console.error("Error al cargar facturas:", error)
@@ -155,7 +163,8 @@ export default function FacturasPage() {
       f.nroComprobante.toLowerCase().toString().includes(query) ||
       formatearNumeroPresupuesto(f.idPresupuesto).toLowerCase().toString().includes(query) ||
       f.cliente.toLowerCase().includes(query) ||
-      f.estado.toLowerCase().includes(query)
+      f.estado.toLowerCase().includes(query) ||
+      formatearFecha(f.fecha).toLowerCase().includes(query)
     );
   }, [searchTerm, todasLasFacturas]);
 
@@ -185,7 +194,7 @@ export default function FacturasPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por factura, presupuesto, cliente o estado..."
+            placeholder="Buscar por factura, presupuesto, cliente, fecha o estado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -230,7 +239,7 @@ export default function FacturasPage() {
           //const estadoActual = estados.find((e) => e.idEstado == p.idEstado)?.nombre;
           const estadoActual = f.estado;
           //const estadoExpirado = "Expirado"
-          const nombreCliente = todasLasFacturas.find((c) => c.idCliente == f.idCliente)?.cliente;
+          //const nombreCliente = todasLasFacturas.find((c) => c.idCliente == f.idCliente)?.cliente;
           const totalFacturado = f.items.reduce((acc, item) => {
             return acc + (item.totalNeto);
           }, 0);
@@ -238,8 +247,8 @@ export default function FacturasPage() {
             <TableRow key={f.idFacturaVenta}>
               <TableCell className={`${columnWidths.factura}`}>{f.nroComprobante}</TableCell>
               <TableCell className={`${columnWidths.presupuesto}`}>{formatearNumeroPresupuesto(f.idPresupuesto)}</TableCell>
-              <TableCell className={`${columnWidths.cliente} font-medium`}>{nombreCliente}</TableCell>
-              <TableCell className={`${columnWidths.fecha}`}>{new Date(f.fecha).toLocaleDateString()}</TableCell>
+              <TableCell className={`${columnWidths.cliente} font-medium`}>{f.cliente}</TableCell>
+              <TableCell className={`${columnWidths.fecha}`}>{formatearFecha(f.fecha)}</TableCell>
               <TableCell className={`${columnWidths.estado}`}>{
                 estadoActual === 'Emitido' ? <Badge variant="aprobado">{estadoActual}</Badge> : 
                 <Badge variant="destructive">{estadoActual}</Badge>}

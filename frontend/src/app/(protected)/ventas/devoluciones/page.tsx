@@ -17,6 +17,7 @@ import { formatearNumeroFactura } from "@/utils/factura-format"
 import { formatearNumeroNotaCredito, formatearTimbradoNota } from "@/utils/nota-format";
 import { Badge } from "@/components/ui/badge";
 import { formatGuaranies } from "@/utils/money-format"
+import { formatearFecha } from "@/utils/date-utils"
 
 const columnWidths = {
   nota: "w-[140px]",
@@ -37,7 +38,7 @@ export default function DevolucionesPage() {
   const [notas, setNotas] = useState<NotaConCliente[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(8);
   const [searchTerm, setSearchTerm] = useState("")
 
   //const fechaHoy = new Date().toISOString().split('T')[0];
@@ -48,7 +49,15 @@ export default function DevolucionesPage() {
     try {
       const resPaginada = await notasCreditosVentasAPI.getAll(currentPage, itemsPerPage);
       //setNotasCredito(resPaginada.items);
-      setTodasLasNotas(resPaginada.items);
+      const ordenados = [...resPaginada.items].sort((a, b) => {
+        // --- CRITERIO 1: ESTADO (Mandar 'Anulado' al final) ---
+        if (a.estado === 'Anulado' && b.estado !== 'Anulado') return 1;
+        if (a.estado !== 'Anulado' && b.estado === 'Anulado') return -1;
+
+        // --- CRITERIO 2: NRO COMPROBANTE (Descendente) ---
+        return b.nroComprobante.localeCompare(a.nroComprobante, 'es-PY');
+      });
+      setTodasLasNotas(ordenados);
       //setTotalPages(resPaginada.totalPages);
     } catch (error) {
       console.error("Error al cargar notas de crédito:", error)
@@ -94,7 +103,8 @@ export default function DevolucionesPage() {
       nota.nroComprobante.toLowerCase().includes(query) ||
       nota.facturaVenta.toLowerCase().includes(query) ||
       nota.estado.toLowerCase().includes(query) ||
-      nota.cliente.toLowerCase().includes(query) // <-- ¡Ahora puedes buscar por cliente!
+      nota.cliente.toLowerCase().includes(query) ||
+      formatearFecha(nota.fechaEmision).toLowerCase().includes(query)
     );
   }, [searchTerm, notasConCliente]);
 
@@ -123,7 +133,7 @@ export default function DevolucionesPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nota crédito, factura, cliente o estado..."
+            placeholder="Buscar por nota crédito, factura, cliente, fecha o estado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -175,7 +185,7 @@ export default function DevolucionesPage() {
               <TableCell>{nota.nroComprobante}</TableCell>
               <TableCell>{nota.facturaVenta}</TableCell>
               <TableCell className="font-medium">{nota.cliente}</TableCell>
-              <TableCell>{new Date(nota.fechaEmision).toLocaleDateString()}</TableCell>
+              <TableCell>{formatearFecha(nota.fechaEmision)}</TableCell>
               <TableCell className={`${columnWidths.estado}`}>{
                 estadoActual === 'Emitido' ? <Badge variant="aprobado">{estadoActual}</Badge> : 
                 <Badge variant="destructive">{estadoActual}</Badge>}

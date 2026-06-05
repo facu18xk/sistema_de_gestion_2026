@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, Trash2, Plus, RefreshCw } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, RefreshCw, FilePlusCorner } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -36,16 +36,9 @@ import {
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatCI, formatRUC } from "@/utils/cedula-format";
 import { formatearFecha } from "@/utils/date-utils";
+import { describe } from "node:test";
 
 export default function NuevaFacturaPage() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando factura...</div>}>
-      <NuevaFacturaContent />
-    </Suspense>
-  );
-}
-
-function NuevaFacturaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
@@ -246,9 +239,7 @@ function NuevaFacturaContent() {
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
-      nroComprobante: "",
       idEstado: 7, //Estado 'Emitido'
-      idTimbrado: 1,
       fecha: fechaHoy,
       descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,
@@ -376,13 +367,23 @@ function NuevaFacturaContent() {
             <p className="text-xs text-muted-foreground">Generada a partir del Presupuesto {formatearNumeroPresupuesto(presupuestoSel.idPresupuesto)}</p>
         )}
         {!idPresupuesto && (
-          <div className="w-[350px] flex items-center gap-2 mt-2">
+          <div className="w-[350px] flex items-end gap-2">
             <PresupuestoSelector 
               presupuestos={listaPresupuestos} 
               onSelectPresupuesto={handleSeleccionarPresupuesto}
               selectedPresupuestoId={presupuestoSel?.idPresupuesto}
             />
             {isImporting && <RefreshCw className="h-4 w-4 text-amber-600 animate-spin" />}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              title="Nuevo presupuesto"
+              onClick={() => router.push("/ventas/presupuestos/nuevo")}
+              className="ml-2 h-9 w-9 bg-white shadow-sm border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-primary shrink-0 cursor-pointer"
+            >
+              <FilePlusCorner className="h-4 w-4" />
+            </Button>
           </div>
         )} 
         </div>
@@ -412,23 +413,23 @@ function NuevaFacturaContent() {
                 </div>
                 <div>
                     <p className="text-muted-foreground text-[13px]">Documento (CI/RUC)</p>
-                    <p className="font-medium text-slate-800 text-[13px]">
+                    <p className="font-semibold text-slate-800 text-[13px]">
                         {cliente ? (cliente.ruc ? `RUC: ${formatRUC(cliente.ruc)}` : `CI: ${formatCI(cliente.ci)}`) : "---"}
                     </p>
                 </div>
                 <div className="truncate">
                     <p className="text-muted-foreground text-[13px]">Email</p>
-                    <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
+                    <p className="font-semibold text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
                 </div>
                 {/*<div>
                     <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
-                    <p className="font-medium text-slate-700 text-[13px]">
+                    <p className="font-semibold text-slate-700 text-[13px]">
                         {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
                 </p>
                 </div>*/}
                 <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
                 </div>
             </div>
             </div>
@@ -599,7 +600,14 @@ function NuevaFacturaContent() {
                 );
               })}
               {/* CARRITO VACÍO */}
-              {itemsCarrito.length === 0 && (
+              {!presupuestoSel && itemsCarrito.length === 0 && (
+                <TableRow>
+                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(cliente) {setIsProductoModalOpen(true)}}}>
+                  Seleccione un presupuesto para empezar.
+                </TableCell>
+                </TableRow>
+              )}
+              {presupuestoSel && itemsCarrito.length === 0 && (
                 <TableRow>
                 <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(cliente) {setIsProductoModalOpen(true)}}}>
                   No hay productos seleccionados. Use el botón "+ Agregar" para comenzar.
