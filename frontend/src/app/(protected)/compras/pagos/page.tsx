@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
@@ -19,6 +19,17 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Formateador solicitado para Órdenes de Pago (PP-000X)
 export const formatPagoNro = (id: number | string) => {
@@ -26,14 +37,6 @@ export const formatPagoNro = (id: number | string) => {
 };
 
 export default function OrdenesPagosPage() {
-    return (
-        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando pagos...</div>}>
-            <OrdenesPagosPageContent />
-        </Suspense>
-    );
-}
-
-function OrdenesPagosPageContent() {
     const searchParams = useSearchParams();
 
     const [ordenesPago, setOrdenesPago] = useState<OrdenPagoCompra[]>([]);
@@ -51,7 +54,8 @@ function OrdenesPagosPageContent() {
         }
         return 1;
     });
-
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const [pagoAEliminar, setPagoAEliminar] = useState<OrdenPagoCompra | null>(null);
     // Estado de Filtros consistentes
     const [filters, setFilters] = useState<Record<string, string>>(() => {
         if (typeof window !== "undefined") {
@@ -172,18 +176,19 @@ function OrdenesPagosPageContent() {
         setPagina(1);
         sessionStorage.removeItem("filters_ordenes_pago");
     };
+    const handleEliminar = async () => {
+        if (!pagoAEliminar) return;
 
-    const handleEliminar = async (id: number) => {
-        if (!window.confirm(`¿Está seguro de anular/eliminar permanentemente la orden de pago ${formatPagoNro(id)}?`)) {
-            return;
-        }
         try {
-            await ordenesPagosAPI.delete(id);
+            await ordenesPagosAPI.delete(pagoAEliminar.idOrdenPagoCompra);
             notify.success("Eliminado", "La orden de pago fue removida exitosamente.");
-            cargarPagina(pagina);
+            await cargarPagina(pagina);
         } catch (error) {
             console.error("Error al eliminar orden de pago:", error);
             notify.error("Error", "No se pudo eliminar el registro debido a dependencias en el servidor.");
+        } finally {
+            setIsAlertOpen(false);
+            setPagoAEliminar(null);
         }
     };
 
@@ -224,7 +229,7 @@ function OrdenesPagosPageContent() {
     const tieneFiltrosActivos = Object.values(filters).some((val) => val !== "");
 
     // Estilos de insignias alineados con el diseño general
-    const getEstadoBadgeStyle = (estado?: string, idEstado?: number) => {
+    const getEstadoBadgeStyle = (estado: string, idEstado?: number) => {
         const est = estado?.toLowerCase() || "";
         const idStr = String(idEstado || "");
 
@@ -244,9 +249,9 @@ function OrdenesPagosPageContent() {
         <div className="bg-background">
             <PageBreadcrumb steps={[{ label: "Compras" }, { label: "Órdenes de Pago" }]} />
 
-            <main className="container p-3">
+            <main className="container">
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-bold tracking-tight">Órdenes de Pago a Proveedores</h2>
+                    <h5 className="font-bold tracking-tight">Órdenes de Pago a Proveedores</h5>
                     <Link href="/compras/pagos/pagar">
                         <Button size="sm" className="flex items-center gap-2">
                             <Plus className="h-4 w-4" />
@@ -264,7 +269,7 @@ function OrdenesPagosPageContent() {
                     />
                     {tieneFiltrosActivos && (
                         <Button
-                            variant="ghost"
+
                             size="sm"
                             onClick={handleLimpiarFiltros}
                             className="absolute right-3 -top-3.5 h-6 text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1 bg-background border px-2 rounded-full shadow-xs z-10"
@@ -274,6 +279,29 @@ function OrdenesPagosPageContent() {
                         </Button>
                     )}
                 </div>
+
+                <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Está completamente seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Se eliminará permanentemente la orden de pago{" "}
+                                <span className="font-mono font-bold text-foreground">
+                                    "{pagoAEliminar ? formatPagoNro(pagoAEliminar.idOrdenPagoCompra) : ""}"
+                                </span>.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleEliminar}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+                            >
+                                Eliminar Registro
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -293,7 +321,7 @@ function OrdenesPagosPageContent() {
                                     <TableHead className="w-48">Proveedor</TableHead>
                                     <TableHead className="w-32">Estado</TableHead>
                                     <TableHead className="w-36 text-right">Total Pagado</TableHead>
-                                    <TableHead className="w-28 text-center">Acciones</TableHead>
+                                    <TableHead className="w-28 text-right">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -327,7 +355,7 @@ function OrdenesPagosPageContent() {
 
                                                 {/* 4. Estado */}
                                                 <TableCell className="text-xs">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(op.estado, op.idEstado)}`}>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(op.idEstado.toLocaleString(), op.idEstado)}`}>
                                                         {op.estado || (idEstadoNum === 1 ? "Pendiente" : "Procesado")}
                                                     </span>
                                                 </TableCell>
@@ -338,8 +366,8 @@ function OrdenesPagosPageContent() {
                                                 </TableCell>
 
                                                 {/* 6. Acciones */}
-                                                <TableCell className="text-center">
-                                                    <div className="flex justify-center gap-1">
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-1">
                                                         {/* Inspeccionar Orden */}
                                                         <Link href={`/compras/pagos/${op.idOrdenPagoCompra}/editar?view=true`}>
                                                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Inspeccionar">
@@ -358,8 +386,11 @@ function OrdenesPagosPageContent() {
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
-                                                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                                                    onClick={() => handleEliminar(op.idOrdenPagoCompra)}
+                                                                    className="h-7 w-7 text-muted-foreground hover:text-destructive cursor-pointer"
+                                                                    onClick={() => {
+                                                                        setPagoAEliminar(op);
+                                                                        setIsAlertOpen(true);
+                                                                    }}
                                                                     title="Anular/Eliminar"
                                                                 >
                                                                     <Trash2 className="h-3.5 w-3.5" />
