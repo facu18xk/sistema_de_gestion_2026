@@ -1,5 +1,6 @@
 "use client"
 
+import type { AxiosError } from "axios"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -39,11 +40,12 @@ export default function LoginPage() {
             saveSessionUser(data.user);
             //Notificación de éxito
             notify.success("¡Bienvenido!", "Has iniciado sesión correctamente.");
-            // 3. Redirigimos a /dashboard
-            router.push("/dashboard");
+            // 3. Redirigimos al inicio
+            router.push("/dsahboard");
 
-          } catch (err: any) {
-            setError(err.response?.data?.message || "Error al iniciar sesión");
+          } catch (err: unknown) {
+            const error = err as AxiosError<{ message?: string }>;
+            setError(error.response?.data?.message || "Error al iniciar sesión");
             //Notificación de error
             notify.error("Error de autenticación", "Usuario o contraseña incorrectos.");
           } finally {

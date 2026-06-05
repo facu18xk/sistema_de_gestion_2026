@@ -17,7 +17,7 @@ export function PageBreadcrumb({ steps }: { steps: PathStep[] }) {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink href="/dashboard">Inicio</BreadcrumbLink>
+          <BreadcrumbLink href="/dsahboard">Inicio</BreadcrumbLink>
         </BreadcrumbItem>
         {steps.map((step, index) => (
           <React.Fragment key={index}>

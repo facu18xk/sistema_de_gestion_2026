@@ -12,6 +12,7 @@ export function proxy(request: NextRequest) {
   // Protegemos todo lo que esté en (protected) o rutas específicas
   const isProtectedPage =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/dsahboard") ||
     pathname.startsWith("/stock") ||
     pathname.startsWith("/compras") ||
     pathname.startsWith("/ventas") ||
@@ -26,7 +27,7 @@ export function proxy(request: NextRequest) {
 
   // CASO 2: El usuario ya tiene token e intenta ir al login
   if (token && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dsahboard", request.url));
   }
 
   return NextResponse.next();
@@ -36,6 +37,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/dsahboard/:path*",
     "/stock/:path*",
     "/ventas/:path*",
     "/compras/:path*",

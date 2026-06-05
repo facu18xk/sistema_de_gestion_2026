@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { notify } from "@/lib/notifications";
@@ -101,15 +101,12 @@ const modulos = [
 ];
 
 export default function Navbar() {
-  const [userName, setUserName] = useState(DEFAULT_USER_NAME);
-  const router = useRouter();
-
-  useEffect(() => {
+  const [userName] = useState(() => {
     try {
       const userData = localStorage.getItem("user");
 
       if (!userData) {
-        return;
+        return DEFAULT_USER_NAME;
       }
 
       const user = JSON.parse(userData);
@@ -117,13 +114,12 @@ export default function Navbar() {
         .filter(Boolean)
         .join(" ");
 
-      if (fullName) {
-        setUserName(fullName);
-      }
+      return fullName || DEFAULT_USER_NAME;
     } catch {
-      setUserName(DEFAULT_USER_NAME);
+      return DEFAULT_USER_NAME;
     }
-  }, []);
+  });
+  const router = useRouter();
 
   const handleLogout = () => {
     Cookies.remove("token", { path: "/" });
@@ -138,7 +134,7 @@ export default function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link
-            href="/dashboard"
+            href="/dsahboard"
             className="shrink-0 text-xl font-bold text-primary"
           >
             McQueen Tires
@@ -151,7 +147,7 @@ export default function Navbar() {
                   className={navigationMenuTriggerStyle()}
                   asChild
                 >
-                  <Link href="/dashboard">Inicio</Link>
+                  <Link href="/dsahboard">Inicio</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
