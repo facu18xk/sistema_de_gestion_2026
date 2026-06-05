@@ -46,6 +46,42 @@ public class PeriodosContablesController : CrudControllerBase<PeriodoContable, P
         return entity.IdPeriodoContable;
     }
 
+    public override async Task<ActionResult<PeriodoContableDto>> Create(PeriodoContableUpsertDto dto)
+    {
+        try
+        {
+            return await base.Create(dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    public override async Task<ActionResult<PeriodoContableDto>> Update(int id, PeriodoContableUpsertDto dto)
+    {
+        try
+        {
+            return await base.Update(id, dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    public override async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            return await base.Delete(id);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     protected override async Task<PeriodoContable> RefreshCreatedEntityAsync(PeriodoContable entity)
     {
         return await CrudService.GetByIdAsync(entity.IdPeriodoContable) ?? entity;

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ContabilidadReportes.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ddd182631173e8e5e4bdea62ad3c8587952ff930")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dbbefa478e46c3beca7707f0a9c0c56a24e6f82b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ContabilidadReportes.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ContabilidadReportes.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
