@@ -1,6 +1,6 @@
 import api from "./api"
 import { API_CONFIG } from "../config/api"
-import { PedidoDTO, PedidoSaveDTO } from "@/types/types"
+import { PedidoCompletoSaveDTO, PedidoDTO, PedidoSaveDTO } from "@/types/types"
 
 export const pedidosAPI = {
   getAll: async (page: number, pageSize: number) => {
@@ -17,6 +17,11 @@ export const pedidosAPI = {
 
   create: async (data: PedidoSaveDTO): Promise<PedidoDTO> => {
     const response = await api.post(API_CONFIG.ENDPOINTS.PEDIDOS, data)
+    return response.data
+  },
+
+  createCompleto: async (data: PedidoCompletoSaveDTO): Promise<PedidoDTO> => {
+    const response = await api.post(`${API_CONFIG.ENDPOINTS.PEDIDOS}/completo`, data)
     return response.data
   },
 

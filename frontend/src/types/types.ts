@@ -501,6 +501,17 @@ export interface PedidoDetalleSaveDTO {
     cantidad: number;
 }
 
+export interface PedidoDetalleCompletoSaveDTO {
+    idProducto: number;
+    idCategoria: number;
+    descripcion: string;
+    cantidad: number;
+}
+
+export interface PedidoCompletoSaveDTO extends PedidoSaveDTO {
+    detalles: PedidoDetalleCompletoSaveDTO[];
+}
+
 export type EstadoProcesoContable =
     | "Habilitado"
     | "Abierto"
@@ -1087,9 +1098,16 @@ export interface CotizacionDetalleSaveDTO {
     descuento: number
 }
 
+export type CotizacionDetalleCompletoSaveDTO = Omit<CotizacionDetalleSaveDTO, "idPedidoCotizacion">
+
+export interface CotizacionCompletaSaveDTO extends CotizacionSaveDTO {
+    detalles: CotizacionDetalleCompletoSaveDTO[]
+}
+
 export interface CotizacionItemForm {
     idDetalle?: number;
     productoId: number;
+    idCategoria?: number;
     descripcion: string;
     cantidad: number;
     precioUnitario: number;

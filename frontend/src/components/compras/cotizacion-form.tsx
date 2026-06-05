@@ -111,6 +111,7 @@ export function CotizacionForm({
 
             const itemsCargados: CotizacionItemForm[] = filtrados.map((d: any) => ({
                 productoId: d.idProducto || d.productoId,
+                idCategoria: d.idCategoria ? Number(d.idCategoria) : undefined,
                 descripcion: d.producto || d.descripcion || "Producto",
                 cantidad: Number(d.cantidad),
                 precioUnitario: 0,
@@ -395,6 +396,7 @@ export function CotizacionForm({
                             return {
                                 idDetalle: existe?.idDetalle,
                                 productoId: idProd,
+                                idCategoria: sel.idCategoria ? Number(sel.idCategoria) : existe?.idCategoria,
                                 descripcion: sel.producto || sel.descripcion || "Producto",
                                 cantidad: existe ? existe.cantidad : Number(sel.cantidad || 1),
                                 precioUnitario: existe ? existe.precioUnitario : 0,

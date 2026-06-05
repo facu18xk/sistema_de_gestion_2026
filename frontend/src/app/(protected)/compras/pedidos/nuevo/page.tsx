@@ -1,13 +1,11 @@
 "use client";
 
-import Navbar from "@/components/navbar";
 import { useRouter } from "next/navigation";
 import { PedidoForm, Pedido, PedidoItem } from "@/components/compras/pedido-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { pedidosAPI } from "@/services/pedidosAPI";
-import { pedidosDetallesAPI } from "@/services/pedidosDetallesAPI";
 import { notify } from "@/lib/notifications";
-import { PedidoSaveDTO, PedidoDetalleSaveDTO } from "@/types/types";
+import { PedidoCompletoSaveDTO } from "@/types/types";
 
 export default function NuevoPedidoPage() {
   const router = useRouter();
@@ -19,34 +17,28 @@ export default function NuevoPedidoPage() {
         return;
       }
 
-      const cabeceraPayload: PedidoSaveDTO = {
+      const pedidoPayload: PedidoCompletoSaveDTO = {
         idEstado: 1,
         numeroPedido: 0,
         fecha: data.fecha || new Date().toISOString(),
-      };
-
-      const nuevoPedido = await pedidosAPI.create(cabeceraPayload);
-      const idPedidoGenerado = nuevoPedido.idPedidoCompra;
-
-      const promesasNuevosDetalles = data.items.map((item: PedidoItem) => {
-        const detallePayload: PedidoDetalleSaveDTO = {
-          idPedidoCompra: idPedidoGenerado,
+        detalles: data.items.map((item: PedidoItem) => ({
           idProducto: Number(item.idProducto),
           idCategoria: Number(item.idCategoria) || 1,
           descripcion: item.descripcion || "Sin descripción",
           cantidad: Number(item.cantidad),
-        };
+        })),
+      };
 
-        return pedidosDetallesAPI.create(detallePayload);
-      });
-
-      await Promise.all(promesasNuevosDetalles);
+      await pedidosAPI.createCompleto(pedidoPayload);
 
       notify.success("Pedido guardado", "El pedido y sus productos se han registrado con éxito.");
       router.push("/compras/pedidos");
     } catch (error: any) {
       console.error("Error al registrar pedido:", error);
-      notify.error("Error de Registro", "No se pudo completar la carga en el servidor. Verifica los campos obligatorios.");
+      const message =
+        error?.response?.data?.message ||
+        "No se pudo completar la carga en el servidor. Verifica los campos obligatorios.";
+      notify.error("Error de Registro", message);
     }
   };
 

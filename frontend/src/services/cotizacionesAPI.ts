@@ -1,6 +1,6 @@
 import api from "./api"
 import { API_CONFIG } from "../config/api"
-import { CotizacionDTO, CotizacionSaveDTO, CotizacionDetalleDTO } from "@/types/types"
+import { CotizacionCompletaSaveDTO, CotizacionDTO, CotizacionSaveDTO, CotizacionDetalleDTO } from "@/types/types"
 import { cotizacionesDetallesAPI } from "./cotizacionesDetallesAPI"
 
 export const cotizacionesAPI = {
@@ -42,6 +42,11 @@ export const cotizacionesAPI = {
 
   create: async (data: CotizacionSaveDTO): Promise<CotizacionDTO> => {
     const response = await api.post(API_CONFIG.ENDPOINTS.COTIZACIONES, data)
+    return response.data
+  },
+
+  createCompleto: async (data: CotizacionCompletaSaveDTO): Promise<CotizacionDTO> => {
+    const response = await api.post(`${API_CONFIG.ENDPOINTS.COTIZACIONES}/completo`, data)
     return response.data
   },
 

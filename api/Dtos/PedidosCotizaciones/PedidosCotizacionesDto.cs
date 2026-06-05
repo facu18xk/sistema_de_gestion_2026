@@ -1,3 +1,5 @@
+using api.Dtos.PedidosCotizacionesDetalles;
+
 namespace api.Dtos.PedidosCotizaciones;
 
 public class PedidosCotizacionesDto
@@ -37,4 +39,10 @@ public class PedidosCotizacionesUpsertDto
     public int NumeroPedido { get; set; }
 
     public DateTime Fecha { get; set; }
+}
+
+public class PedidosCotizacionesCompletoCreateDto : PedidosCotizacionesUpsertDto
+{
+    public IReadOnlyCollection<PedidosCotizacionesDetalleCompletoCreateDto> Detalles { get; set; } =
+        Array.Empty<PedidosCotizacionesDetalleCompletoCreateDto>();
 }

@@ -70,8 +70,6 @@ const modulos = [
     items: [
       { title: "Productos", href: "/stock/productos" },
       { title: "Servicios", href: "/stock/servicios" },
-      { title: "Depósitos", href: "/stock/depositos" },
-      { title: "Movimientos", href: "/stock/movimientos" },
     ],
   },
   {

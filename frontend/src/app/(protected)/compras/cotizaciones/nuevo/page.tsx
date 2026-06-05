@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import { CotizacionForm } from "@/components/compras/cotizacion-form";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { cotizacionesAPI } from "@/services/cotizacionesAPI";
-import { cotizacionesDetallesAPI } from "@/services/cotizacionesDetallesAPI";
 import { pedidosAPI } from "@/services/pedidosAPI";
-import { pedidosDetallesAPI } from "@/services/pedidosDetallesAPI";
-import { CotizacionFormState, CotizacionDetalleSaveDTO, CotizacionSaveDTO } from "@/types/types";
+import { CotizacionCompletaSaveDTO, CotizacionFormState } from "@/types/types";
 import { notify } from "@/lib/notifications";
 
 export default function NuevaCotizacionPage() {
@@ -48,51 +46,23 @@ export default function NuevaCotizacionPage() {
         return;
       }
 
-      const cabeceraPayload: CotizacionSaveDTO = {
+      const cotizacionPayload: CotizacionCompletaSaveDTO = {
         idPedidoCompra: Number(data.solicitudCotizacionId),
         idEstado: data.idEstado || 1,
         idProveedor: Number(data.proveedorId),
         numeroPedido: data.numeroPedido || Math.floor(Math.random() * 10000),
         fecha: data.fecha,
-      };
-
-      const nuevaCotizacion = await cotizacionesAPI.create(cabeceraPayload);
-      const idCotizacionGenerado = nuevaCotizacion.idPedidoCotizacion;
-
-      if (!idCotizacionGenerado) {
-        throw new Error("No se pudo obtener el ID de la cotización generada.");
-      }
-
-      // Traemos los detalles del pedido específico solo al momento de guardar para validar categorías en el backend
-      const resDetalles = await pedidosDetallesAPI.getAll(1, 1000);
-      const listaDetalles = resDetalles.items || resDetalles || [];
-
-      for (const item of data.items) {
-        const idProductoFinal = Number(item.productoId);
-
-        if (!idProductoFinal) {
-          console.warn("Se omitió un ítem por productoId inválido:", item);
-          continue;
-        }
-
-        const original = listaDetalles.find(
-          (d: any) =>
-            String(d.idPedidoCompra) === String(data.solicitudCotizacionId) &&
-            Number(d.idProducto || d.productoId) === idProductoFinal
-        );
-
-        const detallePayload: CotizacionDetalleSaveDTO = {
-          idPedidoCotizacion: Number(idCotizacionGenerado),
-          idProducto: idProductoFinal,
-          idCategoria: original?.idCategoria ? Number(original.idCategoria) : 1,
+        detalles: data.items.map((item) => ({
+          idProducto: Number(item.productoId),
+          idCategoria: item.idCategoria ? Number(item.idCategoria) : 1,
           descripcion: item.descripcion || "Producto",
           cantidad: Number(item.cantidad) || 1,
           precioProducto: Number(item.precioUnitario) || 0,
           descuento: Number(item.descuento) || 0,
-        };
+        })),
+      };
 
-        await cotizacionesDetallesAPI.create(detallePayload);
-      }
+      await cotizacionesAPI.createCompleto(cotizacionPayload);
 
       try {
         await pedidosAPI.updateEstado(Number(data.solicitudCotizacionId), {
@@ -104,9 +74,9 @@ export default function NuevaCotizacionPage() {
 
       notify.success("Cotización guardada", "Se registró la cotización de forma exitosa.");
       router.push("/compras/cotizaciones");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al crear cotización:", error);
-      notify.error("Error", "Hubo un problema al procesar la solicitud en el servidor.");
+      notify.error("Error", error?.response?.data?.message || "Hubo un problema al procesar la solicitud en el servidor.");
     }
   };
 

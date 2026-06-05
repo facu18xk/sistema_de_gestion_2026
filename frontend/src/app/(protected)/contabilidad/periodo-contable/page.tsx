@@ -46,12 +46,6 @@ function getErrorMessage(error: unknown) {
   return "No se pudo completar la operación.";
 }
 
-function getMonthName(month: number) {
-  return new Date(2000, month - 1, 1).toLocaleDateString("es-PY", {
-    month: "long",
-  });
-}
-
 function formatDateOnly(value: string) {
   const [year, month, day] = value.split("-");
   if (!year || !month || !day) return value;
@@ -176,7 +170,6 @@ export default function PeriodosContablesPage() {
             <TableRow>
               <TableHead>Proceso Contable</TableHead>
               <TableHead>Año</TableHead>
-              <TableHead>Mes</TableHead>
               <TableHead>Fecha Inicio</TableHead>
               <TableHead>Fecha Fin</TableHead>
               <TableHead>Estado</TableHead>
@@ -190,7 +183,7 @@ export default function PeriodosContablesPage() {
           {periodos.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={6}
                 className="h-24 text-center text-muted-foreground"
               >
                 No hay períodos contables registrados.
@@ -201,9 +194,6 @@ export default function PeriodosContablesPage() {
               <TableRow key={periodo.idPeriodoContable}>
                 <TableCell>{periodo.procesoContable}</TableCell>
                 <TableCell>{periodo.anho}</TableCell>
-                <TableCell className="capitalize">
-                  {getMonthName(periodo.mes)}
-                </TableCell>
                 <TableCell>
                   {formatDateOnly(periodo.fechaInicio)}
                 </TableCell>

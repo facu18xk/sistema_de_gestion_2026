@@ -1,11 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { Pencil, Trash2, Loader2, Search, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ProductoForm } from "@/components/stock/producto-form"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useState, useEffect, useMemo } from "react";
+import { Pencil, Trash2, Loader2, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ProductoForm } from "@/components/stock/producto-form";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,29 +21,27 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { TableRow, TableCell, TableHead } from "@/components/ui/table"
-
-import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { PageHeader } from "@/components/shared/page-header"
-import { DataTable } from "@/components/shared/data-table"
-
-import { productosAPI } from "@/services/productosAPI"
-import { marcasAPI } from "@/services/marcasAPI"
-import { categoriasAPI } from "@/services/categoriasAPI"
-import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types"
-import { formatGuaranies } from "@/utils/money-format"
-import { notify } from "@/lib/notifications"
-import { formatearNumeroProducto } from "@/utils/producto-format"
+} from "@/components/ui/alert-dialog";
+import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
+import { PageHeader } from "@/components/shared/page-header";
+import { DataTable } from "@/components/shared/data-table";
+import { productosAPI } from "@/services/productosAPI";
+import { marcasAPI } from "@/services/marcasAPI";
+import { categoriasAPI } from "@/services/categoriasAPI";
+import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types";
+import { formatGuaranies } from "@/utils/money-format";
+import { notify } from "@/lib/notifications";
+import { formatearNumeroProducto } from "@/utils/producto-format";
 
 const columnWidths = {
-  codigo: "w-[80px]",
-  descripcion: "w-[25%]",
-  marca: "w-[100px]",
-  categoria: "w-[100px]",
-  precio: "w-[100px]",
-  stock: "w-[80px]",
-  acciones: "w-[80px]",
+  codigo: "w-[90px]",
+  descripcion: "w-[180px]",
+  marca: "w-[120px]",
+  categoria: "w-[120px]",
+  precio: "w-[150px]",
+  stock: "w-[100px]",
+  acciones: "w-[100px]",
 };
 
 export default function ProductosPage() {
@@ -46,14 +50,18 @@ export default function ProductosPage() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   //const [productos, setProductos] = useState<ProductoDTO[]>([])
   const [todosLosProductos, setTodosLosProductos] = useState<ProductoDTO[]>([]);
-  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(null);
-  const [productoAEliminar, setProductoAEliminar] = useState<ProductoDTO | null>(null);
+  const [productoAEditar, setProductoAEditar] = useState<ProductoDTO | null>(
+    null,
+  );
+  const [productoAEliminar, setProductoAEliminar] =
+    useState<ProductoDTO | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   //const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(8); //10 por defecto
   const [searchTerm, setSearchTerm] = useState("");
+  const [soloStockBajo, setSoloStockBajo] = useState(false);
 
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
@@ -62,14 +70,19 @@ export default function ProductosPage() {
       const [resPaginada, resMarcas, resCategorias] = await Promise.all([
         productosAPI.getAll(currentPage, 100),
         marcasAPI.getAll(),
-        categoriasAPI.getAll()
-      ])
+        categoriasAPI.getAll(),
+      ]);
       //setProductos(resPaginada.items);
-      const soloProductos = resPaginada.items.filter((s) => s.esServicio === false);
+      const soloProductos = resPaginada.items.filter(
+        (s) => s.esServicio === false,
+      );
       const ordenados = [...soloProductos].sort((a, b) => {
-        const porDescripcion = a.descripcion.localeCompare(b.descripcion, 'es-PY');
+        const porDescripcion = a.descripcion.localeCompare(
+          b.descripcion,
+          "es-PY",
+        );
         if (porDescripcion === 0) {
-          return a.marca.localeCompare(b.marca, 'es-PY');
+          return a.marca.localeCompare(b.marca, "es-PY");
         }
         return porDescripcion;
       });
@@ -80,11 +93,11 @@ export default function ProductosPage() {
       setCategorias(resCategorias);
     } catch (error) {
       console.error("Error al cargar datos de la página:", error);
-      notify.error ("Error", "Error al cargar la página");
+      notify.error("Error", "Error al cargar la página");
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const cargarMarcas = async () => {
     try {
@@ -92,9 +105,9 @@ export default function ProductosPage() {
       setMarcas(response.items);
     } catch (error) {
       console.error("Error al cargar datos de marcas:", error);
-      notify.error ("Error", "Error al cargar las marcas");
+      notify.error("Error", "Error al cargar las marcas");
     }
-  }
+  };
 
   const cargarCategorias = async () => {
     try {
@@ -102,40 +115,25 @@ export default function ProductosPage() {
       setCategorias(response);
     } catch (error) {
       console.error("Error al cargar datos de categorías:", error);
-      notify.error ("Error", "Error al cargar las categorías");
+      notify.error("Error", "Error al cargar las categorías");
     }
-  }
+  };
 
   //useEffect(() => { cargarPagina() }, [currentPage]);
-  useEffect(() => { cargarPagina() }, []);
+  useEffect(() => {
+    cargarPagina();
+  }, []);
 
-  //FILTRO DE BÚSQUEDA
-  const productosFiltrados = useMemo(() => {
-    if (!searchTerm.trim()) return todosLosProductos;
-    
-    const query = searchTerm.toLowerCase().trim();
-    return todosLosProductos.filter(p => 
-      p.descripcion.toLowerCase().includes(query) || 
-      formatearNumeroProducto(p.idProducto).toLowerCase().toString().includes(query) ||
-      (p.marca && p.marca.toLowerCase().includes(query)) ||
-      (p.categoria && p.categoria.toLowerCase().includes(query))
-    );
-  }, [searchTerm, todosLosProductos]);
+  // 2. ACCIONES (CREAR / EDITAR / ELIMINAR)
+  const handleCrearNuevo = () => {
+    setProductoAEditar(null);
+    setIsSheetOpen(true);
+  };
 
-  const totalPages = Math.ceil(productosFiltrados.length / itemsPerPage) || 1;
-
-  const productosVisiblesEnPagina = useMemo(() => {
-    const primerItemIndex = (currentPage - 1) * itemsPerPage;
-    const ultimoItemIndex = primerItemIndex + itemsPerPage;
-    return productosFiltrados.slice(primerItemIndex, ultimoItemIndex);
-  }, [currentPage, productosFiltrados]);
-
-  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
-
-  //ACCIONES (CREAR / EDITAR / ELIMINAR)
-  const handleCrearNuevo = () => { setProductoAEditar(null); setIsSheetOpen(true); }
-  
-  const handleEditar = (p: ProductoDTO) => { setProductoAEditar(p); setIsSheetOpen(true); }
+  const handleEditar = (p: ProductoDTO) => {
+    setProductoAEditar(p);
+    setIsSheetOpen(true);
+  };
 
   const confirmarEliminacion = async () => {
     if (productoAEliminar) {
@@ -145,7 +143,10 @@ export default function ProductosPage() {
         await cargarPagina(); // Recarga la página actual
       } catch (error) {
         console.error("Error al eliminar el producto:", error);
-        notify.error("Error", "No se pudo eliminar. El producto tiene objetos asociados.");
+        notify.error(
+          "Error",
+          "No se pudo eliminar. El producto tiene objetos asociados.",
+        );
       } finally {
         setIsAlertOpen(false);
         setProductoAEliminar(null);
@@ -157,32 +158,75 @@ export default function ProductosPage() {
     try {
       if (productoAEditar) {
         //console.log(data);
-        await productosAPI.update(productoAEditar.idProducto, data)
+        await productosAPI.update(productoAEditar.idProducto, data);
         notify.success("Actualizado", "Producto actualizado correctamente.");
       } else {
         //console.log(data);
-        await productosAPI.create(data)
+        await productosAPI.create(data);
         notify.success("Registrado", "Nuevo producto guardado.");
       }
-      setIsSheetOpen(false)
-      cargarPagina() // Refrescar la tabla
+      setIsSheetOpen(false);
+      cargarPagina(); // Refrescar la tabla
     } catch (error) {
-      console.error("Error al guardar:", error)
-      notify.error("Error", "No se pudo procesar la solicitud.")
+      console.error("Error al guardar:", error);
+      notify.error("Error", "No se pudo procesar la solicitud.");
     }
-  }
+  };
+
+  //FILTRO DE BÚSQUEDA
+  const productosFiltrados = useMemo(() => {
+    let resultado = todosLosProductos;
+    if (soloStockBajo) {
+      resultado = resultado.filter((p) => (p.cantidadTotal ?? 0) <= 4);
+    }
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase().trim();
+      resultado = resultado.filter(
+        (p) =>
+          formatearNumeroProducto(p.idProducto)
+            .toLowerCase()
+            .toString()
+            .includes(query) ||
+          p.descripcion.toLowerCase().includes(query) ||
+          p.marca.toLowerCase().includes(query) ||
+          p.categoria.toLowerCase().includes(query),
+      );
+    }
+
+    return resultado;
+  }, [searchTerm, todosLosProductos, soloStockBajo]);
+
+  const totalPages = Math.ceil(productosFiltrados.length / itemsPerPage) || 1;
+
+  const productosVisiblesEnPagina = useMemo(() => {
+    const primerItemIndex = (currentPage - 1) * itemsPerPage;
+    const ultimoItemIndex = primerItemIndex + itemsPerPage;
+    return productosFiltrados.slice(primerItemIndex, ultimoItemIndex);
+  }, [currentPage, productosFiltrados]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, soloStockBajo]);
 
   //console.log(productoAEliminar)
 
   return (
-    <> {/*src/app/(protected)/layout.tsx ya contiene Navbar y div Container*/}
+    <>
+      {" "}
+      {/*src/app/(protected)/layout.tsx ya contiene Navbar y div Container*/}
       {/*BREADCRUMB*/}
-      <PageBreadcrumb steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]} />
+      <PageBreadcrumb
+        steps={[{ label: "Stock", href: "#" }, { label: "Productos" }]}
+      />
       {/*BOTÓN ADD*/}
-      <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
+      <PageHeader
+        title="Listado de Productos"
+        buttonLabel="Nuevo Producto"
+        onButtonClick={handleCrearNuevo}
+      />
       {/* INPUT DEL BUSCADOR LOCAL */}
-      <div className="my-4 flex items-center max-w-md relative">
-        <div className="relative w-full">
+      <div className="my-2 flex flex-col sm:flex-row sm:items-center gap-2">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por código, descripción, marca o categoría..."
@@ -201,46 +245,75 @@ export default function ProductosPage() {
             </Button>
           )}
         </div>
+        {/* CHECKBOX FILTRO STOCK BAJO */}
+        <div className="flex items-center space-x-2 bg-white px-3 h-9 rounded-md border shadow-sm select-none shrink-0">
+          <input
+            type="checkbox"
+            id="stockBajoCheck"
+            checked={soloStockBajo}
+            onChange={(e) => setSoloStockBajo(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-red-500 cursor-pointer"
+          />
+          <label
+            htmlFor="stockBajoCheck"
+            className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+          >
+            Ver solo Stock Bajo (≤ 4)
+          </label>
+        </div>
       </div>
       {/*ALERT DIALOG*/}
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Esta acción no se puede deshacer. Eliminarás permanentemente el producto{" "}
-            <span className="font-bold text-foreground">
-              "{productoAEliminar?.descripcion}"
-            </span>{" "}
-            y se quitará del servidor.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={confirmarEliminacion}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Eliminar Producto
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Eliminarás permanentemente el
+              producto{" "}
+              <span className="font-bold text-foreground">
+                "{productoAEliminar?.descripcion}"
+              </span>{" "}
+              y se quitará del servidor.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarEliminacion}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar Producto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
       {/*TABLA*/}
       {isLoading ? (
-        <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>
+        <div className="flex justify-center p-10">
+          <Loader2 className="animate-spin" />
+        </div>
       ) : (
         <DataTable
           caption="Lista actualizada de productos en inventario."
           headerRow={
             <TableRow>
               <TableHead className={`${columnWidths.codigo}`}>Código</TableHead>
-              <TableHead className={`${columnWidths.descripcion}`}>Descripción</TableHead>
+              <TableHead className={`${columnWidths.descripcion}`}>
+                Descripción
+              </TableHead>
               <TableHead className={`${columnWidths.marca}`}>Marca</TableHead>
-              <TableHead className={`${columnWidths.categoria}`}>Categoría</TableHead>
-              <TableHead className={`${columnWidths.precio} text-right`}>Precio Unit.</TableHead>
-              <TableHead className={`${columnWidths.stock} text-right`}>Stock Total</TableHead>
-              <TableHead className={`${columnWidths.acciones} text-right`}>Acciones</TableHead>
+              <TableHead className={`${columnWidths.categoria}`}>
+                Categoría
+              </TableHead>
+              <TableHead className={`${columnWidths.precio} text-right`}>
+                Precio Unit.
+              </TableHead>
+              <TableHead className={`${columnWidths.stock} text-right`}>
+                Stock Total
+              </TableHead>
+              <TableHead className={`${columnWidths.acciones} text-right`}>
+                Acciones
+              </TableHead>
             </TableRow>
           }
           currentPage={currentPage}
@@ -249,17 +322,46 @@ export default function ProductosPage() {
         >
           {productosVisiblesEnPagina.map((p) => (
             <TableRow key={p.idProducto}>
-              <TableCell className={`${columnWidths.codigo}`}>{formatearNumeroProducto(p.idProducto)}</TableCell>
-              <TableCell className={`${columnWidths.descripcion}`}>{p.descripcion}</TableCell>
-              <TableCell className={`${columnWidths.marca}`}>{p.marca}</TableCell>
-              <TableCell className={`${columnWidths.categoria}`}>{p.categoria}</TableCell>
-              <TableCell className={`${columnWidths.precio} text-right`}>{formatGuaranies(p.precioUnitario)}</TableCell>
-              <TableCell className={`${columnWidths.stock} text-right font-semibold ${p.cantidadTotal <= 4 ? "text-red-500" : ""}`}>{p.cantidadTotal}</TableCell>
-              <TableCell className={`${columnWidths.acciones} text-right space-x-1`}>
-                <Button variant="ghost" size="icon" onClick={() => handleEditar(p)} className="cursor-pointer">
+              <TableCell className={`${columnWidths.codigo}`}>
+                {formatearNumeroProducto(p.idProducto)}
+              </TableCell>
+              <TableCell className={`${columnWidths.descripcion}`}>
+                {p.descripcion}
+              </TableCell>
+              <TableCell className={`${columnWidths.marca}`}>
+                {p.marca}
+              </TableCell>
+              <TableCell className={`${columnWidths.categoria}`}>
+                {p.categoria}
+              </TableCell>
+              <TableCell className={`${columnWidths.precio} text-right`}>
+                {formatGuaranies(p.precioUnitario)}
+              </TableCell>
+              <TableCell
+                className={`${columnWidths.stock} text-right font-semibold ${p.cantidadTotal <= 4 ? "text-red-500" : ""}`}
+              >
+                {p.cantidadTotal}
+              </TableCell>
+              <TableCell
+                className={`${columnWidths.acciones} text-right space-x-1`}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEditar(p)}
+                  className="cursor-pointer"
+                >
                   <Pencil className="size-3.5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => {setProductoAEliminar(p); setIsAlertOpen(true);}} className="cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setProductoAEliminar(p);
+                    setIsAlertOpen(true);
+                  }}
+                  className="cursor-pointer"
+                >
                   <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </TableCell>
@@ -267,7 +369,10 @@ export default function ProductosPage() {
           ))}
           {productosVisiblesEnPagina.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="py-10 text-center text-muted-foreground text-sm">
+              <TableCell
+                colSpan={7}
+                className="py-10 text-center text-muted-foreground text-sm"
+              >
                 No hay productos que coincidan con la búsqueda.
               </TableCell>
             </TableRow>
@@ -278,23 +383,27 @@ export default function ProductosPage() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="px-6 sm:max-w-[540px] sm:min-w-[450px]">
           <SheetHeader className="border-b pt-4">
-            <SheetTitle>{productoAEditar ? "Editar Producto" : "Nuevo Producto"}</SheetTitle>
-            <SheetDescription>Completa la información del inventario.</SheetDescription>
+            <SheetTitle>
+              {productoAEditar ? "Editar Producto" : "Nuevo Producto"}
+            </SheetTitle>
+            <SheetDescription>
+              Completa la información del inventario.
+            </SheetDescription>
           </SheetHeader>
           <ProductoForm
             key={productoAEditar?.idProducto ?? "nuevo"}
             productoEditado={productoAEditar}
-            categorias={categorias} 
+            categorias={categorias}
             marcas={marcas}
             onSubmit={handleFormSubmit}
             onCancel={() => setIsSheetOpen(false)}
             onRefreshData={async () => {
               await cargarMarcas();
               await cargarCategorias();
-           }}
+            }}
           />
         </SheetContent>
       </Sheet>
     </>
-  )
+  );
 }

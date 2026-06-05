@@ -34,21 +34,6 @@ interface Props {
   onCancel: () => void;
 }
 
-const meses = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-];
-
 function formatDateInput(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -57,9 +42,9 @@ function formatDateInput(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getMonthRange(year: number, month: number) {
-  const firstDay = new Date(year, month - 1, 1);
-  const lastDay = new Date(year, month, 0);
+function getYearRange(year: number) {
+  const firstDay = new Date(year, 0, 1);
+  const lastDay = new Date(year, 11, 31);
 
   return {
     fechaInicio: formatDateInput(firstDay),
@@ -81,13 +66,12 @@ export function PeriodoContableForm({ procesos, onSubmit, onCancel }: Props) {
   const [formData, setFormData] = useState<PeriodoContableSaveDTO>(() => {
     const currentDate = new Date();
     const anho = procesoInicial?.periodoAnho ?? currentDate.getFullYear();
-    const mes = currentDate.getMonth() + 1;
-    const range = getMonthRange(anho, mes);
+    const range = getYearRange(anho);
 
     return {
       idProcesoContable: procesoInicial?.idProcesoContable ?? 0,
       anho,
-      mes,
+      mes: 1,
       fechaInicio: range.fechaInicio,
       fechaFin: range.fechaFin,
       estado: "Habilitado",
@@ -98,29 +82,18 @@ export function PeriodoContableForm({ procesos, onSubmit, onCancel }: Props) {
     if (!procesoInicial) return;
 
     setFormData((prev) => {
-      const range = getMonthRange(procesoInicial.periodoAnho, prev.mes);
+      const range = getYearRange(procesoInicial.periodoAnho);
 
       return {
         ...prev,
         idProcesoContable: procesoInicial.idProcesoContable,
         anho: procesoInicial.periodoAnho,
+        mes: 1,
         fechaInicio: range.fechaInicio,
         fechaFin: range.fechaFin,
       };
     });
   }, [procesoInicial]);
-
-  const updatePeriodoRange = (anho: number, mes: number) => {
-    const range = getMonthRange(anho, mes);
-
-    setFormData((prev) => ({
-      ...prev,
-      anho,
-      mes,
-      fechaInicio: range.fechaInicio,
-      fechaFin: range.fechaFin,
-    }));
-  };
 
   const handleProcesoChange = (id: string) => {
     const proceso = procesos.find(
@@ -128,12 +101,13 @@ export function PeriodoContableForm({ procesos, onSubmit, onCancel }: Props) {
     );
     if (!proceso) return;
 
-    const range = getMonthRange(proceso.periodoAnho, formData.mes);
+    const range = getYearRange(proceso.periodoAnho);
 
     setFormData((prev) => ({
       ...prev,
       idProcesoContable: proceso.idProcesoContable,
       anho: proceso.periodoAnho,
+      mes: 1,
       fechaInicio: range.fechaInicio,
       fechaFin: range.fechaFin,
     }));
@@ -189,28 +163,7 @@ export function PeriodoContableForm({ procesos, onSubmit, onCancel }: Props) {
           </Select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="mes">Mes</Label>
-            <Select
-              value={String(formData.mes)}
-              onValueChange={(value) =>
-                updatePeriodoRange(formData.anho, Number(value))
-              }
-            >
-              <SelectTrigger id="mes">
-                <SelectValue placeholder="Seleccionar mes" />
-              </SelectTrigger>
-              <SelectContent>
-                {meses.map((mes, index) => (
-                  <SelectItem key={mes} value={String(index + 1)}>
-                    {mes}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+        <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="estado">Estado</Label>
             <Select
