@@ -273,9 +273,7 @@ export interface FacturaVentaCompleto {
 export interface FacturaVentaCompletoSave {
     idPresupuesto: number;
     idCliente: number;
-    nroComprobante: string;
     idEstado: number;
-    idTimbrado: number;
     fecha: string;
     descripcion: string;
     idMedioPagoCompra: number;
@@ -414,6 +412,20 @@ export interface OrdenVenta {
 export interface MedioPago {
     idMedioPagoCompra: number;
     nombre: string;
+}
+
+//ventas/Reportes
+export interface ReporteProducto {
+    idProducto: number
+    descripcion: string
+    cantidadVendida: number
+  }
+  
+export interface ReporteCliente {
+idCliente: number
+nombreCliente: string
+cantidadFacturas: number
+montoTotal: number
 }
 
 // Lo que viene dentro de la lista de categorías del proveedor en el GET

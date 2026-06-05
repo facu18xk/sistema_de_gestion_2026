@@ -52,6 +52,7 @@ export default function ProductosPage() {
   //const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(8); //10 por defecto
   const [searchTerm, setSearchTerm] = useState("");
+  const [soloStockBajo, setSoloStockBajo] = useState(false);
 
   // 1. CARGA DE DATOS INICIAL
   const cargarPagina = async () => {
@@ -149,15 +150,21 @@ export default function ProductosPage() {
 
   //FILTRO DE BÚSQUEDA
   const productosFiltrados = useMemo(() => {
-      if (!searchTerm.trim()) return todosLosProductos;
-      
+    let resultado = todosLosProductos;
+    if (soloStockBajo) {
+      resultado = resultado.filter(p => (p.cantidadTotal ?? 0) <= 4);
+    }
+    if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase().trim();
-      return todosLosProductos.filter(p => 
+      resultado = resultado.filter(p => 
         p.descripcion.toLowerCase().includes(query) || 
         p.marca.toLowerCase().includes(query) || 
         p.categoria.toLowerCase().includes(query)
       );
-    }, [searchTerm, todosLosProductos]);
+    }
+
+    return resultado;
+  }, [searchTerm, todosLosProductos, soloStockBajo]);
 
     const totalPages = Math.ceil(productosFiltrados.length / itemsPerPage) || 1;
 
@@ -167,7 +174,7 @@ export default function ProductosPage() {
       return productosFiltrados.slice(primerItemIndex, ultimoItemIndex);
     }, [currentPage, productosFiltrados]);
 
-    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, soloStockBajo]);
 
   //console.log(productoAEliminar)
 
@@ -178,8 +185,8 @@ export default function ProductosPage() {
       {/*BOTÓN ADD*/}
       <PageHeader title="Listado de Productos" buttonLabel="Nuevo Producto" onButtonClick={handleCrearNuevo} />
       {/* INPUT DEL BUSCADOR LOCAL */}
-      <div className="my-2 flex items-center max-w-md relative">
-        <div className="relative w-full">
+      <div className="my-2 flex flex-col sm:flex-row sm:items-center gap-2">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por descripción, marca o categoría..."
@@ -197,6 +204,22 @@ export default function ProductosPage() {
               <X className="h-4 w-4" />
             </Button>
           )}
+        </div>
+        {/* CHECKBOX FILTRO STOCK BAJO */}
+        <div className="flex items-center space-x-2 bg-white px-3 h-9 rounded-md border shadow-sm select-none shrink-0">
+          <input
+            type="checkbox"
+            id="stockBajoCheck"
+            checked={soloStockBajo}
+            onChange={(e) => setSoloStockBajo(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-red-500 cursor-pointer"
+          />
+          <label 
+            htmlFor="stockBajoCheck" 
+            className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+          >
+            Ver solo Stock Bajo (≤ 4)
+          </label>
         </div>
       </div>
       {/*ALERT DIALOG*/}

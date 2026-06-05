@@ -239,9 +239,7 @@ export default function NuevaFacturaPage() {
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
-      nroComprobante: "",
       idEstado: 7, //Estado 'Emitido'
-      idTimbrado: 1,
       fecha: fechaHoy,
       descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,
@@ -405,23 +403,23 @@ export default function NuevaFacturaPage() {
                 </div>
                 <div>
                     <p className="text-muted-foreground text-[13px]">Documento (CI/RUC)</p>
-                    <p className="font-medium text-slate-800 text-[13px]">
+                    <p className="font-semibold text-slate-800 text-[13px]">
                         {cliente ? (cliente.ruc ? `RUC: ${formatRUC(cliente.ruc)}` : `CI: ${formatCI(cliente.ci)}`) : "---"}
                     </p>
                 </div>
                 <div className="truncate">
                     <p className="text-muted-foreground text-[13px]">Email</p>
-                    <p className="font-medium text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
+                    <p className="font-semibold text-slate-700 truncate text-[13px]">{cliente?.correo || "No registrado"}</p>
                 </div>
                 {/*<div>
                     <p className="text-muted-foreground text-[13px]">Fecha Nacimiento</p>
-                    <p className="font-medium text-slate-700 text-[13px]">
+                    <p className="font-semibold text-slate-700 text-[13px]">
                         {cliente ? formatearFecha(cliente.fechaNacimiento) : "---"}
                 </p>
                 </div>*/}
                 <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{formatPhone(cliente?.telefono) || "No registrado"}</p>
                 </div>
             </div>
             </div>
@@ -592,7 +590,14 @@ export default function NuevaFacturaPage() {
                 );
               })}
               {/* CARRITO VACÍO */}
-              {itemsCarrito.length === 0 && (
+              {!presupuestoSel && itemsCarrito.length === 0 && (
+                <TableRow>
+                <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(cliente) {setIsProductoModalOpen(true)}}}>
+                  Seleccione un presupuesto para empezar.
+                </TableCell>
+                </TableRow>
+              )}
+              {presupuestoSel && itemsCarrito.length === 0 && (
                 <TableRow>
                 <TableCell className="py-12 text-center text-muted-foreground text-sm" onClick={() => {if(cliente) {setIsProductoModalOpen(true)}}}>
                   No hay productos seleccionados. Use el botón "+ Agregar" para comenzar.

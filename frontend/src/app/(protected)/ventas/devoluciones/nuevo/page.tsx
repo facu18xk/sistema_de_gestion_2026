@@ -349,17 +349,17 @@ export default function NuevaDevolucionPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* COLUMNA 1: CLIENTE */}
           <div>
-            <p className="text-[12px] font-bold uppercase text-muted-foreground mb-1.5">Datos del Cliente</p>
+            <p className="text-[12px] font-semibold uppercase text-muted-foreground mb-1.5">Datos del Cliente</p>
             <p className="text-slate-500 text-[13px]">Razón Social:</p>
-            <p className="font-bold text-slate-900 text-[13px] mb-1">{facturaSeleccionada?.cliente || "---"}</p>
+            <p className="font-semibold text-slate-900 text-[13px] mb-1">{facturaSeleccionada?.cliente || "---"}</p>
             <p className="text-slate-500 text-[13px]">CI/RUC:</p>
-            <p className="font-bold text-slate-900 text-[13px] mb-1">{cliente?.ruc ? `RUC: ${formatRUC(cliente?.ruc)}` : `CI: ${formatCI(cliente?.ci)}`}</p>
+            <p className="font-semibold text-slate-900 text-[13px] mb-1">{cliente?.ruc ? `RUC: ${formatRUC(cliente?.ruc)}` : `CI: ${formatCI(cliente?.ci)}`}</p>
           </div>
           {/* COLUMNA 2: FACTURA ORIGEN */}
           <div>
-            <p className="text-[12px] font-bold uppercase text-muted-foreground mb-1.5">Factura de Referencia</p>
+            <p className="text-[12px] font-semibold uppercase text-muted-foreground mb-1.5">Factura de Referencia</p>
             <p className="text-slate-500 text-[13px]">N° Comprobante:</p>
-            <p className="font-bold text-emerald-700 text-[13px] mb-1">
+            <p className="font-semibold text-emerald-700 text-[13px] mb-1">
               {facturaSeleccionada ? facturaSeleccionada.nroComprobante : "Seleccione una factura"}
             </p>
             {facturaSeleccionada && facturaSeleccionada.idPresupuesto > 0 && (

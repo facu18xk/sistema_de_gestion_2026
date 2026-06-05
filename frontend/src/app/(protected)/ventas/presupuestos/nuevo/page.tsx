@@ -332,21 +332,21 @@ export default function NuevoPresupuestoPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground text-[13px]">CI / RUC</p>
-                  <p className="font-medium text-slate-800 text-[13px]">
+                  <p className="font-semibold text-slate-800 text-[13px]">
                     {clienteSel.ruc ? `RUC: ${formatRUC(clienteSel.ruc)}` : `CI: ${formatCI(clienteSel.ci)}`}
                   </p>
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Email</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{clienteSel.correo || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{clienteSel.correo || "No registrado"}</p>
                 </div>
                 {/*<div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Fecha de Nacimiento</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{new Date(clienteSel.fechaNacimiento).toLocaleDateString()}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{new Date(clienteSel.fechaNacimiento).toLocaleDateString()}</p>
                 </div>*/}
                 <div className="hidden sm:block">
                   <p className="text-muted-foreground text-[13px]">Teléfono</p>
-                  <p className="font-medium text-slate-700 text-[13px]">{formatPhone(clienteSel.telefono) || "No registrado"}</p>
+                  <p className="font-semibold text-slate-700 text-[13px]">{formatPhone(clienteSel.telefono) || "No registrado"}</p>
                 </div>
               </div>
             ) : (

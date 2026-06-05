@@ -29,7 +29,7 @@ import { notify } from "@/lib/notifications";
 const modulos = [
   {
     title: "Ventas",
-    items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones"],
+    items: ["Clientes", "Presupuestos", "Facturación", "Devoluciones", "Reportes de Ventas"],
   },
   {
     title: "Compras",
@@ -67,6 +67,7 @@ const routeByItem: Record<string, string> = {
   Presupuestos: "/ventas/presupuestos",
   Facturación: "/ventas/facturacion",
   Devoluciones: "/ventas/devoluciones",
+  "Reportes de Ventas": "/ventas/reportes",
   Proveedores: "/compras/proveedores",
   Pedidos: "/compras/pedidos",
   Cotizaciones: "/compras/cotizaciones",

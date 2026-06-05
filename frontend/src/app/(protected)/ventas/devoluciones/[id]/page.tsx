@@ -458,25 +458,25 @@ export default function DetalleNotaCreditoPage() {
           
           {/* SECCIÓN 1: DATOS FISCALES DEL COMPROBANTE */}
           <div className="border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
-            <p className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Identificación del Comprobante
             </p>
             <div className="space-y-2">
               <div>
                 <p className="text-muted-foreground text-[12px]">N° Nota de Crédito</p>
-                <p className="font-bold text-slate-900 text-[13px]">
+                <p className="font-semibold text-slate-900 text-[13px]">
                   {notaCredito.nroComprobante}
                 </p>
               </div>
               <div>
                 <p className="text-muted-foreground text-[12px]">Timbrado Asociado</p>
-                <p className="font-medium text-slate-700 text-[13px]">
+                <p className="font-semibold text-slate-700 text-[13px]">
                   {notaCredito.timbrado || "---"}
                 </p>
               </div>
               <div>
                 <p className="text-muted-foreground text-[12px]">Fecha de Emisión</p>
-                <p className="font-medium text-slate-700 text-[13px]">
+                <p className="font-semibold text-slate-700 text-[13px]">
                   {formatearFecha(notaCredito.fechaEmision)}
                 </p>
               </div>
@@ -485,7 +485,7 @@ export default function DetalleNotaCreditoPage() {
 
           {/* SECCIÓN 2: COMPROBANTES AFECTADOS */}
           <div className="border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
-            <p className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Documentos de Referencia
             </p>
             <div className="space-y-2">

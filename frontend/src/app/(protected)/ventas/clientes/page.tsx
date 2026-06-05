@@ -203,8 +203,10 @@ export default function ProveedoresPage() {
       return todosLosClientes.filter(c => 
         c.nombres.toLowerCase().includes(query) || 
         c.apellidos.toLowerCase().includes(query) || 
-        (c.ci && formatCI(c.ci).toString().includes(query)) ||
-        (c.ruc && formatRUC(c.ruc).toString().includes(query))
+        //(c.ci && formatCI(c.ci).toString().includes(query)) ||
+        //(c.ruc && formatRUC(c.ruc).toString().includes(query))
+        c.ci.toString().includes(query) ||
+        c.ruc.toString().includes(query)
       );
     }, [searchTerm, todosLosClientes]);
 

@@ -464,25 +464,25 @@ export default function DetalleFacturaPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">  
           {/* DATOS CLIENTE */}
           <div className="md:col-span-2 border-b md:border-b-0 md:border-r pb-3 md:pb-0 pr-0 md:pr-4 border-slate-200">
-            <p className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Datos del Cliente
             </p>
             <div className="grid grid-cols-2 gap-x-3 gap-y-2">
               <div>
                 <p className="text-muted-foreground text-[13px]">Razón Social / Cliente</p>
-                <p className="font-bold text-slate-900 text-[13px]">{factura.cliente || "Sin especificar"}</p>
+                <p className="font-semibold text-slate-900 text-[13px]">{factura.cliente || "Sin especificar"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-[13px]">N° Comprobante</p>
-                <p className="font-bold text-emerald-700 text-[13px]">{factura.nroComprobante}</p>
+                <p className="font-semibold text-emerald-700 text-[13px]">{factura.nroComprobante}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-[13px]">Timbrado N°</p>
-                <p className="font-medium text-slate-800 text-[13px]">{factura.timbrado} <span className="text-xs text-muted-foreground">({factura.timbradoRuc})</span></p>
+                <p className="font-semibold text-slate-800 text-[13px]">{factura.timbrado} <span className="text-xs text-muted-foreground">({factura.timbradoRuc})</span></p>
               </div>
               <div>
                 <p className="text-muted-foreground text-[13px]">Fecha de Emisión</p>
-                <p className="font-medium text-slate-700 text-[13px]">{formatearFecha(factura.fecha)}</p>
+                <p className="font-semibold text-slate-700 text-[13px]">{formatearFecha(factura.fecha)}</p>
               </div>
             </div>
           </div>
