@@ -17,19 +17,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { TableRow, TableCell, TableHead } from "@/components/ui/table"
-
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-
 import { productosAPI } from "@/services/productosAPI"
 import { marcasAPI } from "@/services/marcasAPI"
 import { categoriasAPI } from "@/services/categoriasAPI"
 import { ProductoDTO, ProductoSaveDTO, Marca, Categoria } from "@/types/types"
 import { formatGuaranies } from "@/utils/money-format"
 import { notify } from "@/lib/notifications"
+import { formatearNumeroProducto } from "@/utils/producto-format"
 
 const columnWidths = {
+  codigo: "w-[90px]",
   descripcion: "w-[180px]",
   marca: "w-[120px]",
   categoria: "w-[120px]",
@@ -157,6 +157,7 @@ export default function ProductosPage() {
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase().trim();
       resultado = resultado.filter(p => 
+        formatearNumeroProducto(p.idProducto).toLowerCase().toString().includes(query) ||
         p.descripcion.toLowerCase().includes(query) || 
         p.marca.toLowerCase().includes(query) || 
         p.categoria.toLowerCase().includes(query)
@@ -189,7 +190,7 @@ export default function ProductosPage() {
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por descripción, marca o categoría..."
+            placeholder="Buscar por código, descripción, marca o categoría..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm w-full bg-white shadow-sm"
@@ -254,7 +255,7 @@ export default function ProductosPage() {
           caption="Lista actualizada de productos en inventario."
           headerRow={
             <TableRow>
-              {/*<TableHead className="w-[80px]">ID</TableHead>*/}
+              <TableHead className={`${columnWidths.codigo}`}>Código</TableHead>
               <TableHead className={`${columnWidths.descripcion}`}>Descripción</TableHead>
               <TableHead className={`${columnWidths.marca}`}>Marca</TableHead>
               <TableHead className={`${columnWidths.categoria}`}>Categoría</TableHead>
@@ -269,7 +270,7 @@ export default function ProductosPage() {
         >
           {productosVisiblesEnPagina.map((p) => (
             <TableRow key={p.idProducto}>
-              {/*<TableCell className="font-medium">{p.idProducto}</TableCell>*/}
+              <TableCell className={`${columnWidths.codigo}`}>{formatearNumeroProducto(p.idProducto)}</TableCell>
               <TableCell className={`${columnWidths.descripcion}`}>{p.descripcion}</TableCell>
               <TableCell className={`${columnWidths.marca}`}>{p.marca}</TableCell>
               <TableCell className={`${columnWidths.categoria}`}>{p.categoria}</TableCell>
@@ -287,7 +288,7 @@ export default function ProductosPage() {
           ))}
           {productosVisiblesEnPagina.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="py-10 text-center text-muted-foreground text-sm">
+              <TableCell colSpan={7} className="py-10 text-center text-muted-foreground text-sm">
                 No hay productos que coincidan con la búsqueda.
               </TableCell>
             </TableRow>
