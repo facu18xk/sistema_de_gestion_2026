@@ -8,10 +8,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { DataTable } from "@/components/shared/data-table"
 import { facturasAPI } from "@/services/facturasAPI"
-import { FacturaVentaCompleto, ReporteProducto, ReporteCliente } from "@/types/types"
+import { FacturaVentaCompleto } from "@/types/types"
 import { formatGuaranies } from "@/utils/money-format"
 import { notify } from "@/lib/notifications"
 import { formatearNumeroProducto } from "@/utils/producto-format"
+
+interface ReporteProducto {
+  idProducto: number
+  descripcion: string
+  cantidadVendida: number
+}
+
+interface ReporteCliente {
+  idCliente: number
+  nombreCliente: string
+  cantidadFacturas: number
+  montoTotal: number
+}
 
 export default function ReportesVentasPage() {
   const [isLoading, setIsLoading] = useState(true)

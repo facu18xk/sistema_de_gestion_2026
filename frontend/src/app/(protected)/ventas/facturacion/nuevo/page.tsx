@@ -39,6 +39,14 @@ import { formatearFecha } from "@/utils/date-utils";
 import { describe } from "node:test";
 
 export default function NuevaFacturaPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando facturación...</div>}>
+      <NuevaFacturaContent />
+    </Suspense>
+  );
+}
+
+function NuevaFacturaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idPresupuestoQuery = searchParams.get("presupuestoId"); //ID desde la URL (?presupuestoId=X)
@@ -209,6 +217,10 @@ export default function NuevaFacturaPage() {
       notify.error("Incompleto", "Asegúrese de contar con un cliente e ítems cargados.");
       return;
     }
+    if (!timbrado) {
+      notify.error("Timbrado requerido", "No se pudo cargar un timbrado válido para emitir la factura.");
+      return;
+    }
     const tieneCantidadInvalida = itemsCarrito.some(item => item.cantidad <= 0);
     if (tieneCantidadInvalida) {
       notify.error("Cantidad Inválida", "Hay productos con cantidad vacía o en cero. Corrígelos o quítalos antes de continuar.");
@@ -234,12 +246,15 @@ export default function NuevaFacturaPage() {
 
     setIsSubmitting(true);
     const fechaHoy = new Date().toISOString().split('T')[0];
-    const ultimoNumero = Number(timbrado?.ultimoNumeroUsado) + 1;
+    const ultimoNumero = Number(timbrado.ultimoNumeroUsado) + 1;
+    const nroComprobante = `${timbrado.establecimiento}-${timbrado.puntoExpedicion}-${String(ultimoNumero).padStart(7, "0")}`;
 
     const payload: FacturaVentaCompletoSave = {
       idPresupuesto: presupuestoIdFinal,
       idCliente: cliente.idCliente,
+      nroComprobante,
       idEstado: 7, //Estado 'Emitido'
+      idTimbrado: timbrado.idTimbrado,
       fecha: fechaHoy,
       descripcion: descripcionFactura.trim() || `Facturación del Presupuesto ${formatearNumeroPresupuesto(presupuestoIdFinal)}`,
       idMedioPagoCompra: idMedioPago,

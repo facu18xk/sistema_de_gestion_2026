@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Eye, Trash2, Loader2, X, FileCheck, FileText } from "lucide-react";
@@ -37,8 +36,6 @@ export const formatPagoNro = (id: number | string) => {
 };
 
 export default function OrdenesPagosPage() {
-    const searchParams = useSearchParams();
-
     const [ordenesPago, setOrdenesPago] = useState<OrdenPagoCompra[]>([]);
     const [proveedores, setProveedores] = useState<Proveedor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -334,6 +331,7 @@ export default function OrdenesPagosPage() {
                                 ) : (
                                     ordenesPago.map((op) => {
                                         const idEstadoNum = Number(op.idEstado);
+                                        const estadoTexto = op.estado || (idEstadoNum === 1 ? "Pendiente" : "Procesado");
                                         const esModificable = idEstadoNum === 1 || op.estado?.toLowerCase().includes("pend");
 
                                         return (
@@ -355,8 +353,8 @@ export default function OrdenesPagosPage() {
 
                                                 {/* 4. Estado */}
                                                 <TableCell className="text-xs">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(op.idEstado.toLocaleString(), op.idEstado)}`}>
-                                                        {op.estado || (idEstadoNum === 1 ? "Pendiente" : "Procesado")}
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getEstadoBadgeStyle(estadoTexto, op.idEstado)}`}>
+                                                        {estadoTexto}
                                                     </span>
                                                 </TableCell>
 
